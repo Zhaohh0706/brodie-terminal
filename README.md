@@ -168,16 +168,15 @@ calls through your own domain.
 ## What still needs the team
 
 Everything on this page is either an on-chain fact or an inference from one. The
-inferences are marked, and §12 lists the eight questions only the team can close:
+inferences are marked, and §12 lists the seven questions only the team can close:
 
 1. Confirm the official contract set (hook, splitter, operator, launchpad)
 2. Who the four fee beneficiaries are and what each share funds
 3. Which address does the buybacks — the 0.6% claim vs the 0.073% measured
 4. The 68 unissued entitlements (56,344,918 BRODIE) — deadline, bug, or pending
-5. The migration ratio tiers (one deposit credited at exactly 0.6, blended 0.731)
-6. Whether the 132,045,778 initial LP is locked, for how long, and by whom
-7. Whether a burn mechanism is planned — zero burns to date
-8. A published policy for what fee revenue is for
+5. Whether the 132,045,778 initial LP is locked, for how long, and by whom
+6. Whether a burn mechanism is planned — zero burns to date
+7. A published policy for what fee revenue is for
 
 Each answered question converts a panel from "inferred" to "on-chain +
 confirmed". That is the only thing this dashboard cannot do for itself.
