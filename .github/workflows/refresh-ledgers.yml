@@ -29,9 +29,25 @@ jobs:
         run: python3 scripts/inject.py
 
       - name: Commit if changed
+        id: commit
         run: |
           git config user.name  "brodie-terminal-bot"
           git config user.email "bot@users.noreply.github.com"
           git add index.html tools/*.json
-          git diff --staged --quiet || git commit -m "chore: refresh ledgers $(date -u +%FT%TZ)"
-          git push
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: refresh ledgers $(date -u +%FT%TZ)"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Needs two repo secrets: VERCEL_TOKEN (vercel.com/account/tokens) and
+      # VERCEL_SCOPE (the team slug). Without them this step is skipped and the
+      # ledgers still refresh in the repo — you just redeploy by hand.
+      - name: Redeploy to Vercel
+        if: steps.commit.outputs.changed == 'true' && env.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
+        run: npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_SCOPE"

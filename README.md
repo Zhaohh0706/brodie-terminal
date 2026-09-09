@@ -180,3 +180,36 @@ inferences are marked, and §12 lists the seven questions only the team can clos
 
 Each answered question converts a panel from "inferred" to "on-chain +
 confirmed". That is the only thing this dashboard cannot do for itself.
+
+## Live
+
+**https://brodie-terminal.vercel.app**
+
+Deployed from this repo to Vercel. The repo stays private; only `index.html`
+(plus `vercel.json`) is served — `.vercelignore` keeps the tools, ledgers and
+source artwork out of the deployment. Deployment-specific preview URLs stay
+behind Vercel Authentication; the production alias is public.
+
+### Making the cron redeploy automatically
+
+`refresh-ledgers.yml` replays the chain every 30 minutes and commits the updated
+ledgers. To have that commit also redeploy, add two repository secrets:
+
+```
+gh secret set VERCEL_TOKEN --repo <owner>/brodie-terminal   # vercel.com/account/tokens
+gh secret set VERCEL_SCOPE --repo <owner>/brodie-terminal   # your Vercel team slug
+```
+
+Without them the workflow still refreshes the ledgers in the repo — you just run
+`vercel deploy --prod --yes --scope <slug>` yourself when you want it live.
+
+### Custom domain
+
+```
+vercel domains add <yourdomain> --scope <slug>
+vercel alias set brodie-terminal.vercel.app <yourdomain> --scope <slug>
+```
+
+Point the domain's DNS at Vercel as the CLI instructs. HTTPS is issued
+automatically. Turn on WHOIS privacy at your registrar — it is free at
+Cloudflare and Namecheap, and it keeps your name off the public WHOIS record.
