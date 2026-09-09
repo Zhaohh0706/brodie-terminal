@@ -1,0 +1,37 @@
+name: refresh ledgers
+
+# Keeps the baked snapshots fresh so the page's catch-up stays short.
+# The page streams Transfer events over a websocket on top of these.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+
+      - name: Replay chain ledgers
+        working-directory: tools
+        run: |
+          python3 onchain_audit.py
+          python3 dump_holders.py
+          python3 dump_all.py
+
+      - name: Re-inject into index.html
+        run: python3 scripts/inject.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "brodie-terminal-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add index.html tools/*.json
+          git diff --staged --quiet || git commit -m "chore: refresh ledgers $(date -u +%FT%TZ)"
+          git push
