@@ -48,23 +48,40 @@ jobs:
           print("injected through block %s" % ledger["block"])
           EOF
 
-      - name: Commit if changed
+      # A push can lose a race with a human commit landing during the 12-minute
+      # replay. Rebasing a 300KB single-line literal is not worth attempting, so
+      # on rejection we take the newest page, re-apply the fresh ledgers to it,
+      # and try again.
+      - name: Commit and push
         id: commit
         run: |
+          set -eu
           git config user.name  "brodie-terminal-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add index.html tools/*.json
-          if git diff --staged --quiet; then
+          if git diff --quiet -- index.html tools; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            git commit -m "chore: refresh ledgers $(date -u +%FT%TZ)"
-            git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "ledgers unchanged"
+            exit 0
           fi
+          MSG="chore: refresh ledgers $(date -u +%FT%TZ)"
+          mkdir -p /tmp/ledgers
+          for attempt in 1 2 3; do
+            git add index.html tools
+            git diff --staged --quiet || git commit -q -m "$MSG"
+            if git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt) — rebuilding on top of origin/main"
+            cp tools/*.json /tmp/ledgers/
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            cp /tmp/ledgers/*.json tools/
+            python3 scripts/inject.py
+          done
+          echo "could not push after 3 attempts" >&2
+          exit 1
 
-      # Needs two repo secrets: VERCEL_TOKEN (vercel.com/account/tokens) and
-      # VERCEL_SCOPE (the team slug). Without them this step is skipped and the
-      # ledgers still refresh in the repo — you just redeploy by hand.
       - name: Redeploy to Vercel
         if: steps.commit.outputs.changed == 'true' && env.VERCEL_TOKEN != ''
         env:
