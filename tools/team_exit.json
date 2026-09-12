@@ -1,0 +1,156 @@
+{
+ "generated": "2026-09-12T08:33:28Z",
+ "block": 60965910,
+ "feeWallet": "0x28e35d8c909df0d084945e4d80b17dbd36b0e02c",
+ "subWallet": "0x78655106b9c6261a33f23309040ed75a2315497e",
+ "router": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+ "buys": [
+  {
+   "t": 1788241903,
+   "blk": 51483755,
+   "amt": 648723.63,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0xf50a15506bc13856379a8d1f1dcbc11cbac3a90c9b5d6d2dd2e6cbe69267c962"
+  },
+  {
+   "t": 1788244404,
+   "blk": 51508543,
+   "amt": 581895.72,
+   "frm": "0x8366a39cc670b4001a1121b8f6a443a643e40951",
+   "tx": "0xf5b01b58d8bee6a3b6f6ba2c9301cc7aa291f08d6f44047a436bd7c77d0bd380"
+  },
+  {
+   "t": 1788246937,
+   "blk": 51533675,
+   "amt": 323235.7,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x52989dd39f97904f4958034bfa2d1a7dfda7acd91fad0184a907ca48ce1454fb"
+  },
+  {
+   "t": 1788253067,
+   "blk": 51594501,
+   "amt": 264184.32,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0xff34b0280eb4ee902811f219877af0df09e4543b49e0d068204cea103123a690"
+  },
+  {
+   "t": 1788347093,
+   "blk": 52525381,
+   "amt": 387203.85,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x33c4eb30707a4b73f99f0594681be78c7657c02c277a5e24bbb7732c7a4cfcc9"
+  },
+  {
+   "t": 1788353197,
+   "blk": 52585944,
+   "amt": 318367.26,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x848ab7330566dff58967e7e8a0a9bebb98116fe16a4ae7b41e4efaccbda0ecc2"
+  },
+  {
+   "t": 1788429908,
+   "blk": 53333258,
+   "amt": 397511.29,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x01284afdb072e78f238632665a0a6de273b8da94ff9b90af24abb64be58f1487"
+  },
+  {
+   "t": 1788450843,
+   "blk": 53536231,
+   "amt": 106280.09,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0xac34a142a771176d426b81119ba24c74e58cb2fe1de061e192bea9552ece1c06"
+  },
+  {
+   "t": 1788465724,
+   "blk": 53680446,
+   "amt": 320019.4,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x72691edc90676802cb1d82af60387f062e139471fc8bf23b0f07b7758f48d8c2"
+  },
+  {
+   "t": 1788481478,
+   "blk": 53835911,
+   "amt": 180330.91,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x54858cb37a04f73e249f675c204d4c9f79fcc8d75075b4305729ac99396d749b"
+  },
+  {
+   "t": 1788530943,
+   "blk": 54324906,
+   "amt": 204319.35,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x0c9e3679fea97f907364e19a3000ba9cbdc85123579d127f09cda75e9cd050ab"
+  },
+  {
+   "t": 1788547725,
+   "blk": 54490683,
+   "amt": 405258.48,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x866e9ebbd16c6c18fed5c8d216c3962315e54d2cd885789edc11e7b93334ce0f"
+  },
+  {
+   "t": 1788568652,
+   "blk": 54697878,
+   "amt": 170131.27,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x0d716be8b89dcfac16ac269a7b543e1ef8dee49aa9279b7e0d9dcd063aedc784"
+  },
+  {
+   "t": 1788622288,
+   "blk": 55229872,
+   "amt": 495782.44,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0xb0be0a47a06c0109739b793314c556ce045d6bbd358948f3c7bcdb15b9715504"
+  },
+  {
+   "t": 1788725121,
+   "blk": 56249477,
+   "amt": 516456.74,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x467b68fb5d9fe2aee0aeb3719451b5ab6e068771dda3a73fab29d8f4b154e290"
+  },
+  {
+   "t": 1788741670,
+   "blk": 56413532,
+   "amt": 229707.71,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0xe32765666f4403a5d4c6f24afcc84930bbf2e33fd5b24465d1dfbf1d71931773"
+  },
+  {
+   "t": 1788823709,
+   "blk": 57226640,
+   "amt": 502351.47,
+   "frm": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0xc6a106dabf85086004ffee79ccb4699754885f6e036b79ca5be4bd0152651042"
+  }
+ ],
+ "exit": [
+  {
+   "kind": "to_sub",
+   "t": 1788990286,
+   "blk": 58877688,
+   "amt": 6051759.63,
+   "to": "0x78655106b9c6261a33f23309040ed75a2315497e",
+   "tx": "0xbcb94edd000ced69c678d24c11ebf01102545f4c34ea34750d47526cbe5597f8"
+  },
+  {
+   "kind": "sell",
+   "t": 1788990924,
+   "blk": 58884000,
+   "amt": 4300000.0,
+   "to": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x576a83bad61c7ce38d7e0e9dbf73a3ae08de38f868dafbd1e553f6af4dcafc5d"
+  },
+  {
+   "kind": "sell",
+   "t": 1788990970,
+   "blk": 58884494,
+   "amt": 1751759.63,
+   "to": "0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3",
+   "tx": "0x5ebb169f7dff697a1959aa4255350463ca49a2fc035eab00e4b9d94b977ef739"
+  }
+ ],
+ "totalBought": 6051759.63,
+ "totalSold": 6051759.63
+}
