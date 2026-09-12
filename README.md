@@ -74,7 +74,7 @@ out of the pool as fee accrual and sold 5,912,531 of it straight back, and the
 LP deployer sent 132,045,777.98 into the pool as liquidity. Both are the right
 order of magnitude pointing the wrong way.
 
-This is rendered on the page as §04c "Who actually bought".
+This is rendered on the page as §07 "Who actually bought".
 
 ## Real-time architecture
 
@@ -168,7 +168,7 @@ calls through your own domain.
 ## What still needs the team
 
 Everything on this page is either an on-chain fact or an inference from one. The
-inferences are marked, and §12 lists the seven questions only the team can close:
+inferences are marked, and §15 lists the seven questions only the team can close:
 
 1. Confirm the official contract set (hook, splitter, operator, launchpad)
 2. Who the four fee beneficiaries are and what each share funds
