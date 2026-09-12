@@ -517,7 +517,7 @@ a{transition:color .15s ease, border-color .15s ease}
         <span class="ord">§02</span>
         <h2 data-zh="合约核验">Contract check</h2>
       </div>
-      <p class="sec-note" data-zh="罗宾汉链上目前至少有 12 个名为 BRODIE 的代币（见 §07）。买之前只有一件事重要：地址。">There are at least a dozen tokens named BRODIE live on Robinhood Chain right now (see §07). Before anything else, check the address.</p>
+      <p class="sec-note" data-zh="罗宾汉链上目前至少有 12 个名为 BRODIE 的代币（见仿冒盘一栏）。买之前只有一件事重要：地址。">There are at least a dozen tokens named BRODIE live on Robinhood Chain right now (see the impostor board). Before anything else, check the address.</p>
 
       <div class="ca primary">
         <div class="ca-head">
@@ -623,19 +623,26 @@ a{transition:color .15s ease, border-color .15s ease}
       <div id="burnBox"></div>
 
       <div class="sec-head" style="margin-top:26px">
-        <span class="ord">§04b</span>
+        <span class="ord">§05</span>
         <h2 data-zh="手续费流向与回购">Fee flow &amp; buybacks</h2>
         <span data-prov="fees"></span>
       </div>
       <p class="sec-note" data-zh="池子按 1% 收费，费用先在 hook 累积，再由一个机器人地址换成 ETH，最后经分账合约按固定比例分给四个受益地址。下面是全部资金流的实测结果——包括真正花在回购上的金额。">The pool charges 1%. Fees accrue at the hook, a bot address swaps them into ETH, and a splitter pays four beneficiaries in fixed shares. Below is the measured flow — including how much of it actually came back as buying.</p>
       <div id="feeBox"></div>
 
+      <div class="sec-head" style="margin-top:26px" id="destination">
+        <span class="ord">§06</span>
+        <h2 data-zh="手续费去了哪">Where the fees went</h2>
+      </div>
+      <p class="sec-note" data-zh="四个受益地址各自领了多少、现在还剩多少、已经转走多少。领取额来自分账合约的事件，余额每 30 秒实时读取。">What each of the four beneficiary wallets was paid, what it still holds, and how much has already left. Payouts come from the splitter's events; balances are read live every 30 seconds.</p>
+      <div id="destBox"></div>
+
     </section>
 
     <!-- ─────────── 05 · FLOWS ─────────── -->
     <section class="sec" id="buyers" data-tab="flows">
       <div class="sec-head">
-        <span class="ord">§05</span>
+        <span class="ord">§07</span>
         <h2 data-zh="谁在买，谁在卖">Who buys, who sells</h2>
         <span data-prov="flows"></span>
       </div>
@@ -644,14 +651,14 @@ a{transition:color .15s ease, border-color .15s ease}
       <div id="buyBox"></div>
 
       <div class="sec-head" style="margin-top:26px" id="timeline">
-        <span class="ord">§04c</span>
+        <span class="ord">§08</span>
         <h2 data-zh="时间线：什么时候发生的">Timeline — when it happened</h2>
       </div>
       <p class="sec-note" data-zh="每一笔手续费归集、每一次分账、以及那唯一一次回购的确切时间。区块时间戳直接从链上读取，不是估算。">Every fee sweep, every payout and the single buyback, with the exact time each happened. Block timestamps are read from the chain, not estimated.</p>
       <div id="tlBox"></div>
 
       <div class="sec-head" style="margin-top:30px" id="sellers">
-        <span class="ord">§05b</span>
+        <span class="ord">§09</span>
         <h2 data-zh="卖压来自谁">Who is selling</h2>
       </div>
       <p class="sec-note" data-zh="把每一枚卖入池子的 BRODIE 按卖方的持币来源归类：手续费 hook、注入流动性、迁移领到的额度、还是市场上买来的。这是核对「团队在砸盘吗」的正确口径。">Every BRODIE ever sold into the pool, classified by where the seller's tokens came from: the fee hook, liquidity operations, a migration allocation, or the open market. This is the right frame for checking whether the team is selling.</p>
@@ -661,7 +668,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 05 · HOLDERS ─────────── -->
     <section class="sec" id="holders" data-tab="holders">
       <div class="sec-head">
-        <span class="ord">§05</span>
+        <span class="ord">§10</span>
         <h2 data-zh="持仓分布">Holders &amp; distribution</h2>
         <span data-prov="holders"></span>
       </div>
@@ -682,7 +689,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 06 · MIGRATION ─────────── -->
     <section class="sec" id="migrate" data-tab="migration">
       <div class="sec-head">
-        <span class="ord">§06</span>
+        <span class="ord">§11</span>
         <h2 data-zh="V1 → V2 迁移">Migration V1 → V2</h2>
         <span data-prov="migration"></span>
       </div>
@@ -699,7 +706,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 07 · IMPOSTORS ─────────── -->
     <section class="sec" id="impostors" data-tab="contracts">
       <div class="sec-head">
-        <span class="ord">§07</span>
+        <span class="ord">§12</span>
         <h2 data-zh="仿冒盘">Impostor board</h2>
         <span class="chip warn" id="impCount">—</span>
       </div>
@@ -710,7 +717,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 08 · PEERS ─────────── -->
     <section class="sec" id="peers" data-tab="chain">
       <div class="sec-head">
-        <span class="ord">§08</span>
+        <span class="ord">§13</span>
         <h2 data-zh="同链对比">Robinhood Chain comps</h2>
       </div>
       <p class="sec-note" data-zh="与 $PONS 及同链其它 meme 的量级对照。注意每个代币取的是其流动性最深的池，不是全链聚合口径。">Scale check against $PONS and other memes on the same chain. Each row uses the token's deepest single pool, not a chain-wide aggregate.</p>
@@ -724,7 +731,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 09 · ORIGIN ─────────── -->
     <section class="sec" id="origin" data-tab="about">
       <div class="sec-head">
-        <span class="ord">§09</span>
+        <span class="ord">§14</span>
         <h2 data-zh="源起">Origin</h2>
       </div>
       <blockquote class="tweet">
@@ -758,7 +765,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── OPEN QUESTIONS ─────────── -->
     <section class="sec" id="questions" data-tab="about">
       <div class="sec-head">
-        <span class="ord">§12</span>
+        <span class="ord">§15</span>
         <h2 data-zh="待团队确认的问题">Open questions for the team</h2>
         <span class="chip warn">8</span>
       </div>
@@ -775,7 +782,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 10 · SOURCES ─────────── -->
     <section class="sec" id="sources" data-tab="about">
       <div class="sec-head">
-        <span class="ord">§10</span>
+        <span class="ord">§16</span>
         <h2 data-zh="数据来源与方法">Sources &amp; method</h2>
       </div>
       <div class="srcs">
@@ -809,7 +816,7 @@ a{transition:color .15s ease, border-color .15s ease}
     <!-- ─────────── 11 · RISK ─────────── -->
     <section class="sec" id="risk" data-tab="about">
       <div class="sec-head">
-        <span class="ord">§11</span>
+        <span class="ord">§17</span>
         <h2 data-zh="风险披露">Risk disclosure</h2>
       </div>
       <div class="note risk">
@@ -915,6 +922,8 @@ const SNAP = {
   fees: {
     poolFeeBps: 10000, tickSpacing: 200,
     hook:      '0x332f85e7e323214b2d55286414b059ebb1f2a044',
+    subWallet: '0x78655106b9c6261a33f23309040ed75a2315497e',
+    balances: null, subBalance: null,
     splitter:  '0xbc39b6502e1a6ab36e4a5c5026a35f08342a0a9c',
     operator:  '0x84b8affbd7728217f97c8eb47fe4bda07d97b8c1',
     launchpad: '0x9310bc8bf95fa35608a9f08f76b55b4fdddc1ef0',
@@ -1092,7 +1101,7 @@ async function pullMarket() {
   feed.market = 'live';
 }
 async function pullChain() {
-  const [s2, s1, d2, d1, bn, pm, hk, sp] = await Promise.all([
+  const [s2, s1, d2, d1, bn, pm, hk, sp, bals, subBal] = await Promise.all([
     call(CONFIG.v2, '0x18160ddd'),
     call(CONFIG.v1, '0x18160ddd'),
     call(CONFIG.v2, '0x70a08231' + pad('0x000000000000000000000000000000000000dEaD').slice(2)),
@@ -1100,7 +1109,10 @@ async function pullChain() {
     rpc('eth_blockNumber', []),
     call(CONFIG.v1, '0x70a08231' + pad(SNAP.poolManager).slice(2)),
     call(CONFIG.v2, '0x70a08231' + pad(SNAP.fees.hook).slice(2)),
-    rpc('eth_getBalance', [SNAP.fees.splitter, 'latest'])
+    rpc('eth_getBalance', [SNAP.fees.splitter, 'latest']),
+    Promise.all(SNAP.fees.parties.map(r => rpc('eth_getBalance', [r[0], 'latest'])
+      .then(dec).catch(() => null))),
+    rpc('eth_getBalance', [SNAP.fees.subWallet, 'latest']).then(dec).catch(() => null)
   ]);
   D.supplyV2 = dec(s2); D.supplyV1 = dec(s1);
   D.deadV2 = dec(d2);   D.deadV1 = dec(d1);
@@ -1108,6 +1120,8 @@ async function pullChain() {
   D.v1InPoolManager = dec(pm);
   D.fees.pendingHookTokens = dec(hk);
   D.fees.pendingSplitterEth = dec(sp);
+  D.fees.balances = bals;
+  D.fees.subBalance = subBal;
   feed.chain = 'live';
 }
 async function pullEvents() {
@@ -1743,6 +1757,51 @@ function renderTimeline() {
       usdExact(b.tokens * D.price) + ' · <a href="https://robinhoodchain.blockscout.com/tx/' + b.tx + '" rel="noopener" target="_blank">' + short(b.tx) + '</a>. ' +
       T('Nothing has been bought since.', '此后再没有买过。') + '</div>' : '');
 }
+function renderFeeDestination() {
+  const f = D.fees, tl = window.TL, host = document.getElementById('destBox');
+  if (!f || !tl || !host) return;
+  const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
+  const earned = tl.parties.map((_, j) => tl.daily.reduce((a, d) => a + d[1][j], 0));
+  const bals = f.balances;
+  const rows = tl.parties.map((p, j) => {
+    const e = earned[j], b = bals ? bals[j] : null;
+    const gone = b === null ? null : e - b;
+    return '<tr><td><b>' + p[2].toFixed(1) + '%</b></td>' +
+      '<td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + p[0] + '" rel="noopener" target="_blank">' + short(p[0]) + '</a></td>' +
+      '<td class="r">' + e.toFixed(3) + '</td>' +
+      '<td class="r">' + (b === null ? '<span class="mut">—</span>' : b.toFixed(3)) + '</td>' +
+      '<td class="r">' + (gone === null ? '<span class="mut">—</span>'
+        : '<b class="' + (gone > 0.05 ? 'down' : 'mut') + '">' + gone.toFixed(3) + '</b>') + '</td>' +
+      '<td class="r">' + (gone === null ? '' : usdExact(gone * eth)) + '</td>' +
+      '<td class="mut">' + (b === null ? '' : b < 0.05 ? T('emptied', '已清空')
+        : gone > 0.5 ? T('partly withdrawn', '部分提走') : T('untouched', '原封未动')) + '</td></tr>';
+  }).join('');
+  const tot = earned.reduce((a, b) => a + b, 0);
+  const held = bals ? bals.reduce((a, b) => a + b, 0) : null;
+  host.innerHTML =
+    '<div class="grid g4">' +
+      cell(T('paid out to date', '累计发放'), tot.toFixed(2) + ' ETH', usdExact(tot * eth) + T(' in fees', ' 手续费')) +
+      cell(T('still in those wallets', '仍在钱包里'), held === null ? '—' : held.toFixed(2) + ' ETH',
+           held === null ? T('chain unreachable', '无法读取链上') : (held / tot * 100).toFixed(0) + T('% of what was paid', '% 的已发放额')) +
+      cell(T('already moved out', '已经转出'), held === null ? '—' : (tot - held).toFixed(2) + ' ETH',
+           held === null ? '' : usdExact((tot - held) * eth), 'hero') +
+      cell(T('destination', '去向'), T('not traceable', '无法追踪'), T('see the note below', '见下方说明'), '',
+           T('Native ETH transfers emit no logs, and every public RPC on this chain puts trace_* behind a paid key. Token movements are fully traceable; plain ETH is not.',
+             '原生 ETH 转账不产生日志，而这条链上所有公共 RPC 都把 trace_* 放在付费门槛之后。代币流向可以完整追踪，纯 ETH 不行。')) +
+    '</div>' +
+    '<div class="tw"><table><thead><tr><th>' + T('share', '分成') + '</th><th>' + T('wallet', '钱包') + '</th>' +
+      '<th class="r">' + T('earned ETH', '累计领取') + '</th><th class="r">' + T('holds now', '当前余额') + '</th>' +
+      '<th class="r">' + T('moved out', '已转出') + '</th><th class="r">' + T('value', '折合') + '</th>' +
+      '<th>' + T('state', '状态') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<div class="note"><b>' + T('How far this can be traced. ', '能追到哪一步。') + '</b>' +
+      T('Everything above is exact: payouts come from the splitter\u2019s own events, balances from a live eth_getBalance. Where the withdrawn ETH went is not public — native transfers leave no logs, and trace_transaction is gated behind a paid key on every RPC this chain publishes. An archive node with tracing would close that gap; nothing else will.',
+        '上面每个数字都是精确的：领取额来自分账合约自身的事件，余额是实时 eth_getBalance。但提走的 ETH 去了哪无法从公开数据得知——原生转账不留日志，而这条链公开的每个 RPC 都把 trace_transaction 设在付费门槛后。只有带 tracing 的归档节点能补上这一段。') +
+    '</div>' +
+    '<div class="note risk"><b>' + T('One wallet is not what it looks like. ', '有一个钱包不能按字面读。') + '</b>' +
+      T('The 30% address is a Gnosis Safe shared across the Pons ecosystem, so its balance also moves with income from other tokens. Its BRODIE share is exact; its balance is not a BRODIE-only figure.',
+        '拿 30% 的那个地址是 Pons 生态共用的 Gnosis Safe，余额同时受其它代币收入影响。它的 BRODIE 分成是精确的，但余额不是 BRODIE 专属数字。') +
+    '</div>';
+}
 function renderTeamExit() {
   const x = window.TEAMEXIT; const host = document.getElementById('exitBox');
   if (!x || !host) return;
@@ -1890,6 +1949,7 @@ function renderFees() {
       T('fees are not accumulated for buybacks — they are swapped out of BRODIE into ETH and paid out. Of ' + usdExact(feeUsd) + ' collected, ' + usdExact(bbUsd) + ' (' + (bbUsd / feeUsd * 100).toFixed(1) + '%) has come back as buying, all of it from a single beneficiary. Two of the four have withdrawn their share to zero.',
         '手续费并没有被留作回购——它们被换成 ETH 分掉了。累计收取 ' + usdExact(feeUsd) + '，其中只有 ' + usdExact(bbUsd) + '（' + (bbUsd / feeUsd * 100).toFixed(1) + '%）以买入的形式回到盘口，且全部来自其中一个受益人。四方里有两方已经把分成提空。') +
     '</div>';
+  renderFeeDestination();
   renderTeamExit();
   renderBuyers();
   renderTimeline();
