@@ -32,6 +32,6 @@ res={"generated":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"block":lates
      "count":len(unm),
      "all":dict(sorted(unm.items(),key=lambda x:-x[1][1]))}
 json.dump(res,open("entitlements_all.json","w"),indent=1)
-print(json.dumps({k:v for k,v in res.items() if k!="unminted"},indent=1))
+print(json.dumps({k:v for k,v in res.items() if k!="all"},indent=1))
 print("rows:",len(unm))
-for a,v in list(res["unminted"].items())[:70]: print(f"  {a} dep={v[0]:,.2f} ent={v[1]:,.2f}")
+print("saved",len(unm),"rows")

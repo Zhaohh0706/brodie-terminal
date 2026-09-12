@@ -21,12 +21,32 @@ jobs:
       - name: Replay chain ledgers
         working-directory: tools
         run: |
+          set -eu
           python3 onchain_audit.py
           python3 dump_holders.py
           python3 dump_all.py
+          python3 flows.py
+          python3 timeline.py
 
       - name: Re-inject into index.html
         run: python3 scripts/inject.py
+
+      # A silent no-op here is how this job failed unnoticed for two days:
+      # the page kept serving a stale ledger while every run went red.
+      - name: Verify the page actually moved
+        run: |
+          set -eu
+          python3 - <<'EOF'
+          import json, re, sys, pathlib
+          html = pathlib.Path("index.html").read_text()
+          hold = re.search(r'window\.HOLD=\{"block":(\d+)', html)
+          ledger = json.loads(pathlib.Path("tools/holders_all.json").read_text())
+          assert hold, "window.HOLD literal not found in index.html"
+          if int(hold.group(1)) != ledger["block"]:
+              sys.exit("injection did not take: page says block %s, ledger says %s"
+                       % (hold.group(1), ledger["block"]))
+          print("injected through block %s" % ledger["block"])
+          EOF
 
       - name: Commit if changed
         id: commit

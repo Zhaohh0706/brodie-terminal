@@ -209,6 +209,17 @@ main{flex:1 1 auto; min-width:0; padding:0 16px 80px}
 .qa-row.done .q{color:var(--verified)}
 .qa-row input[type=checkbox]{width:15px; height:15px; margin-top:5px; accent-color:var(--gold); cursor:pointer}
 .qa-head{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px}
+.trail{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); margin:0 0 14px}
+.trail-step{background:var(--surface); display:grid; grid-template-columns:150px 1fr; gap:14px; padding:11px 14px}
+.trail-step.sell{background:var(--surface-2)}
+.trail-step .when{font-family:var(--f-mono); font-size:11.5px; color:var(--ink-2); white-space:nowrap}
+.trail-step .what{font-size:13px; line-height:1.6; overflow-wrap:anywhere}
+.trail-step .what b{font-family:var(--f-disp); font-size:17px; font-weight:600; letter-spacing:.01em}
+@media (max-width:640px){ .trail-step{grid-template-columns:1fr; gap:3px} }
+.correction{border:1px solid var(--down); border-left-width:3px; background:var(--surface); padding:13px 16px; margin-bottom:14px}
+.correction h4{margin:0 0 5px; font-family:var(--f-disp); font-size:17px; font-weight:600; color:var(--down)}
+.correction p{margin:0 0 8px; font-size:12.5px; color:var(--ink-2); line-height:1.65; max-width:76ch}
+.correction p:last-child{margin-bottom:0}
 .cell.hero{background:var(--surface-2); box-shadow:inset 0 1px 0 var(--lift), 0 1px 2px var(--drop)}
 .fig{position:relative}
 figure.fig{box-shadow:0 1px 2px var(--drop)}
@@ -629,6 +640,7 @@ a{transition:color .15s ease, border-color .15s ease}
         <span data-prov="flows"></span>
       </div>
       <p class="sec-note" data-zh="每个从池子里净买入的大地址，按创世以来全部 32,164 笔转账统计（买入＝从 v4 PoolManager 收到，卖出＝转入 PoolManager）。用来核对任何「我们回购了 X%」的说法：先看金额对不对，再看那个地址有没有从手续费分账里拿过钱。">Every address holding a large net position bought out of the pool, computed across all 32,164 transfers since genesis — a buy is BRODIE received from the v4 PoolManager, a sell is BRODIE sent to it. Use it to check any "we bought back X%" claim: match the amount first, then check whether that address has ever been paid by the fee splitter.</p>
+      <div id="exitBox"></div>
       <div id="buyBox"></div>
 
       <div class="sec-head" style="margin-top:26px" id="timeline">
@@ -824,6 +836,11 @@ a{transition:color .15s ease, border-color .15s ease}
 </footer>
 
 <script>
+/* the fee wallet's full round trip, router-aware. Transfer-level counting missed
+   the 16 buys that went pool -> router -> wallet; per-transaction netting finds them.
+   Rebuild with tools/flows.py. */
+window.TEAMEXIT={"generated":"2026-09-12T08:33:28Z","block":60965910,"feeWallet":"0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","subWallet":"0x78655106b9c6261a33f23309040ed75a2315497e","router":"0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3","bought":6051759.63,"sold":6051759.63,"buyCount":17,"firstBuy":1788241903,"lastBuy":1788823709,"exit":[{"t":1788990286,"blk":58877688,"kind":"to_sub","amt":6051759.63,"tx":"0xbcb94edd000ced69c678d24c11ebf01102545f4c34ea34750d47526cbe5597f8"},{"t":1788990924,"blk":58884000,"kind":"sell","amt":4300000.0,"tx":"0x576a83bad61c7ce38d7e0e9dbf73a3ae08de38f868dafbd1e553f6af4dcafc5d"},{"t":1788990970,"blk":58884494,"kind":"sell","amt":1751759.63,"tx":"0x5ebb169f7dff697a1959aa4255350463ca49a2fc035eab00e4b9d94b977ef739"}],"hookFee":6951892.75,"hookSold":6911544.17,"chainBought":773330872.21,"chainSold":946718050.97,"txs":16856};
+
 /* the eight things only the team can close. status lives here so it is public;
    a viewer's local ticks are their own notes until pasted back in. */
 window.QA=[{"id":"q1","q":"Confirm the official contract set","zq":"确认官方合约清单","w":"Every address on this page was inferred from the v4 Initialize event and the transfer graph, not published by anyone. If the team confirms the hook, splitter, operator and launchpad addresses, every figure here becomes verifiable rather than inferred.","zw":"本页所有地址都是我从 v4 Initialize 事件和转账关系图里推断出来的，没有任何一方公开过。团队一旦确认 hook、分账合约、归集地址和 launchpad 这四个地址，本页所有数字就从「推断」变成「可核验」。","ev":"hook 0x332f85e7… · splitter 0xbc39b650… · operator 0x84b8affb… · launchpad 0x9310bc8b…","panel":"fees"},{"id":"q2","q":"Who are the four fee beneficiaries, and what is each share for?","zq":"四个手续费受益人分别是谁，各自代表什么？","w":"Fees split 35 / 30 / 21.6 / 13.4 into four addresses. The 30% one is a 2-of-3 Safe holding 23.78 ETH and 2,959,947 PONS; the other three are plain wallets and two have withdrawn to zero. Naming them — dev, marketing, treasury, partner — turns an unexplained split into a published budget.","zw":"手续费按 35 / 30 / 21.6 / 13.4 分给四个地址。拿 30% 的是一个 2/3 多签，里面有 23.78 ETH 和 2,959,947 枚 PONS；另外三个是普通钱包，其中两个已提空。把它们说明白（开发 / 市场 / 金库 / 合作方），这个分成就从「来路不明」变成「公开预算」。","ev":"0x28e35d8c… 35% · 0x263ed295… 30% (Safe 2/3) · 0xd64503dd… 21.6% · 0x2cf505f3… 13.4%","panel":"fees"},{"id":"q3","q":"Which address does the buybacks?","zq":"回购用的是哪个地址？","w":"The team stated a 0.6% buyback — 4,770,410 BRODIE. The only address provably paid by the fee splitter bought 581,896 (0.073%), once, on 1 September. Several unlinked wallets did buy more than 0.6%, but none has ever received a payout from the splitter. A named address settles this in one query.","zw":"团队说回购了 0.6%，即 4,770,410 枚。唯一能证明从分账合约领钱的地址只买了 581,896 枚（0.073%），而且只在 9 月 1 日买过一次。确实有几个无关联钱包买超过了 0.6%，但它们从未从分账合约收到过款。报一个地址，一次查询就能对上。","ev":"the one buy: 2026-09-01 06:33:24 UTC · block 51,508,543 · 581,895.72 BRODIE","panel":"flows"},{"id":"q4","q":"What happened to the 68 unissued entitlements?","zq":"68 笔从未发放的额度是怎么回事？","w":"68 addresses have a logged deposit entitlement totalling 56,344,918 BRODIE that was never minted. The launchpad holds zero V2, so there is no reserve to pay them from. Was this a deadline, a bug, or a pending batch — and will they be honoured?","zw":"68 个地址在合约事件里登记了合计 56,344,918 枚 BRODIE 的应得额度，但从未铸出。launchpad 合约自己的 V2 余额是 0，没有可兑付的储备。这是截止时间、是 bug、还是待处理批次——这些额度还会不会发？","ev":"largest: 0x5083727d… 13,922,794.23 · 0x194d98d1… 8,000,000 · 0x54f60863… 5,804,678","panel":"migration"},{"id":"q5","q":"Is the initial liquidity locked?","zq":"初始流动性锁了吗？","w":"132,045,778 BRODIE (16.6% of supply) went from the launchpad through two contracts into the pool as liquidity. Nothing on chain says whether that LP position is locked, for how long, or who can withdraw it. A lock proof is the single most load-bearing fact for anyone sizing a position.","zw":"132,045,778 枚（占供应 16.6%）从 launchpad 经两层合约注入池子做流动性。链上没有任何信息表明这个 LP 头寸是否被锁、锁多久、谁能撤。对任何要决定仓位大小的人来说，锁仓证明是最关键的一条事实。","ev":"0x9310bc8b… → 0x22e95047… → 0xc47d6542… → PoolManager","panel":"holders"},{"id":"q6","q":"Is there a burn mechanism planned?","zq":"有没有销毁机制的计划？","w":"Zero burns to date: no transfer to 0x0 or 0x…dEaD in the full history, and total supply has never moved from its genesis mint. $PONS is priced partly on continuous protocol burn. If $BRODIE plans one, saying so — with the contract — is the clearest structural comparison available.","zw":"至今销毁为零：全历史没有任何一笔转入 0x0 或 0x…dEaD，总量从创世铸造起从未变动。$PONS 的估值有一部分建立在持续的协议销毁上。如果 $BRODIE 计划做销毁，把机制和合约讲出来，是与之对比最有力的一条。","ev":"genesis mint 795,068,399.48 · burned 0.00 · dead balance 0.00","panel":"fees"},{"id":"q7","q":"Any commitment on what fees are for?","zq":"手续费的用途有没有承诺？","w":"All 16.70 ETH collected so far has been swapped out of BRODIE into ETH and paid out to the four addresses. A published policy — what share goes to buyback, liquidity, development — would make the fee stream readable as a budget instead of a distribution.","zw":"至今收取的 16.70 ETH 全部被换成 ETH 分给了四个地址。如果公开一个用途政策——多少比例用于回购、流动性、开发——这条手续费流就能被当作预算来读，而不只是一笔分配。","ev":"16.7042 ETH collected · 100% distributed · 1.1% returned as buying","panel":"fees"}];
@@ -903,7 +920,7 @@ const SNAP = {
     launchpad: '0x9310bc8bf95fa35608a9f08f76b55b4fdddc1ef0',
     totalEth: 16.7042, sweeps: 273, accruals: 2076,
     pendingHookTokens: 43120.40, pendingSplitterEth: 8.4132,
-    boughtBack: 581895.72,
+    boughtBack: 6051759.63, boughtBackSold: 6051759.63,
     hookAccrued: 5955651.48, hookSoldBack: 5912531.08,
     /* every address holding a large net position bought out of the pool, full history.
        addr, net bought, kind, txs, PONS held, V1 held, genesis mint, tag */
@@ -916,12 +933,13 @@ const SNAP = {
       ['0x095ca29cf6487ef59ddfd99adc8c248cb13217b3',  7159527.30, 'wallet',     51, 110838, 1449218, 0, 'ecosystem'],
       ['0x303d71405f35546cdd4d7b24e33bd969e9d4bc05',  6166782.86, 'wallet',    893, 0, 0, 0, ''],
       ['0xb300000b72deaeb607a12d5f54773d1c19c7028d',  4584400.31, 'contract',    1, 0, 0, 0, 'bot'],
-      ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c',   581895.72, 'wallet',     42, 0, 0, 0, 'team']
+      ['0x78655106b9c6261a33f23309040ed75a2315497e',  -6051759.63, 'wallet',      4, 0, 0, 0, 'teamsub'],
+    ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c',   6051759.63, 'wallet',     42, 0, 0, 0, 'team']
     ],
     lpFromGenesis: 132045777.98,
     /* addr, share%, ETH earned, kind, ETH still held, BRODIE bought back, BRODIE held, note */
     parties: [
-      ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c', 35.0, 5.8493, 'wallet',  0.2176, 581895.72, 6051759.63, 'only party that ever bought'],
+      ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c', 35.0, 5.8493, 'wallet',  0.2176, 6051759.63, 0, 'bought then sold it all'],
       ['0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd', 30.0, 5.0109, 'safe 2/3', 23.7765, 0, 0, 'holds 2,959,947 PONS'],
       ['0xd64503dd73eb2a6f11856455e52bff8564172ef7', 21.6, 3.6058, 'wallet',  0.0051, 0, 0, 'drained'],
       ['0x2cf505f3cbb36e06d4bd4758d10716b5416baad0', 13.4, 2.2370, 'wallet',  0.0000, 0, 0, 'drained']
@@ -1725,6 +1743,49 @@ function renderTimeline() {
       usdExact(b.tokens * D.price) + ' · <a href="https://robinhoodchain.blockscout.com/tx/' + b.tx + '" rel="noopener" target="_blank">' + short(b.tx) + '</a>. ' +
       T('Nothing has been bought since.', '此后再没有买过。') + '</div>' : '');
 }
+function renderTeamExit() {
+  const x = window.TEAMEXIT; const host = document.getElementById('exitBox');
+  if (!x || !host) return;
+  const fmt = t => new Date(t * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+  const hm  = t => new Date(t * 1000).toISOString().slice(11, 19) + ' UTC';
+  const day = t => new Date(t * 1000).toISOString().slice(0, 10);
+  const link = (h, txt) => '<a href="https://robinhoodchain.blockscout.com/tx/' + h + '" rel="noopener" target="_blank">' + txt + '</a>';
+  const addr = a => '<a href="https://robinhoodchain.blockscout.com/address/' + a + '" rel="noopener" target="_blank">' + short(a) + '</a>';
+  const steps = [
+    '<div class="trail-step"><span class="when">' + day(x.firstBuy) + ' → ' + day(x.lastBuy) + '</span>' +
+    '<span class="what"><b>' + nf(Math.round(x.bought)) + '</b> BRODIE ' + T('bought across ', ' 分 ') + x.buyCount + T(' fills', ' 笔买入') +
+    '<br><span class="mut">' + T('by the fee wallet ', '买方是手续费钱包 ') + addr(x.feeWallet) +
+    T(' — 16 of them routed through ', ' —— 其中 16 笔经路由 ') + addr(x.router) +
+    T(', which is why a transfer-level count saw only one.', ' 中转，这正是按转账口径统计只看到 1 笔的原因。') + '</span></span></div>'
+  ].concat(x.exit.map(e =>
+    '<div class="trail-step' + (e.kind === 'sell' ? ' sell' : '') + '"><span class="when">' + fmt(e.t) + '</span>' +
+    '<span class="what"><b>' + nf(Math.round(e.amt)) + '</b> BRODIE ' +
+    (e.kind === 'to_sub'
+      ? T('moved to a fresh wallet ', '转入一个全新钱包 ') + addr(x.subWallet) +
+        '<br><span class="mut">' + T('that wallet had never held a token before, and this was its only inbound.', '该钱包此前从未持有过任何代币，这是它唯一的一笔入账。') + '</span>'
+      : '<span class="chip bad">' + T('SOLD', '卖出') + '</span> ' + T('into the pool', ' 卖入池子') +
+        '<br><span class="mut">' + hm(e.t) + ' · ' + T('block ', '区块 ') + nf(e.blk) + ' · ' + link(e.tx, short(e.tx)) + '</span>') +
+    '</span></div>'));
+  const gap = Math.round((x.exit[x.exit.length - 1].t - x.exit[0].t) / 60);
+  host.innerHTML =
+    '<div class="correction"><h4>' + T('Correction — this page had it wrong until 12 September', '更正 —— 本页在 9 月 12 日之前是错的') + '</h4>' +
+    '<p>' + T('This panel previously reported the fee wallet as having bought 581,896 BRODIE and never sold. Both halves were wrong, for two separate reasons, and both are fixed above.',
+              '本栏此前报告手续费钱包买入 581,896 枚且从未卖出。两半都是错的，各有原因，现已全部更正。') + '</p>' +
+    '<p><b>' + T('1. A blind spot in the method. ', '一、口径盲区。') + '</b>' +
+    T('Buys were counted as transfers coming straight from the pool. Sixteen of the seventeen fills went pool → router → wallet, so only the single direct one was seen. Attribution now nets every address inside each transaction, which makes routers cancel out and reveals who actually took the position.',
+      '原先把「直接来自池子的转账」当作买入。17 笔里有 16 笔走的是 池子 → 路由 → 钱包，因此只看到了唯一那笔直连的。现在改为在每一笔交易内部对各地址净额结算，路由自然抵消，真正建仓的地址才会显现。') + '</p>' +
+    '<p><b>' + T('2. A stale snapshot. ', '二、快照过期。') + '</b>' +
+    T('The sale happened at 21:44 UTC on 9 September. The ledger baked into this page was built at 16:26 that day — five hours earlier — and the scheduled job meant to refresh it had failed on every run since launch, on a bug in one of my own scripts. That is fixed too.',
+      '卖出发生在 9 月 9 日 21:44 UTC。本页内嵌的账本生成于当天 16:26，早了五个小时；而本应自动刷新它的定时任务，自上线起每一次都因为我自己脚本里的一个 bug 而失败。这个也已修复。') + '</p>' +
+    '<p>' + T('Credit for spotting it goes to the reader who traced the sub-wallet by hand.', '这个问题是读者手工追踪子钱包发现的。') + '</p></div>' +
+    '<div class="grid g4">' +
+      cell(T('team bought', '团队买入'), tok(x.bought), (x.bought / D.supplyV2 * 100).toFixed(3) + T('% of supply, 17 fills', '% 的供应量，17 笔')) +
+      cell(T('team sold', '团队卖出'), tok(x.sold), T('all of it, 9 Sep', '全部，9 月 9 日'), 'hero') +
+      cell(T('net position held', '净持仓'), '0', T('nothing was kept', '一枚未留')) +
+      cell(T('time to unwind', '清仓耗时'), gap + T(' min', ' 分钟'), T('from first sell to last', '首笔到末笔')) +
+    '</div>' +
+    '<div class="trail">' + steps.join('') + '</div>';
+}
 function renderBuyers() {
   const f = D.fees;
   const claimTok = D.supplyV2 * 0.006;
@@ -1738,7 +1799,10 @@ function renderBuyers() {
     if (r[6]) sig.push(T('genesis ', '创世 ') + tok(r[6]));
     if (r[7] === 'router') sig.push(T('router / aggregator', '路由聚合器'));
     if (r[7] === 'bot') sig.push(T('vanity address, bot-shaped', '靓号地址，疑似 bot'));
-    const badge = team ? '<span class="chip ok"><span class="dot"></span>' + T('CONFIRMED TEAM', '已证实团队') + '</span>'
+    if (r[7] === 'team') sig.push(T('17 fills 1–7 Sep, all moved out 9 Sep', '9/1–9/7 分 17 笔买入，9/9 全部转出'));
+    if (r[7] === 'teamsub') sig.push(T('funded only by the fee wallet; sold everything in 11 minutes', '唯一入账来自手续费钱包，11 分钟内清仓'));
+    const badge = r[7] === 'teamsub' ? '<span class="chip bad"><span class="dot"></span>' + T('TEAM SUB-WALLET', '团队子钱包') + '</span>'
+      : team ? '<span class="chip ok"><span class="dot"></span>' + T('CONFIRMED TEAM', '已证实团队') + '</span>'
       : r[7] === 'ecosystem' ? '<span class="chip warn">' + T('ecosystem-linked', '生态关联') + '</span>'
       : '<span class="chip">' + T('unlinked', '无关联') + '</span>';
     return '<tr' + (team ? ' class="flag"' : '') + '><td>' + badge + '</td>' +
@@ -1783,14 +1847,18 @@ function renderFees() {
     '<td class="r">' + r[4].toFixed(4) + '</td>' +
     '<td class="r">' + (r[5] ? nf(Math.round(r[5])) : '<span class="mut">0</span>') + '</td>' +
     '<td class="mut">' + T(r[7], r[7] === 'only party that ever bought' ? '唯一买过的一方'
-        : r[7] === 'holds 2,959,947 PONS' ? '持有 2,959,947 枚 PONS' : '已提空') + '</td></tr>').join('');
+        : r[7] === 'holds 2,959,947 PONS' ? '持有 2,959,947 枚 PONS'
+      : r[7] === 'bought then sold it all' ? '买入后于 9-9 全部卖出' : '已提空') + '</td></tr>').join('');
   document.getElementById('feeBox').innerHTML =
     '<div class="grid g4">' +
       cell(T('pool fee', '池子费率'), (f.poolFeeBps / 10000).toFixed(0) + '%', T('charged on every swap', '每笔兑换收取')) +
       cell(T('fees to date', '累计手续费'), f.totalEth.toFixed(2) + ' ETH', usdExact(feeUsd) + ' · ' + nf(f.sweeps) + T(' sweeps', ' 次归集'), 'hero',
            T('Sum of every payout event emitted by the fee splitter for this pool since launch, converted at the current ETH price. Not an estimate — each payment is an on-chain event.',
              '自上线以来分账合约为本池发出的每一笔付款事件的总和，按当前 ETH 价折算。不是估算——每一笔都是链上事件。')) +
-      cell(T('spent on buybacks', '用于回购'), usdExact(bbUsd), (bbUsd / feeUsd * 100).toFixed(1) + T('% of fees', '% 的手续费')) +
+      cell(T('bought, then sold', '买入后已卖出'), usdExact(bbUsd),
+           T('all of it — net position zero', '全部卖出 —— 净持仓为零'), '',
+           T('The fee wallet bought 6,051,760 BRODIE across 17 fills between 1 and 7 September, moved the lot to a fresh wallet on 9 September at 21:44 UTC, and sold it in two transactions eleven minutes later. Nothing was retained.',
+             '手续费钱包在 9 月 1 日至 7 日分 17 笔买入 6,051,760 枚，9 月 9 日 21:44 UTC 全部转入一个新钱包，11 分钟后分两笔卖出。一枚未留。')) +
       cell(T('pending sweep', '待归集'), nf(Math.round(f.pendingHookTokens)) + ' + ' + f.pendingSplitterEth.toFixed(2) + ' ETH', T('sitting in hook / splitter', '停在 hook 与分账合约')) +
     '</div>' +
     '<div class="tw"><table><thead><tr><th>' + T('share', '分成') + '</th><th>' + T('beneficiary', '受益地址') + '</th>' +
@@ -1809,6 +1877,7 @@ function renderFees() {
       T('fees are not accumulated for buybacks — they are swapped out of BRODIE into ETH and paid out. Of ' + usdExact(feeUsd) + ' collected, ' + usdExact(bbUsd) + ' (' + (bbUsd / feeUsd * 100).toFixed(1) + '%) has come back as buying, all of it from a single beneficiary. Two of the four have withdrawn their share to zero.',
         '手续费并没有被留作回购——它们被换成 ETH 分掉了。累计收取 ' + usdExact(feeUsd) + '，其中只有 ' + usdExact(bbUsd) + '（' + (bbUsd / feeUsd * 100).toFixed(1) + '%）以买入的形式回到盘口，且全部来自其中一个受益人。四方里有两方已经把分成提空。') +
     '</div>';
+  renderTeamExit();
   renderBuyers();
   renderTimeline();
   renderSellers();
