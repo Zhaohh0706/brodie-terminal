@@ -16,6 +16,9 @@ baked into the `SNAP` object if the browser cannot reach them.
 |---|---|---|
 | Price, liquidity, volume, txns | `api.dexscreener.com` | yes — CORS `*` |
 | Supply, dead balances, block | `rpc.mainnet.chain.robinhood.com` `eth_call` | yes — CORS `*` |
+| Minted / burned / claimable / deadline | migrator `totalMinted()`, `totalCredits()`, `maxSupply()`, token `mintDeadline()` — burned = totalMinted − totalSupply | yes, every 30s |
+| Mint history (count, first, last, per-migrator concentration) | `eth_getLogs` Transfer-from-0x0 since deployment, 4M-block chunks | yes, every 3 min |
+| Fee credits, claims, escrow balances, sweeps, daily buckets | `eth_getLogs` on PonsV2FeeEscrow (`Credited` / `Claimed`) + hook→PoolManager transfers | yes, every 90s |
 | Burn scan | same RPC, `eth_getLogs` over ~25h of blocks | yes |
 | Impostor board, comps | DexScreener search | yes |
 | Holder count, top holders, buyback audit | offline replay, see below | no — snapshot |
