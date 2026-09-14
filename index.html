@@ -608,14 +608,14 @@ a{transition:color .15s ease, border-color .15s ease}
         <span class="ord">§04</span>
         <h2 data-zh="供应与销毁账本">Supply &amp; burn ledger</h2>
       </div>
-      <p class="sec-note" data-zh="$PONS Terminal 的核心是协议级销毁表。$BRODIE V2 没有同等规模的销毁机制，所以这一栏诚实地记录能被链上验证的东西：当前总量、黑洞地址余额，以及最近扫描窗口内真实发生的销毁事件。截图不算证据。">The $PONS Terminal is built around a protocol burn table. $BRODIE V2 has no equivalent mechanism, so this section records only what state and logs can prove: current supply, dead-address balances, and burn events actually found in the scanned window. Screenshots are not evidence.</p>
+      <p class="sec-note" data-zh="$PONS Terminal 的核心是协议级销毁表。$BRODIE V2 没有同等的销毁机制，所以这一栏只记录能被链上核验的东西：合约的 totalMinted / totalSupply / 额度 / 截止时间，都是实时读取；销毁与否由 totalMinted − totalSupply 这个恒等式直接判定，不靠截图，也不靠快照。">The $PONS Terminal is built around a protocol burn table. $BRODIE V2 has no equivalent mechanism, so this section records only what the chain can verify: the contract's totalMinted, totalSupply, credits and deadline, all read live; whether anything was burned follows from the identity totalMinted − totalSupply, not from screenshots or a snapshot.</p>
 
       <div class="grid g4" id="supGrid"></div>
 
       <div class="charts" style="grid-template-columns:1fr">
         <figure class="fig">
-          <h4 data-zh="V2 总量 vs V1 创世 10 亿">V2 supply against the 1,000,000,000 V1 genesis</h4>
-          <p class="cap" data-zh="V1 的 totalSupply 至今仍是精确的 10 亿枚。V2 的 totalSupply 低于这个数——差额来自未迁移的部分还是已销毁的部分，仅凭当前状态无法判定，需要看下面的事件扫描。">V1's totalSupply is still exactly 1,000,000,000. V2's is lower. Whether that gap is un-migrated supply or burned supply cannot be settled from current state alone — the event scan below is what decides it.</p>
+          <h4 data-zh="V2 已铸量 vs 10 亿上限">V2 minted so far against the 1,000,000,000 MAX_SUPPLY</h4>
+          <p class="cap" data-zh="V2 不是一次性铸出来的：迁移合约在每轮结算时铸池子种子，在每位存入者领取时再按额度铸出。已铸、待领、永远铸不出三段都直接从合约读数画出，每 30 秒刷新。">V2 was never minted in one go: the migration contract mints the pool seed at each epoch settle and mints each depositor's credit when they claim. The minted, still-claimable and never-mintable segments are drawn from live contract reads, refreshed every 30 seconds.</p>
           <div id="chartSupply"></div>
         </figure>
       </div>
@@ -699,8 +699,8 @@ a{transition:color .15s ease, border-color .15s ease}
         <span data-zh="任何要求你把 V1 代币直接转到某个私人地址、或者索取助记词/私钥的「客服」都是骗子。迁移是一次链上兑换，不是转账。">Anyone asking you to send V1 tokens to a personal address, or asking for a seed phrase, is a scammer. Migration is an on-chain swap, not a transfer.</span>
       </div>
       <div class="grid g4" id="migGrid"></div>
-      <p class="sec-note" data-zh="机制说明：迁移不是 1:1 的 burn-swap，也不走那个 v4 迁移池。用户调用 launchpad 合约 0x9310bc8b… 的 deposit(uint256) 把 V1 存进去，合约记一笔额度事件（存入量、应得 V2、轮次编号），V2 在上线时按这份名单一次性铸出。存入比例按轮次不同——综合下来是 0.731，但单笔可以低到 0.6。V1 一枚都没销毁，V1 的 totalSupply 至今仍是精确的 10 亿。">How it actually worked: migration was not a 1:1 burn-swap and it did not run through the v4 migration pool. Holders called <code>deposit(uint256)</code> on the launchpad at 0x9310bc8b…, which logged an entitlement (V1 in, V2 owed, round number), and V2 was minted against that list in one batch at launch. The rate varied by round — 0.731 blended, but individual deposits went as low as 0.6. No V1 was ever destroyed; its totalSupply is still exactly 1,000,000,000.</p>
-      <div class="note risk"><b data-zh="7.4% 的额度从未发放。">7.4% of entitlements were never issued.</b> <span data-zh="68 个地址记录了合计 56,344,917.99 枚 V2 的应得额度，但创世铸造名单里没有它们，之后 V2 的总量也再没变过——也就是说这批额度从来没有被铸出来。launchpad 合约当前的 V2 余额为 0，没有可供兑付的储备。存入前请自行核对你的地址是否在创世名单里。">68 addresses hold logged entitlements totalling 56,344,917.99 BRODIE, but none of them appear in the genesis mint list and total supply has not moved since. Those entitlements were never issued. The launchpad's own V2 balance is zero, so there is no reserve to pay them from. Check whether your address is in the genesis mint list before assuming a claim exists.</span></div>
+      <p class="sec-note" data-zh="机制说明：迁移不是 1:1 的 burn-swap，也不走那个 v4 迁移池。存入者调用迁移合约 0x9310bc8b… 的 deposit(uint256) 把 V1 存进去，合约按当时的 epoch 记一笔额度：五轮存入上限 3.0 / 2.8 / 2.1 / 1.4 / 0.7 亿，兑换率 100 / 80 / 60 / 40 / 20%，合计 10 亿 V1 换 7.2 亿额度。存入的 V1 被卖回旧的 1% 池换成 ETH，作为新 v4 池的 ETH 一侧；V2 在存入者调用 claim() 时才按额度铸出，铸造开放到 2026-12-21。V1 一枚都没销毁，V1 的 totalSupply 至今仍是精确的 10 亿。">How it actually worked: migration was not a 1:1 burn-swap and it did not run through the v4 migration pool. Depositors called deposit(uint256) on the migration contract at 0x9310bc8b…, which logged a credit at that epoch's rate — five epochs capped at 300M / 280M / 210M / 140M / 70M, paying 100 / 80 / 60 / 40 / 20%, so 1,000,000,000 V1 became 720,000,000 of credits. The deposited V1 was sold back into the old 1% pool for ETH, which seeded the ETH side of the new v4 pool; the V2 is only minted when a depositor calls claim(), and minting stays open until 2026-12-21. No V1 was ever destroyed; its totalSupply is still exactly 1,000,000,000.</p>
+      <div class="note risk"><b data-zh="约 7.8% 的额度还没有被领取。">About 7.8% of credits have not been claimed yet.</b> <span data-zh="迁移合约把每笔存入记为额度，V2 在存入者调用 claim() 时才按额度铸出。截至上方所示区块，仍有约 5,600 万枚额度未领。这不是「没有储备」——铸造是按需进行的，上限之内随领随铸——但铸造窗口会在 2026-12-21 16:47 UTC 永久关闭，之后任何人都能调用 renounceMinter()，没领的就作废。存入过的人请在截止前领取。">The migration contract records each deposit as a credit; the V2 is only minted when the depositor calls claim(). As of the block shown above, roughly 56M of credits are still unclaimed. That is not a missing reserve — minting is on demand, within MAX_SUPPLY — but the mint window closes for good on 2026-12-21 16:47 UTC, after which anyone can call renounceMinter() and unclaimed credits are lost. If you deposited, claim before then.</span></div>
     </section>
 
     <!-- ─────────── 07 · IMPOSTORS ─────────── -->
@@ -850,7 +850,7 @@ window.TEAMEXIT={"generated":"2026-09-14T05:24:49Z","block":62556688,"feeWallet"
 
 /* the eight things only the team can close. status lives here so it is public;
    a viewer's local ticks are their own notes until pasted back in. */
-window.QA=[{"id":"q1","q":"Confirm the official contract set","zq":"确认官方合约清单","w":"Every address on this page was inferred from the v4 Initialize event and the transfer graph, not published by anyone. If the team confirms the hook, splitter, operator and launchpad addresses, every figure here becomes verifiable rather than inferred.","zw":"本页所有地址都是我从 v4 Initialize 事件和转账关系图里推断出来的，没有任何一方公开过。团队一旦确认 hook、分账合约、归集地址和 launchpad 这四个地址，本页所有数字就从「推断」变成「可核验」。","ev":"hook 0x332f85e7… · splitter 0xbc39b650… · operator 0x84b8affb… · launchpad 0x9310bc8b…","panel":"fees"},{"id":"q2","q":"Who are the four fee beneficiaries, and what is each share for?","zq":"四个手续费受益人分别是谁，各自代表什么？","w":"Fees split 35 / 30 / 21.6 / 13.4 into four addresses. The 30% one is a 2-of-3 Safe holding 23.78 ETH and 2,959,947 PONS; the other three are plain wallets and two have withdrawn to zero. Naming them — dev, marketing, treasury, partner — turns an unexplained split into a published budget.","zw":"手续费按 35 / 30 / 21.6 / 13.4 分给四个地址。拿 30% 的是一个 2/3 多签，里面有 23.78 ETH 和 2,959,947 枚 PONS；另外三个是普通钱包，其中两个已提空。把它们说明白（开发 / 市场 / 金库 / 合作方），这个分成就从「来路不明」变成「公开预算」。","ev":"0x28e35d8c… 35% · 0x263ed295… 30% (Safe 2/3) · 0xd64503dd… 21.6% · 0x2cf505f3… 13.4%","panel":"fees"},{"id":"q3","q":"There was no buyback \u2014 so what was the 9 September round trip?","zq":"没有回购 \u2014\u2014 那 9 月 9 日那趟往返是什么？","w":"The fee wallet bought 6,051,760 BRODIE for 3.065 ETH between 1 and 7 September, moved all of it to a wallet that had never held a token, and sold the lot eleven minutes later for 1.884 ETH \u2014 a 1.181 ETH loss. 0.761% of supply was bought and 0.761% was returned, so no buyback happened on any definition. What was it for, why through a fresh wallet, and why was it never announced?","zw":"手续费钱包在 9 月 1 日至 7 日花 3.065 ETH 买入 6,051,760 枚，随后把全部代币转入一个从未持有过任何代币的钱包，11 分钟后以 1.884 ETH 全部卖出，亏损 1.181 ETH。买入 0.761% 的供应量、又原样还回 0.761%，按任何定义都不构成回购。这笔操作的目的是什么？为什么要经过一个全新钱包？为什么从未公告？","ev":"buys 2026-09-01 05:51 \u2192 09-07 23:28 \u00b7 exit 2026-09-09 21:44 \u2192 21:56 \u00b7 0x28e35d8c\u2026 \u2192 0x78655106\u2026","panel":"flows"},{"id":"q4","q":"What happened to the 68 unissued entitlements?","zq":"68 笔从未发放的额度是怎么回事？","w":"68 addresses have a logged deposit entitlement totalling 56,344,918 BRODIE that was never minted. The launchpad holds zero V2, so there is no reserve to pay them from. Was this a deadline, a bug, or a pending batch — and will they be honoured?","zw":"68 个地址在合约事件里登记了合计 56,344,918 枚 BRODIE 的应得额度，但从未铸出。launchpad 合约自己的 V2 余额是 0，没有可兑付的储备。这是截止时间、是 bug、还是待处理批次——这些额度还会不会发？","ev":"largest: 0x5083727d… 13,922,794.23 · 0x194d98d1… 8,000,000 · 0x54f60863… 5,804,678","panel":"migration"},{"id":"q5","q":"Is the initial liquidity locked?","zq":"初始流动性锁了吗？","w":"132,045,778 BRODIE (16.6% of supply) went from the launchpad through two contracts into the pool as liquidity. Nothing on chain says whether that LP position is locked, for how long, or who can withdraw it. A lock proof is the single most load-bearing fact for anyone sizing a position.","zw":"132,045,778 枚（占供应 16.6%）从 launchpad 经两层合约注入池子做流动性。链上没有任何信息表明这个 LP 头寸是否被锁、锁多久、谁能撤。对任何要决定仓位大小的人来说，锁仓证明是最关键的一条事实。","ev":"0x9310bc8b… → 0x22e95047… → 0xc47d6542… → PoolManager","panel":"holders"},{"id":"q6","q":"Is there a burn mechanism planned?","zq":"有没有销毁机制的计划？","w":"Zero burns to date: no transfer to 0x0 or 0x…dEaD in the full history, and total supply has never moved from its genesis mint. $PONS is priced partly on continuous protocol burn. If $BRODIE plans one, saying so — with the contract — is the clearest structural comparison available.","zw":"至今销毁为零：全历史没有任何一笔转入 0x0 或 0x…dEaD，总量从创世铸造起从未变动。$PONS 的估值有一部分建立在持续的协议销毁上。如果 $BRODIE 计划做销毁，把机制和合约讲出来，是与之对比最有力的一条。","ev":"genesis mint 795,068,399.48 · burned 0.00 · dead balance 0.00","panel":"fees"},{"id":"q7","q":"Any commitment on what fees are for?","zq":"手续费的用途有没有承诺？","w":"All 16.70 ETH collected so far has been swapped out of BRODIE into ETH and paid out to the four addresses. A published policy — what share goes to buyback, liquidity, development — would make the fee stream readable as a budget instead of a distribution.","zw":"至今收取的 16.70 ETH 全部被换成 ETH 分给了四个地址。如果公开一个用途政策——多少比例用于回购、流动性、开发——这条手续费流就能被当作预算来读，而不只是一笔分配。","ev":"16.7042 ETH collected · 100% distributed · 1.1% returned as buying","panel":"fees"}];
+window.QA=[{"id":"q1","q":"Confirm the official contract set","zq":"确认官方合约清单","w":"Every address on this page was inferred from the v4 Initialize event and the transfer graph, not published by anyone. If the team confirms the hook, splitter, operator and launchpad addresses, every figure here becomes verifiable rather than inferred.","zw":"本页所有地址都是我从 v4 Initialize 事件和转账关系图里推断出来的，没有任何一方公开过。团队一旦确认 hook、分账合约、归集地址和 launchpad 这四个地址，本页所有数字就从「推断」变成「可核验」。","ev":"hook 0x332f85e7… · splitter 0xbc39b650… · operator 0x84b8affb… · launchpad 0x9310bc8b…","panel":"fees"},{"id":"q2","q":"Who are the four fee beneficiaries, and what is each share for?","zq":"四个手续费受益人分别是谁，各自代表什么？","w":"Fees split 35 / 30 / 21.6 / 13.4 into four addresses. The 30% one is a 2-of-3 Safe holding 23.78 ETH and 2,959,947 PONS; the other three are plain wallets and two have withdrawn to zero. Naming them — dev, marketing, treasury, partner — turns an unexplained split into a published budget.","zw":"手续费按 35 / 30 / 21.6 / 13.4 分给四个地址。拿 30% 的是一个 2/3 多签，里面有 23.78 ETH 和 2,959,947 枚 PONS；另外三个是普通钱包，其中两个已提空。把它们说明白（开发 / 市场 / 金库 / 合作方），这个分成就从「来路不明」变成「公开预算」。","ev":"0x28e35d8c… 35% · 0x263ed295… 30% (Safe 2/3) · 0xd64503dd… 21.6% · 0x2cf505f3… 13.4%","panel":"fees"},{"id":"q3","q":"There was no buyback \u2014 so what was the 9 September round trip?","zq":"没有回购 \u2014\u2014 那 9 月 9 日那趟往返是什么？","w":"The fee wallet bought 6,051,760 BRODIE for 3.065 ETH between 1 and 7 September, moved all of it to a wallet that had never held a token, and sold the lot eleven minutes later for 1.884 ETH \u2014 a 1.181 ETH loss. 0.761% of supply was bought and 0.761% was returned, so no buyback happened on any definition. What was it for, why through a fresh wallet, and why was it never announced?","zw":"手续费钱包在 9 月 1 日至 7 日花 3.065 ETH 买入 6,051,760 枚，随后把全部代币转入一个从未持有过任何代币的钱包，11 分钟后以 1.884 ETH 全部卖出，亏损 1.181 ETH。买入 0.761% 的供应量、又原样还回 0.761%，按任何定义都不构成回购。这笔操作的目的是什么？为什么要经过一个全新钱包？为什么从未公告？","ev":"buys 2026-09-01 05:51 \u2192 09-07 23:28 \u00b7 exit 2026-09-09 21:44 \u2192 21:56 \u00b7 0x28e35d8c\u2026 \u2192 0x78655106\u2026","panel":"flows"},{"id":"q4","q":"What happened to the 68 unissued entitlements?","zq":"68 笔从未发放的额度是怎么回事？","w":"Roughly 56M BRODIE of migration credits (about 7.8%) have not been claimed yet. Claims still mint on demand until 2026-12-21 16:47 UTC; after renounceMinter() they are gone. Who is chasing the depositors who have not claimed, and is there a plan for the deadline?","zw":"约 5,600 万枚（约 7.8%）迁移额度还没有被领取。截止 2026-12-21 16:47 UTC 之前 claim() 仍会按需铸造，renounceMinter() 之后就作废。谁在负责提醒还没领的存入者？截止日有没有安排？","ev":"largest: 0x5083727d… 13,922,794.23 · 0x194d98d1… 8,000,000 · 0x54f60863… 5,804,678","panel":"migration"},{"id":"q5","q":"Is the initial liquidity locked?","zq":"初始流动性锁了吗？","w":"132,045,778 BRODIE (16.6% of supply) went from the launchpad through two contracts into the pool as liquidity. Nothing on chain says whether that LP position is locked, for how long, or who can withdraw it. A lock proof is the single most load-bearing fact for anyone sizing a position.","zw":"132,045,778 枚（占供应 16.6%）从 launchpad 经两层合约注入池子做流动性。链上没有任何信息表明这个 LP 头寸是否被锁、锁多久、谁能撤。对任何要决定仓位大小的人来说，锁仓证明是最关键的一条事实。","ev":"0x9310bc8b… → 0x22e95047… → 0xc47d6542… → PoolManager","panel":"holders"},{"id":"q6","q":"Is there a burn mechanism planned?","zq":"有没有销毁机制的计划？","w":"Zero burns to date: totalMinted() and totalSupply() agree exactly and 0x…dEaD holds nothing, checked live every 30 seconds. buybackEnabled() on the migrator is false and the buyback vault is empty. $PONS is priced partly on continuous protocol burn. If $BRODIE plans one, saying so — with the contract — is the clearest structural comparison available.","zw":"至今销毁为零：totalMinted() 与 totalSupply() 精确相等，黑洞地址为空，每 30 秒实时核验。迁移合约的 buybackEnabled() 为 false，回购金库是空的。$PONS 的估值有一部分建立在持续的协议销毁上。如果 $BRODIE 计划做销毁，把机制和合约讲出来，是与之对比最有力的一条。","ev":"totalMinted == totalSupply · burned 0.00 · dead balance 0.00 · buybackEnabled false","panel":"fees"},{"id":"q7","q":"Any commitment on what fees are for?","zq":"手续费的用途有没有承诺？","w":"Every ETH of fees collected so far has been swapped out of BRODIE and credited to the four addresses (live total in §05). A published policy — what share goes to buyback, liquidity, development — would make the fee stream readable as a budget instead of a distribution.","zw":"至今收取的手续费全部被换成 ETH 记给了四个地址（实时总额见 §05）。如果公开一个用途政策——多少比例用于回购、流动性、开发——这条手续费流就能被当作预算来读，而不只是一笔分配。","ev":"escrow Credited events, live · 100% distributed · one beneficiary bought and sold it all","panel":"fees"}];
 window.QSTATUS={};
 
 /* sell-side attribution: where every token sold into the pool came from.
@@ -886,9 +886,30 @@ const CONFIG = {
   catchUpChunk: 1500000, catchUpMax: 14,
   dex:  'https://api.dexscreener.com/latest/dex',
   gecko:'https://api.geckoterminal.com/api/v2/networks/robinhood',
-  ms:   { market: 10000, chain: 30000, events: 120000, board: 300000, candles: 45000, trades: 12000 },
+  ms:   { market: 10000, chain: 30000, events: 120000, board: 300000, candles: 45000, trades: 12000, mints: 180000, fees: 90000 },
   scanBlocks: 900000,   /* ~25h at 0.1s blocks */
-  scanChunk:  300000
+  scanChunk:  300000,
+  /* migration + fee contracts, read live */
+  migrator: '0x9310bc8BF95FA35608a9f08F76b55B4FdDDc1eF0',   /* sole minter of V2; deposit / claim / epochs */
+  escrow:   '0xbc39b6502e1a6ab36e4a5c5026a35f08342a0a9c',   /* PonsV2FeeEscrow: Credited / Claimed events */
+  hook:     '0x332f85e7e323214b2d55286414b059ebb1f2a044',   /* v4 hook that credits the escrow */
+  deployBlock:    48381897,        /* V2 token + migrator created, 2026-08-28 14:47:54 UTC */
+  firstMintBlock: 49296036,        /* epoch-1 settle: first mint, 100,008,380 to the pool seed */
+  seedToPool: 132045777.975,       /* V2 minted to the migrator itself and pushed into the v4 pool (5 epoch settles) */
+  logChunk: 4000000,               /* topic-filtered eth_getLogs are cheap; 4M blocks per call */
+  topics: {
+    transfer: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+    credited: '0x4e45da441832cf53bdaa69235704fc0575e68210f459ee1562911024b12967d5',   /* Credited(recipient,depositor,amount) */
+    claimed:  '0xd8138f8a3f377c5259ca548e70e4c2de94f129f5a11036a15b69513cba2b426a'    /* Claimed(recipient,amount) */
+  }
+};
+/* function selectors used by the live reads */
+const SEL = {
+  totalSupply: '0x18160ddd', balanceOf: '0x70a08231',
+  totalMinted: '0xa2309ff8', totalCredits: '0xb5bd3eb9', totalDeposits: '0x7d882097', maxSupply: '0xd5abeb01',
+  mintDeadline: '0xd4e78086', mintingOpen: '0x8f4bb497', depositEnd: '0x99b6f607',
+  currentEpoch: '0x76671808', epochCount: '0x829965cc', buybackEnabled: '0x160d0da5',
+  creatorFeeRecipient: '0x9fa36cdc'
 };
 
 /* ── baked snapshot: verified 2026-09-09 13:30 UTC, block 58,583,451 ─────── */
@@ -1006,7 +1027,8 @@ const SNAP = {
 /* ── state ──────────────────────────────────────────────────────────────── */
 const D = JSON.parse(JSON.stringify(SNAP));
 let lang = 'en';
-let feed = { market:'snapshot', chain:'snapshot', events:'idle', board:'snapshot' };
+let feed = { market:'snapshot', chain:'snapshot', events:'idle', board:'snapshot', mints:'idle', fees:'idle' };
+D.mint = null; D.mints = null; D.feesLive = null;   /* filled by pullChain / pullMints / pullFees */
 let burns = null;
 
 const T = (en, zh) => lang === 'zh' ? zh : en;
@@ -1068,7 +1090,64 @@ async function rpc(method, params) {
 }
 const call = (to, data) => rpc('eth_call', [{ to, data }, 'latest']);
 const dec = hex => hex && hex !== '0x' ? Number(BigInt(hex)) / 1e18 : 0;
+const hexNum = hex => hex && hex !== '0x' ? Number(BigInt(hex)) : 0;
 const pad = a => '0x000000000000000000000000' + a.slice(2).toLowerCase();
+const addrOf = topic => ('0x' + topic.slice(26)).toLowerCase();
+const DEAD = '0x000000000000000000000000000000000000dEaD';
+const utc = t => new Date(t * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+const blockTimes = new Map();
+async function blockTime(b) {
+  if (blockTimes.has(b)) return blockTimes.get(b);
+  const r = await rpc('eth_getBlockByNumber', ['0x' + b.toString(16), false]);
+  const t = hexNum(r && r.timestamp);
+  blockTimes.set(b, t);
+  return t;
+}
+/* timestamps for a handful of anchor blocks, then linear interpolation — good to a few minutes,
+   which is all a per-day bucket needs. Exact times are fetched for the few blocks shown to the reader. */
+async function anchorTimes(from, to, n) {
+  n = n || 8;
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(Math.round(from + (to - from) * i / n));
+  const ts = await Promise.all(pts.map(blockTime));
+  return pts.map((b, i) => [b, ts[i]]);
+}
+function interp(anchors, b) {
+  if (b <= anchors[0][0]) return anchors[0][1];
+  for (let i = 1; i < anchors.length; i++) {
+    if (b <= anchors[i][0]) {
+      const [b0, t0] = anchors[i - 1], [b1, t1] = anchors[i];
+      return t0 + (t1 - t0) * (b - b0) / Math.max(1, b1 - b0);
+    }
+  }
+  return anchors[anchors.length - 1][1];
+}
+/* Log scans go through one lane: the public RPC throttles parallel eth_getLogs, and a throttled
+   preflight surfaces as a bare "Failed to fetch". Serialise, retry with backoff, never overlap. */
+let logLane = Promise.resolve();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function getLogsOne(address, topics, from, to) {
+  const params = [{ address, fromBlock: '0x' + from.toString(16), toBlock: '0x' + to.toString(16), topics }];
+  const run = async () => {
+    let last;
+    for (let i = 0; i < 4; i++) {
+      try { const logs = await rpc('eth_getLogs', params); return logs || []; }
+      catch (e) { last = e; await sleep(1200 * (i + 1)); }
+    }
+    throw last;
+  };
+  const p = logLane.then(run, run);
+  logLane = p.catch(() => {});
+  return p;
+}
+async function getLogsChunked(address, topics, from, to, chunk) {
+  const out = [];
+  for (let b = from; b <= to; b += chunk) {
+    const logs = await getLogsOne(address, topics, b, Math.min(b + chunk - 1, to));
+    logs.forEach(l => out.push(l));
+  }
+  return out;
+}
 async function getJSON(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(r.status);
@@ -1101,28 +1180,116 @@ async function pullMarket() {
   feed.market = 'live';
 }
 async function pullChain() {
-  const [s2, s1, d2, d1, bn, pm, hk, sp, bals, subBal] = await Promise.all([
-    call(CONFIG.v2, '0x18160ddd'),
-    call(CONFIG.v1, '0x18160ddd'),
-    call(CONFIG.v2, '0x70a08231' + pad('0x000000000000000000000000000000000000dEaD').slice(2)),
-    call(CONFIG.v1, '0x70a08231' + pad('0x000000000000000000000000000000000000dEaD').slice(2)),
+  const M = CONFIG.migrator, E = CONFIG.escrow;
+  const parties = SNAP.fees.parties.map(r => r[0]);
+  const [s2, s1, d2, d1, bn, pm, hk, sp, bals, subBal,
+         tm, tc, td, mx, dl, mo, de, ce, ec, bb, escBals] = await Promise.all([
+    call(CONFIG.v2, SEL.totalSupply),
+    call(CONFIG.v1, SEL.totalSupply),
+    call(CONFIG.v2, SEL.balanceOf + pad(DEAD).slice(2)),
+    call(CONFIG.v1, SEL.balanceOf + pad(DEAD).slice(2)),
     rpc('eth_blockNumber', []),
-    call(CONFIG.v1, '0x70a08231' + pad(SNAP.poolManager).slice(2)),
-    call(CONFIG.v2, '0x70a08231' + pad(SNAP.fees.hook).slice(2)),
+    call(CONFIG.v1, SEL.balanceOf + pad(SNAP.poolManager).slice(2)),
+    call(CONFIG.v2, SEL.balanceOf + pad(SNAP.fees.hook).slice(2)),
     rpc('eth_getBalance', [SNAP.fees.splitter, 'latest']),
-    Promise.all(SNAP.fees.parties.map(r => rpc('eth_getBalance', [r[0], 'latest'])
-      .then(dec).catch(() => null))),
-    rpc('eth_getBalance', [SNAP.fees.subWallet, 'latest']).then(dec).catch(() => null)
+    Promise.all(parties.map(a => rpc('eth_getBalance', [a, 'latest']).then(dec).catch(() => null))),
+    rpc('eth_getBalance', [SNAP.fees.subWallet, 'latest']).then(dec).catch(() => null),
+    call(M, SEL.totalMinted), call(M, SEL.totalCredits), call(M, SEL.totalDeposits), call(M, SEL.maxSupply),
+    call(CONFIG.v2, SEL.mintDeadline), call(CONFIG.v2, SEL.mintingOpen), call(M, SEL.depositEnd),
+    call(M, SEL.currentEpoch), call(M, SEL.epochCount), call(M, SEL.buybackEnabled),
+    Promise.all(parties.map(a => call(E, SEL.balanceOf + pad(a).slice(2)).then(dec).catch(() => null)))
   ]);
   D.supplyV2 = dec(s2); D.supplyV1 = dec(s1);
   D.deadV2 = dec(d2);   D.deadV1 = dec(d1);
-  D.block = Number(BigInt(bn));
+  D.block = hexNum(bn);
   D.v1InPoolManager = dec(pm);
   D.fees.pendingHookTokens = dec(hk);
   D.fees.pendingSplitterEth = dec(sp);
   D.fees.balances = bals;
+  D.fees.escrowBalances = escBals;
   D.fees.subBalance = subBal;
+  /* V2 is minted on demand: totalMinted() only ever rises, burn() only ever lowers totalSupply().
+     Their difference is the exact burned amount, read live — no event replay needed. */
+  const minted = dec(tm), credits = dec(tc), max = dec(mx);
+  const toMigrators = Math.max(0, minted - CONFIG.seedToPool);
+  D.mintedV2 = minted;
+  D.burnedV2 = Math.max(0, minted - D.supplyV2);
+  D.mint = {
+    minted, credits, max, deposits: dec(td),
+    deadline: hexNum(dl), open: hexNum(mo) === 1, depositEnd: hexNum(de),
+    epoch: hexNum(ce), epochs: hexNum(ec), buyback: hexNum(bb) === 1,
+    toMigrators, unclaimed: Math.max(0, credits - toMigrators),
+    mintable: Math.max(0, max - minted), neverMintable: Math.max(0, max - CONFIG.seedToPool - credits)
+  };
+  D.migration.minted = toMigrators;
+  D.migration.unminted = D.mint.unclaimed;
+  D.migration.v2Entitled = credits;
+  D.migration.v1In = D.mint.deposits;
+  D.migration.ratio = D.mint.deposits ? credits / D.mint.deposits : D.migration.ratio;
+  D.headTime = await blockTime(D.block).catch(() => 0);
+  D.at = new Date().toISOString();
   feed.chain = 'live';
+}
+/* every mint since deployment: Transfer from 0x0. ~5k events, four topic-filtered calls. */
+async function pullMints() {
+  const head = D.block || hexNum(await rpc('eth_blockNumber', []));
+  const logs = await getLogsChunked(CONFIG.v2, [CONFIG.topics.transfer, pad(ZERO_ADDR)], CONFIG.deployBlock, head, CONFIG.logChunk);
+  const M = CONFIG.migrator.toLowerCase();
+  const byAddr = new Map();
+  let seed = 0, toM = 0, first = null, last = null;
+  logs.forEach(l => {
+    const to = addrOf(l.topics[2]), v = dec(l.data), b = hexNum(l.blockNumber);
+    if (to === M) seed += v; else { toM += v; byAddr.set(to, (byAddr.get(to) || 0) + v); }
+    if (!first || b < first.blk) first = { blk: b, amt: v, to };
+    if (!last || b > last.blk) last = { blk: b, amt: v, to, tx: l.transactionHash };
+  });
+  const sorted = [...byAddr.values()].sort((a, b) => b - a);
+  const top1 = sorted.length ? sorted[0] / toM * 100 : 0;
+  const top10 = sorted.slice(0, 10).reduce((a, v) => a + v, 0) / (toM || 1) * 100;
+  if (first) first.time = await blockTime(first.blk);
+  if (last) last.time = await blockTime(last.blk);
+  D.mints = { count: logs.length, seed, toMigrators: toM, recipients: byAddr.size, first, last, top1, top10, scannedTo: head };
+  D.mintRecipients = byAddr.size; D.mintTop1Pct = top1; D.mintTop10Pct = top10;
+  feed.mints = 'live';
+}
+/* every fee credit and claim on the escrow, plus every hook sweep into the pool — all from events. */
+async function pullFees() {
+  const head = D.block || hexNum(await rpc('eth_blockNumber', []));
+  const E = CONFIG.escrow, parties = SNAP.fees.parties.map(r => r[0].toLowerCase());
+  const big = CONFIG.logChunk * 2;   /* the escrow is a small contract; two calls cover its whole history */
+  const cr = await getLogsChunked(E, [CONFIG.topics.credited, null, pad(CONFIG.hook)], CONFIG.deployBlock, head, big);
+  const cl = await getLogsChunked(E, [CONFIG.topics.claimed], CONFIG.deployBlock, head, big);
+  const sw = await getLogsChunked(CONFIG.v2, [CONFIG.topics.transfer, pad(CONFIG.hook), pad(SNAP.poolManager)], CONFIG.deployBlock, head, CONFIG.logChunk);
+  const credited = {}, claimed = {}, events = {};
+  let total = 0, other = 0, lastBlk = 0, firstBlk = Infinity;
+  cr.forEach(l => {
+    const to = addrOf(l.topics[1]), v = dec(l.data), b = hexNum(l.blockNumber);
+    if (parties.includes(to)) { credited[to] = (credited[to] || 0) + v; events[to] = (events[to] || 0) + 1; total += v; }
+    else other += v;
+    if (b > lastBlk) lastBlk = b; if (b < firstBlk) firstBlk = b;
+  });
+  cl.forEach(l => { const to = addrOf(l.topics[1]); if (parties.includes(to)) claimed[to] = (claimed[to] || 0) + dec(l.data); });
+  let sweepTok = 0; sw.forEach(l => { sweepTok += dec(l.data); });
+  const anchors = await anchorTimes(Math.min(firstBlk, CONFIG.firstMintBlock), head);
+  const daily = {};
+  const bucket = b => new Date(interp(anchors, b) * 1000).toISOString().slice(0, 10);
+  cr.forEach(l => {
+    const j = parties.indexOf(addrOf(l.topics[1])); if (j < 0) return;
+    const d = daily[bucket(hexNum(l.blockNumber))] || (daily[bucket(hexNum(l.blockNumber))] = { eth: [0, 0, 0, 0], sw: 0, sold: 0 });
+    d.eth[j] += dec(l.data);
+  });
+  sw.forEach(l => {
+    const k = bucket(hexNum(l.blockNumber));
+    const d = daily[k] || (daily[k] = { eth: [0, 0, 0, 0], sw: 0, sold: 0 });
+    d.sw += 1; d.sold += dec(l.data);
+  });
+  const lastTime = lastBlk ? await blockTime(lastBlk) : 0;
+  const firstTime = isFinite(firstBlk) ? await blockTime(firstBlk) : 0;
+  const lastSweepBlk = sw.length ? Math.max(...sw.map(l => hexNum(l.blockNumber))) : 0;
+  const lastSweep = lastSweepBlk ? await blockTime(lastSweepBlk) : 0;
+  D.feesLive = { credited, claimed, events, total, other, count: cr.length, lastBlk, lastTime, firstBlk, firstTime,
+                 sweeps: sw.length, sweepTok, lastSweep, daily, scannedTo: head, at: new Date().toISOString() };
+  feed.fees = 'live';
 }
 async function pullEvents() {
   const TR = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
@@ -1133,10 +1300,7 @@ async function pullEvents() {
   for (const sink of sinks) {
     for (let b = from; b <= to; b += CONFIG.scanChunk) {
       const e = Math.min(b + CONFIG.scanChunk, to);
-      const logs = await rpc('eth_getLogs', [{
-        address: CONFIG.v2, fromBlock: '0x' + b.toString(16), toBlock: '0x' + e.toString(16),
-        topics: [TR, null, pad(sink)]
-      }]);
+      const logs = await getLogsOne(CONFIG.v2, [TR, null, pad(sink)], b, e);
       (logs || []).forEach(l => found.push({
         blk: Number(BigInt(l.blockNumber)),
         from: '0x' + l.topics[1].slice(26),
@@ -1255,19 +1419,31 @@ function chartFlow() {
     '</span><span><i style="background:var(--sell)"></i>' + T('sells (lower bar)', '卖出（下条）') + '</span></div>';
 }
 function chartSupply() {
-  const genesis = D.supplyV1 || 1e9;
+  const m = D.mint;
+  const max = m ? m.max : 1e9;
+  const seed = m ? Math.min(CONFIG.seedToPool, m.minted) : CONFIG.seedToPool;
+  const toM = m ? m.toMigrators : Math.max(0, D.mintedV2 - CONFIG.seedToPool);
+  const unclaimed = m ? m.unclaimed : D.migration.unminted;
+  const minted = seed + toM;
+  const never = Math.max(0, max - minted - unclaimed);
   const x0 = 8, xw = 324, y = 22, h = 26;
-  const w = (D.supplyV2 / genesis) * xw;
-  const gap = genesis - D.supplyV2;
+  const W = v => v / max * xw;
   let s = '';
   s += '<rect x="' + x0 + '" y="' + y + '" width="' + xw + '" height="' + h + '" fill="none" stroke="var(--line-2)" stroke-width="1" stroke-dasharray="3 3"/>';
-  s += capBar(x0, y, w, h, 4) + ' style="fill:var(--gold)"><title>V2 totalSupply · ' + nf(D.supplyV2, 0) + '</title></path>';
-  s += txt(x0 + 8, y + 17, nf(Math.round(D.supplyV2)), { size: 12, fill: 'var(--bg)', w: 500 });
-  s += txt(x0, y - 8, T('V2 totalSupply — never changed since genesis', 'V2 总量 — 自创世以来从未变化'), { size: 8.5 });
-  s += txt(x0 + xw, y - 8, T('V1 genesis 1,000,000,000', 'V1 创世 1,000,000,000'), { size: 8.5, anchor: 'end' });
-  s += '<line x1="' + (x0 + w) + '" y1="' + (y - 4) + '" x2="' + (x0 + w) + '" y2="' + (y + h + 6) + '" stroke="var(--ink-3)" stroke-width="0.8"/>';
-  s += txt(x0 + xw, y + h + 18, T('gap ', '差额 ') + nf(Math.round(gap)) + ' (' + (gap / genesis * 100).toFixed(2) + '%) — ' + T('never minted, not burned', '从未铸造，而非销毁'), { size: 9, anchor: 'end' });
-  return SVG('0 0 340 84', s);
+  s += '<rect x="' + x0 + '" y="' + y + '" width="' + W(seed).toFixed(1) + '" height="' + h + '" style="fill:var(--ink-3)"><title>' + T('pool seed minted to the migrator · ', '铸给迁移合约、注入池子的种子 · ') + nf(Math.round(seed)) + '</title></rect>';
+  s += capBar(x0 + W(seed), y, W(toM), h, 4) + ' style="fill:var(--gold)"><title>' + T('minted to migrators on claim · ', '迁移者领取时铸出 · ') + nf(Math.round(toM)) + '</title></path>';
+  s += '<rect x="' + (x0 + W(minted)).toFixed(1) + '" y="' + y + '" width="' + W(unclaimed).toFixed(1) + '" height="' + h + '" style="fill:var(--gold); opacity:.28"><title>' + T('credits not yet claimed · ', '尚未领取的额度 · ') + nf(Math.round(unclaimed)) + '</title></rect>';
+  s += txt(x0 + 8, y + 17, nf(Math.round(minted)), { size: 12, fill: 'var(--bg)', w: 500 });
+  s += txt(x0, y - 8, T('minted on demand · ', '按需已铸 · ') + (minted / max * 100).toFixed(2) + T('% of max', '% 的上限'), { size: 8.5 });
+  s += txt(x0 + xw, y - 8, T('max ', '上限 ') + nf(max), { size: 8.5, anchor: 'end' });
+  s += '<line x1="' + (x0 + W(minted)).toFixed(1) + '" y1="' + (y - 4) + '" x2="' + (x0 + W(minted)).toFixed(1) + '" y2="' + (y + h + 6) + '" stroke="var(--ink-3)" stroke-width="0.8"/>';
+  s += txt(x0, y + h + 18, T('claimable ', '可领 ') + tok(unclaimed) + ' · ' + (m ? utc(m.deadline).slice(0, 10) : '2026-12-21'), { size: 8.5 });
+  s += txt(x0 + xw, y + h + 18, T('never mintable ', '铸不出 ') + tok(never) + ' · ' + (never / max * 100).toFixed(1) + '%', { size: 8.5, anchor: 'end' });
+  s += '<rect x="' + x0 + '" y="' + (y + h + 26) + '" width="8" height="6" style="fill:var(--ink-3)"/>' + txt(x0 + 12, y + h + 31.5, T('pool seed', '池子种子'), { size: 7.5 });
+  s += '<rect x="' + (x0 + 70) + '" y="' + (y + h + 26) + '" width="8" height="6" style="fill:var(--gold)"/>' + txt(x0 + 82, y + h + 31.5, T('minted to migrators', '已铸给迁移者'), { size: 7.5 });
+  s += '<rect x="' + (x0 + 170) + '" y="' + (y + h + 26) + '" width="8" height="6" style="fill:var(--gold); opacity:.28"/>' + txt(x0 + 182, y + h + 31.5, T('claimable', '待领'), { size: 7.5 });
+  s += '<rect x="' + (x0 + 232) + '" y="' + (y + h + 26) + '" width="8" height="6" fill="none" stroke="var(--line-2)" stroke-dasharray="2 2"/>' + txt(x0 + 244, y + h + 31.5, T('never mintable', '永远铸不出'), { size: 7.5 });
+  return SVG('0 0 340 96', s);
 }
 
 function chartCandles() {
@@ -1518,43 +1694,59 @@ function renderMarket() {
   $('#chartFlow').innerHTML = chartFlow();
 }
 function renderSupply() {
-  const burnedTotal = D.burnedV2 + D.deadV2;
+  const m = D.mint, mi = D.mints;
+  const minted = m ? m.minted : D.mintedV2;
+  const burned0 = m ? Math.max(0, m.minted - D.supplyV2) : D.burnedV2;
+  const burnedTotal = burned0 + D.deadV2;
+  const unclaimed = m ? m.unclaimed : D.migration.unminted;
+  const deadline = m ? utc(m.deadline) : '2026-12-21 16:47 UTC';
+  const liveTag = feed.chain === 'live' ? T('live · block ', '实时 · 区块 ') + nf(D.block) : T('snapshot · block ', '快照 · 区块 ') + nf(SNAP.block);
   $('#supGrid').innerHTML =
-    cell(T('genesis mint', '创世铸造'), tok(D.mintedV2), nf(Math.round(D.mintedV2)) + ' · 2026-08-29', 'hero') +
-    cell(T('total supply now', '当前总量'), tok(D.supplyV2), T('unchanged since block ', '自区块 ') + nf(D.firstBlockV2) + T('', ' 起未变')) +
-    cell(T('burned', '已销毁'), nf(burnedTotal, 0), T('to 0x0 and 0x…dEaD combined', '0x0 与 0x…dEaD 合计')) +
-    cell(T('supply consumed', '供应消耗率'), (burnedTotal / D.mintedV2 * 100).toFixed(2) + '%', T('$PONS burns 30%+ — this is the honest comparison', '$PONS 已销毁 30%+ — 这是诚实的对照'));
+    cell(T('minted so far', '已铸总量'), tok(minted), nf(Math.round(minted)) + ' · ' + (mi ? nf(mi.count) + T(' mint events', ' 次铸造') : liveTag), 'hero',
+         T('V2 has no genesis allocation. The migration contract mints on demand — once per epoch for the pool seed, and each time a depositor claims. totalMinted() is read from the contract every 30 seconds.',
+           'V2 没有创世分配。迁移合约按需铸造——每个 epoch 结算时铸池子种子，每位存入者领取时再铸。totalMinted() 每 30 秒从合约读取。')) +
+    cell(T('total supply now', '当前总量'), tok(D.supplyV2), liveTag + ' · ' + T('minted − burned', '已铸 − 已销毁')) +
+    cell(T('burned', '已销毁'), nf(burnedTotal, 0), T('totalMinted − totalSupply, plus 0x…dEaD', 'totalMinted − totalSupply，加黑洞地址')) +
+    cell(T('still claimable', '尚可领取'), tok(unclaimed), T('credits not yet minted · until ', '未领取的额度 · 截止 ') + deadline.slice(0, 10));
   $('#chartSupply').innerHTML = chartSupply();
 
   let verdict, vcls, vtxt;
-  if (burnedTotal === 0) {
+  if (burnedTotal < 1) {
     vcls = 'bad'; verdict = T('NO BURN FOUND', '未发现销毁');
-    vtxt = T('A full-history replay of all ' + nf(D.transfersV2) + ' V2 Transfer events found zero transfers to 0x0 or 0x…dEaD, and totalSupply has not moved from its genesis mint. Any claim that fees are being used to buy back and burn is, as of this block, not visible on chain.',
-             '对全部 ' + nf(D.transfersV2) + ' 条 V2 Transfer 事件的完整重放显示：没有任何一笔转入 0x0 或 0x…dEaD，totalSupply 也从创世铸造起没有变动过。所谓「手续费用于回购销毁」的说法，截至该区块在链上不可见。');
+    vtxt = m
+      ? T('totalMinted() and totalSupply() agree to the wei at block ' + nf(D.block) + ' (' + nf(minted, 2) + ' each) and 0x…dEaD holds ' + nf(D.deadV2, 2) + '. This is read live from the contracts every 30 seconds, not replayed from a snapshot: a buy-back-and-burn would show here within a minute as totalSupply falling below totalMinted.',
+          '区块 ' + nf(D.block) + ' 时 totalMinted() 与 totalSupply() 精确相等（均为 ' + nf(minted, 2) + '），黑洞地址持有 ' + nf(D.deadV2, 2) + '。这是每 30 秒直接从合约读取的，不是快照回放：一旦有回购销毁，一分钟内就会在这里表现为 totalSupply 低于 totalMinted。')
+      : T('The last replay of every V2 Transfer event found zero transfers to 0x0 or 0x…dEaD. Live verification needs the RPC, which this preview cannot reach.',
+          '最近一次对全部 V2 Transfer 事件的回放没有发现任何转入 0x0 或 0x…dEaD 的记录。实时核验需要 RPC，当前预览无法访问。');
   } else {
     vcls = 'ok'; verdict = T('BURN CONFIRMED', '销毁已确认');
-    vtxt = T('Burn events found in the scanned window — see the ledger.', '扫描窗口内发现销毁事件 — 见下表。');
+    vtxt = T(nf(burnedTotal, 2) + ' BRODIE has left circulation — see the ledger.', '已有 ' + nf(burnedTotal, 2) + ' 枚退出流通 — 见下表。');
   }
 
-  const bb = D.buyback;
-  const bbN = (D.neverSold || {}).count || 0;
-  const bbT = (D.neverSold || {}).total || 0;
-  const bbMax = bb && bb.rows && bb.rows.length ? bb.rows[0][1] : 0;
-  const bbRows = bb && bb.rows && bb.rows.length
-    ? bb.rows.map(r => '<tr><td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + r[0] + '" rel="noopener" target="_blank">' + short(r[0]) + '</a></td>' +
-        '<td>' + r[3] + '</td><td class="r">' + nf(Math.round(r[1])) + '</td><td class="r">' + (r[1] / D.supplyV2 * 100).toFixed(2) + '%</td>' +
-        '<td class="r">' + usdExact(r[1] * D.price) + '</td><td class="mono">' + r[2] + '</td></tr>').join('')
-    : '<tr><td colspan="6" class="mut">' + T('No address matches the pattern.', '没有地址符合该特征。') + '</td></tr>';
-
+  const txl = h => '<a href="https://robinhoodchain.blockscout.com/tx/' + h + '" rel="noopener" target="_blank">' + short(h) + '</a>';
+  const seedRow = mi ? nf(mi.seed, 2) : nf(CONFIG.seedToPool, 2);
+  const toM = m ? m.toMigrators : Math.max(0, minted - CONFIG.seedToPool);
+  const credits = m ? m.credits : D.migration.v2Entitled;
   $('#burnBox').innerHTML =
     '<div class="note risk"><b>' + T('Verdict: ', '结论：') + verdict + '</b> ' + vtxt + '</div>' +
     '<div class="tw"><table><thead><tr>' +
       '<th>' + T('ledger line', '账本科目') + '</th><th class="r">' + T('amount', '数量') + '</th>' +
       '<th>' + T('evidence', '证据') + '</th><th>' + T('status', '状态') + '</th></tr></thead><tbody>' +
-      '<tr><td>' + T('Genesis mint', '创世铸造') + '</td><td class="r">' + nf(D.mintedV2, 2) + '</td><td class="mono">' + T('Transfer from 0x0, block ', 'Transfer from 0x0，区块 ') + nf(D.firstBlockV2) + '</td><td><span class="chip ok">verified</span></td></tr>' +
-      '<tr><td>' + T('Burn to 0x0', '销毁至 0x0') + '</td><td class="r">' + nf(D.burnedV2, 2) + '</td><td class="mono">' + T('full-history log replay', '全历史事件重放') + '</td><td><span class="chip ' + vcls + '">' + T('none', '无') + '</span></td></tr>' +
-      '<tr><td>' + T('Held at 0x…dEaD', '黑洞地址余额') + '</td><td class="r">' + nf(D.deadV2, 2) + '</td><td class="mono">balanceOf(0x…dEaD)</td><td><span class="chip ' + vcls + '">' + T('none', '无') + '</span></td></tr>' +
-      '<tr><td>' + T('Net supply change', '总量净变化') + '</td><td class="r">' + nf(D.supplyV2 - D.mintedV2, 2) + '</td><td class="mono">totalSupply − ' + T('genesis', '创世') + '</td><td><span class="chip">' + T('flat', '持平') + '</span></td></tr>' +
+      '<tr><td>' + T('First mint (epoch-1 pool seed)', '首次铸造（第 1 轮池子种子）') + '</td><td class="r">' + (mi && mi.first ? nf(mi.first.amt, 2) : '100,008,380.00') + '</td>' +
+        '<td class="mono">' + T('Transfer from 0x0, block ', 'Transfer from 0x0，区块 ') + nf(mi && mi.first ? mi.first.blk : CONFIG.firstMintBlock) + (mi && mi.first && mi.first.time ? ' · ' + utc(mi.first.time) : '') + '</td>' +
+        '<td><span class="chip ok">' + (mi ? T('live', '实时') : T('baked', '快照')) + '</span></td></tr>' +
+      '<tr><td>' + T('Pool seed, minted to the migrator → v4 pool', '池子种子：铸给迁移合约 → 注入 v4 池') + '</td><td class="r">' + seedRow + '</td>' +
+        '<td class="mono">' + (mi ? T('5 epoch settles · Transfer from 0x0 to 0x9310…', '5 次 epoch 结算 · 从 0x0 铸给 0x9310…') : T('per epoch settle', '按 epoch 结算')) + '</td><td><span class="chip">' + T('liquidity', '流动性') + '</span></td></tr>' +
+      '<tr><td>' + T('Minted to migrators on claim', '迁移者领取时铸出') + '</td><td class="r">' + nf(toM, 2) + '</td>' +
+        '<td class="mono">' + (mi ? nf(mi.recipients) + T(' addresses · ', ' 个地址 · ') : '') + (toM / (credits || 1) * 100).toFixed(1) + T('% of ', '% 的 ') + nf(Math.round(credits)) + T(' credits', ' 额度') + '</td>' +
+        '<td><span class="chip ok">' + (m ? T('live', '实时') : T('baked', '快照')) + '</span></td></tr>' +
+      '<tr><td>' + T('Last mint', '最近一次铸造') + '</td><td class="r">' + (mi && mi.last ? nf(mi.last.amt, 2) : '—') + '</td>' +
+        '<td class="mono">' + (mi && mi.last ? T('block ', '区块 ') + nf(mi.last.blk) + ' · ' + utc(mi.last.time) + ' · ' + txl(mi.last.tx) : T('scanning…', '扫描中…')) + '</td>' +
+        '<td><span class="chip ' + (mi ? 'ok' : '') + '">' + (mi ? T('live', '实时') : '…') + '</span></td></tr>' +
+      '<tr><td>' + T('Burned (totalMinted − totalSupply)', '已销毁（totalMinted − totalSupply）') + '</td><td class="r">' + nf(burned0, 2) + '</td><td class="mono">' + T('two eth_call reads, block ', '两次 eth_call，区块 ') + nf(D.block) + '</td><td><span class="chip ' + vcls + '">' + (burned0 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
+      '<tr><td>' + T('Held at 0x…dEaD', '黑洞地址余额') + '</td><td class="r">' + nf(D.deadV2, 2) + '</td><td class="mono">balanceOf(0x…dEaD)</td><td><span class="chip ' + vcls + '">' + (D.deadV2 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
+      '<tr><td>' + T('Still claimable', '尚可领取') + '</td><td class="r">' + nf(unclaimed, 2) + '</td><td class="mono">totalCredits − ' + T('minted to migrators · until ', '已铸给迁移者 · 截止 ') + deadline + '</td><td><span class="chip warn">' + (m && m.open ? T('minting open', '铸造开放') : T('closed', '已关闭')) + '</span></td></tr>' +
+      '<tr><td>' + T('Never mintable', '永远铸不出') + '</td><td class="r">' + nf(m ? m.neverMintable : 1e9 - CONFIG.seedToPool - credits, 2) + '</td><td class="mono">MAX_SUPPLY − ' + T('seed − credits', '种子 − 额度') + '</td><td><span class="chip">' + T('by design', '设计如此') + '</span></td></tr>' +
     '</tbody></table></div>';
   renderFees();
 }
@@ -1716,8 +1908,17 @@ function renderSellers() {
       '<th class="r">' + T('sold', '已卖出') + '</th><th class="r">' + T('of allocation', '占其额度') + '</th></tr></thead><tbody>' + dump + '</tbody></table></div>';
 }
 function renderTimeline() {
-  const tl = window.TL; const host = document.getElementById('tlBox');
+  let tl = window.TL; const host = document.getElementById('tlBox');
   if (!tl || !host) return;
+  const L = D.feesLive;
+  if (L && Object.keys(L.daily).length) {   /* rebuild the daily table from live events; keep the baked buys */
+    tl = Object.assign({}, tl, {
+      block: L.scannedTo, generated: L.at,
+      daily: Object.keys(L.daily).sort().map(d => [d, L.daily[d].eth.map(v => +v.toFixed(4)), L.daily[d].sw, Math.round(L.daily[d].sold)]),
+      sweeps: L.sweeps, payouts: L.count, lastPayout: L.lastTime || tl.lastPayout, lastSweep: L.lastSweep || tl.lastSweep,
+      firstSweep: tl.firstSweep
+    });
+  }
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
   const b = (tl.buys || [])[0];
   const fmt = t => new Date(t * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
@@ -1759,47 +1960,60 @@ function renderTimeline() {
 }
 function renderFeeDestination() {
   const f = D.fees, tl = window.TL, host = document.getElementById('destBox');
-  if (!f || !tl || !host) return;
+  if (!f || !host) return;
+  const L = D.feesLive;
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
-  const earned = tl.parties.map((_, j) => tl.daily.reduce((a, d) => a + d[1][j], 0));
+  const parties = f.parties;
+  const earned = parties.map((p, j) => L ? (L.credited[p[0].toLowerCase()] || 0) : (tl ? tl.daily.reduce((a, d) => a + d[1][j], 0) : p[2]));
+  const claimed = parties.map(p => L ? (L.claimed[p[0].toLowerCase()] || 0) : null);
+  const inEscrow = f.escrowBalances || parties.map(() => null);
   const bals = f.balances;
-  const rows = tl.parties.map((p, j) => {
-    const e = earned[j], b = bals ? bals[j] : null;
-    const gone = b === null ? null : e - b;
-    return '<tr><td><b>' + p[2].toFixed(1) + '%</b></td>' +
+  const SAFE = '0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd';
+  const rows = parties.map((p, j) => {
+    const a = p[0].toLowerCase();
+    const e = earned[j], c = claimed[j], esc = inEscrow[j], b = bals ? bals[j] : null;
+    const isSafe = a === SAFE;
+    const left = (c === null || b === null) ? null : Math.max(0, c - b);
+    const state = b === null ? '' :
+      (c !== null && c < 0.001 && e > 0.01) ? T('never claimed', '一次未领') :
+      isSafe ? T('shared Safe', '共用多签') :
+      b < 0.05 ? T('emptied', '已清空') :
+      (left !== null && left > 0.5) ? T('partly withdrawn', '部分提走') : T('untouched', '原封未动');
+    return '<tr><td><b>' + p[1].toFixed(1) + '%</b></td>' +
       '<td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + p[0] + '" rel="noopener" target="_blank">' + short(p[0]) + '</a></td>' +
       '<td class="r">' + e.toFixed(3) + '</td>' +
-      '<td class="r">' + (b === null ? '<span class="mut">—</span>' : b.toFixed(3)) + '</td>' +
-      '<td class="r">' + (gone === null ? '<span class="mut">—</span>'
-        : '<b class="' + (gone > 0.05 ? 'down' : 'mut') + '">' + gone.toFixed(3) + '</b>') + '</td>' +
-      '<td class="r">' + (gone === null ? '' : usdExact(gone * eth)) + '</td>' +
-      '<td class="mut">' + (b === null ? '' : b < 0.05 ? T('emptied', '已清空')
-        : gone > 0.5 ? T('partly withdrawn', '部分提走') : T('untouched', '原封未动')) + '</td></tr>';
+      '<td class="r">' + (c === null ? '<span class="mut">—</span>' : c.toFixed(3)) + '</td>' +
+      '<td class="r">' + (esc === null ? '<span class="mut">—</span>' : esc.toFixed(3)) + '</td>' +
+      '<td class="r">' + (b === null ? '<span class="mut">—</span>' : b.toFixed(3)) + (isSafe ? ' <span class="mut">*</span>' : '') + '</td>' +
+      '<td class="r">' + (left === null ? '<span class="mut">—</span>' : isSafe ? '<span class="mut">n/a</span>' : '<b class="' + (left > 0.05 ? 'down' : 'mut') + '">' + left.toFixed(3) + '</b>') + '</td>' +
+      '<td class="r">' + (left === null || isSafe ? '' : usdExact(left * eth)) + '</td>' +
+      '<td class="mut">' + state + '</td></tr>';
   }).join('');
   const tot = earned.reduce((a, b) => a + b, 0);
-  const held = bals ? bals.reduce((a, b) => a + b, 0) : null;
+  const totClaimed = claimed.every(c => c !== null) ? claimed.reduce((a, b) => a + b, 0) : null;
+  const totEscrow = inEscrow.every(c => c !== null) ? inEscrow.reduce((a, b) => a + b, 0) : null;
+  const held = bals && bals.every(b => b !== null) ? bals.reduce((a, b) => a + b, 0) : null;
+  const stamp = L ? T('live · ', '实时 · ') + nf(L.count) + T(' credits · last ', ' 笔记账 · 最近 ') + utc(L.lastTime) : tl ? T('snapshot · block ', '快照 · 区块 ') + nf(tl.block) : '';
   host.innerHTML =
     '<div class="grid g4">' +
-      cell(T('paid out to date', '累计发放'), tot.toFixed(2) + ' ETH', usdExact(tot * eth) + T(' in fees', ' 手续费')) +
-      cell(T('still in those wallets', '仍在钱包里'), held === null ? '—' : held.toFixed(2) + ' ETH',
-           held === null ? T('chain unreachable', '无法读取链上') : (held / tot * 100).toFixed(0) + T('% of what was paid', '% 的已发放额')) +
-      cell(T('already moved out', '已经转出'), held === null ? '—' : (tot - held).toFixed(2) + ' ETH',
-           held === null ? '' : usdExact((tot - held) * eth), 'hero') +
-      cell(T('destination', '去向'), T('not traceable', '无法追踪'), T('see the note below', '见下方说明'), '',
-           T('Native ETH transfers emit no logs, and every public RPC on this chain puts trace_* behind a paid key. Token movements are fully traceable; plain ETH is not.',
-             '原生 ETH 转账不产生日志，而这条链上所有公共 RPC 都把 trace_* 放在付费门槛之后。代币流向可以完整追踪，纯 ETH 不行。')) +
+      cell(T('paid out to date', '累计记账'), tot.toFixed(2) + ' ETH', usdExact(tot * eth) + T(' in fees · ', ' 手续费 · ') + stamp, 'hero',
+           T('Sum of Credited events on the fee escrow for the four beneficiaries, read from the chain every 90 seconds.', '托管合约上归属四个受益人的 Credited 事件之和，每 90 秒从链上重读。')) +
+      cell(T('claimed', '已领取'), totClaimed === null ? '—' : totClaimed.toFixed(2) + ' ETH', totClaimed === null ? '' : (totClaimed / (tot || 1) * 100).toFixed(0) + T('% of what was credited', '% 的记账额')) +
+      cell(T('still in escrow', '仍在托管'), totEscrow === null ? '—' : totEscrow.toFixed(2) + ' ETH', T('balanceOf(recipient) on the escrow, live', '托管合约 balanceOf，实时')) +
+      cell(T('in the wallets now', '钱包当前余额'), held === null ? '—' : held.toFixed(2) + ' ETH', T('eth_getBalance every 30s · the Safe is not BRODIE-only', '每 30 秒 eth_getBalance · 多签余额非 BRODIE 专属')) +
     '</div>' +
     '<div class="tw"><table><thead><tr><th>' + T('share', '分成') + '</th><th>' + T('wallet', '钱包') + '</th>' +
-      '<th class="r">' + T('earned ETH', '累计领取') + '</th><th class="r">' + T('holds now', '当前余额') + '</th>' +
-      '<th class="r">' + T('moved out', '已转出') + '</th><th class="r">' + T('value', '折合') + '</th>' +
+      '<th class="r">' + T('credited ETH', '记账 ETH') + '</th><th class="r">' + T('claimed', '已领') + '</th>' +
+      '<th class="r">' + T('in escrow', '托管中') + '</th><th class="r">' + T('holds now', '当前余额') + '</th>' +
+      '<th class="r">' + T('left the wallet', '已从钱包转出') + '</th><th class="r">' + T('value', '折合') + '</th>' +
       '<th>' + T('state', '状态') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<div class="note"><b>' + T('How far this can be traced. ', '能追到哪一步。') + '</b>' +
-      T('Everything above is exact: payouts come from the splitter\u2019s own events, balances from a live eth_getBalance. Where the withdrawn ETH went is not public — native transfers leave no logs, and trace_transaction is gated behind a paid key on every RPC this chain publishes. An archive node with tracing would close that gap; nothing else will.',
-        '上面每个数字都是精确的：领取额来自分账合约自身的事件，余额是实时 eth_getBalance。但提走的 ETH 去了哪无法从公开数据得知——原生转账不留日志，而这条链公开的每个 RPC 都把 trace_transaction 设在付费门槛后。只有带 tracing 的归档节点能补上这一段。') +
+      T('Credits and claims are the escrow’s own events; escrow and wallet balances are live reads. "Left the wallet" is claimed minus what the wallet holds now, floored at zero. Where that ETH went is not public — native transfers leave no logs, and trace_transaction is gated behind a paid key on every RPC this chain publishes.',
+        '记账与领取来自托管合约自身的事件，托管余额与钱包余额是实时读取。「已从钱包转出」= 已领 − 当前余额，最低为零。转出的 ETH 去了哪无法从公开数据得知——原生转账不留日志，而这条链公开的每个 RPC 都把 trace_transaction 设在付费门槛后。') +
     '</div>' +
-    '<div class="note risk"><b>' + T('One wallet is not what it looks like. ', '有一个钱包不能按字面读。') + '</b>' +
-      T('The 30% address is a Gnosis Safe shared across the Pons ecosystem, so its balance also moves with income from other tokens. Its BRODIE share is exact; its balance is not a BRODIE-only figure.',
-        '拿 30% 的那个地址是 Pons 生态共用的 Gnosis Safe，余额同时受其它代币收入影响。它的 BRODIE 分成是精确的，但余额不是 BRODIE 专属数字。') +
+    '<div class="note risk"><b>' + T('* One wallet is not what it looks like. ', '* 有一个钱包不能按字面读。') + '</b>' +
+      T('The 30% address is a 2-of-3 Gnosis Safe used across the Pons ecosystem. Its BRODIE share is exact and it has never claimed it — that ETH is still sitting in the escrow — so its wallet balance comes from other income and is not a BRODIE figure.',
+        '拿 30% 的那个地址是 Pons 生态共用的 2/3 多签。它的 BRODIE 分成是精确的，而且一次都没领——那笔 ETH 还在托管合约里——所以它的钱包余额来自其它收入，不是 BRODIE 的数字。') +
     '</div>';
 }
 function renderTeamExit() {
@@ -1906,9 +2120,14 @@ function renderBuyers() {
     '</div>';
 }
 function renderFees() {
-  const f = D.fees;
+  const f = D.fees, L = D.feesLive;
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
   const bbUsd = f.boughtBack * D.price;
+  if (L) {                                   /* every payout figure comes from the escrow's own events, live */
+    f.totalEth = L.total; f.sweeps = L.sweeps; f.accruals = L.count;
+    f.parties.forEach(r => { const a = r[0].toLowerCase(); if (L.credited[a] != null) r[2] = L.credited[a]; r[1] = L.total ? (L.credited[a] || 0) / L.total * 100 : r[1]; });
+  }
+  if (f.balances) f.parties.forEach((r, j) => { if (f.balances[j] != null) r[4] = f.balances[j]; });
   const feeUsd = f.totalEth * eth;
   const rows = f.parties.map(r =>
     '<tr><td><b>' + r[1].toFixed(1) + '%</b></td>' +
@@ -1924,9 +2143,9 @@ function renderFees() {
   document.getElementById('feeBox').innerHTML =
     '<div class="grid g4">' +
       cell(T('pool fee', '池子费率'), (f.poolFeeBps / 10000).toFixed(0) + '%', T('charged on every swap', '每笔兑换收取')) +
-      cell(T('fees to date', '累计手续费'), f.totalEth.toFixed(2) + ' ETH', usdExact(feeUsd) + ' · ' + nf(f.sweeps) + T(' sweeps', ' 次归集'), 'hero',
-           T('Sum of every payout event emitted by the fee splitter for this pool since launch, converted at the current ETH price. Not an estimate — each payment is an on-chain event.',
-             '自上线以来分账合约为本池发出的每一笔付款事件的总和，按当前 ETH 价折算。不是估算——每一笔都是链上事件。')) +
+      cell(T('fees to date', '累计手续费'), f.totalEth.toFixed(2) + ' ETH', usdExact(feeUsd) + ' · ' + nf(f.sweeps) + T(' sweeps', ' 次归集') + (L ? ' · ' + T('live to block ', '实时至区块 ') + nf(L.scannedTo) : ''), 'hero',
+           T('Sum of every Credited event the hook has written to the fee escrow for the four beneficiaries, re-read from the chain every 90 seconds and converted at the current ETH price. Not an estimate — each credit is an on-chain event.',
+             'hook 写入手续费托管合约、归属四个受益人的每一笔 Credited 事件之和，每 90 秒从链上重读，按当前 ETH 价折算。不是估算——每一笔都是链上事件。')) +
       cell(T('round trip, not a buyback', '一次往返，不是回购'), usdExact(bbUsd),
            T('bought and sold again — nothing removed', '买入后又卖出 —— 没有代币退出流通'), '',
            T('The fee wallet bought 6,051,760 BRODIE across 17 fills between 1 and 7 September, moved the lot to a fresh wallet on 9 September at 21:44 UTC, and sold it in two transactions eleven minutes later. Nothing was retained.',
@@ -1972,9 +2191,9 @@ function renderHolders() {
     cell(T('in the pool', '池内占比'), (poolBal / D.supplyV2 * 100).toFixed(2) + '%', tok(poolBal) + T(' at the v4 PoolManager', ' 由 v4 PoolManager 持有')) +
     cell(T('top 10 of supply', '前十占总量'), (t10 / D.supplyV2 * 100).toFixed(2) + '%', T('pool included', '含池子')) +
     cell(T('top 10 of float', '前十占流通'), (t10NoPool / float * 100).toFixed(2) + '%', T('pool excluded — the number that matters', '剔除池子 — 这个才有意义')) +
-    cell(T('genesis recipients', '创世铸造地址'), nf(D.mintRecipients), T('minted into directly, no public sale', '直接铸入，无公开发售')) +
-    cell(T('largest genesis mint', '最大单笔铸造'), D.mintTop1Pct.toFixed(2) + '%', T('one address at genesis', '单一地址创世持有')) +
-    cell(T('top 10 at genesis', '创世前十'), D.mintTop10Pct.toFixed(2) + '%', T('of the whole supply', '占全部供应')) +
+    cell(T('mint recipients', '铸造地址数'), nf(D.mintRecipients), T('migrators minted into on claim · ', '迁移者领取时直接铸入 · ') + (D.mints ? T('live', '实时') : T('snapshot', '快照'))) +
+    cell(T('largest single migrator', '最大单一迁移者'), D.mintTop1Pct.toFixed(2) + '%', T('of everything minted to migrators', '占铸给迁移者的总量')) +
+    cell(T('top 10 migrators', '前十迁移者'), D.mintTop10Pct.toFixed(2) + '%', T('of everything minted to migrators', '占铸给迁移者的总量')) +
     cell(T('never sold', '从未卖出'), nf((D.neverSold || {}).count || 0), tok((D.neverSold || {}).total || 0) + T(' held, never moved', ' 枚，从未转出'));
   const rows = top.map((r, i) =>
     '<tr' + (i === 0 ? ' class="flag"' : '') + '><td class="r">' + (i + 1) + '</td>' +
@@ -1989,13 +2208,17 @@ function renderHolders() {
     '<th class="r">' + T('value', '市值') + '</th><th>' + T('note', '备注') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 function renderMigrate() {
-  const m = D.migration;
-  const pct = m.unminted / m.v2Entitled * 100;
+  const m = D.migration, mt = D.mint;
+  const pct = m.unminted / (m.v2Entitled || 1) * 100;
+  const live = mt ? T('live · block ', '实时 · 区块 ') + nf(D.block) : T('snapshot', '快照');
+  const deadline = mt ? utc(mt.deadline) : '2026-12-21 16:47 UTC';
   $('#migGrid').innerHTML =
-    cell(T('V1 deposited', 'V1 已存入'), tok(m.v1In), nf(m.depositors) + T(' addresses, ', ' 个地址，') + nf(m.deposits) + T(' deposits', ' 笔存入')) +
-    cell(T('V2 entitled', 'V2 应得额度'), tok(m.v2Entitled), T('blended ratio ', '综合比例 ') + m.ratio.toFixed(3) + T(' — set per round', ' — 按轮次定')) +
-    cell(T('never issued', '从未发放'), tok(m.unminted), pct.toFixed(1) + T('% of entitlements, ', '% 的额度，') + nf(m.unmintedAddrs) + T(' addresses', ' 个地址'), 'hero') +
-    cell(T('V1 burned', 'V1 已销毁'), nf(D.deadV1, 2), T('nothing was destroyed', '没有任何 V1 被销毁'));
+    cell(T('V1 deposited', 'V1 已存入'), tok(m.v1In), nf(m.depositors) + T(' addresses, ', ' 个地址，') + nf(m.deposits) + T(' deposits · totalDeposits() ', ' 笔存入 · totalDeposits() ') + live) +
+    cell(T('V2 credited', 'V2 记账额度'), tok(m.v2Entitled), T('blended ratio ', '综合比例 ') + m.ratio.toFixed(3) + T(' · epochs paid 100 / 80 / 60 / 40 / 20%', ' · 五轮兑换率 100 / 80 / 60 / 40 / 20%')) +
+    cell(T('not yet claimed', '尚未领取'), tok(m.unminted), pct.toFixed(1) + T('% of credits · claim() mints on demand until ', '% 的额度 · claim() 按需铸造，截止 ') + deadline.slice(0, 10), 'hero',
+         T('totalCredits() minus what has been minted to migrators. These credits are not lost: the migrator mints the V2 when the depositor calls claim(), and minting stays open until the deadline. After that renounceMinter() can be called by anyone and unclaimed credits are gone for good.',
+           'totalCredits() 减去已铸给迁移者的数量。这些额度没有丢：存入者调用 claim() 时迁移合约才铸出 V2，铸造在截止日前一直开放。截止之后任何人都可以调用 renounceMinter()，未领的额度就永久作废。')) +
+    cell(T('minting', '铸造窗口'), mt ? (mt.open ? T('OPEN', '开放') : T('CLOSED', '已关')) : '—', T('closes ', '关闭于 ') + deadline + (mt ? ' · ' + T('epoch ', '第 ') + mt.epoch + '/' + mt.epochs + T(' settled', ' 轮已结算') : ''));
 }
 function renderImpostors() {
   const rows = (D.impostors || []).map(r => {
@@ -2042,7 +2265,7 @@ function renderStatus() {
     lc.textContent = msg; lc.hidden = !msg;
   }
   $('#asofChip').textContent = live
-    ? T('updated ', '更新于 ') + ago(D.at) + T(' ago · block ', ' 前 · 区块 ') + nf(D.block)
+    ? T('updated ', '更新于 ') + ago(D.at) + T(' ago · block ', ' 前 · 区块 ') + nf(D.block) + (D.headTime ? ' · ' + utc(D.headTime).slice(11) : '')
     : T('snapshot 2026-09-09 13:30 UTC · block ', '快照 2026-09-09 13:30 UTC · 区块 ') + nf(SNAP.block);
   $('#caV2Mc').textContent = T('mcap ', '市值 ') + usd(D.mcap) + ' · ' + T('liq ', '流动性 ') + usd(D.liq.usd);
   const v1 = (D.impostors || []).find(r => r[0].toLowerCase() === CONFIG.v1.toLowerCase());
@@ -2153,9 +2376,8 @@ async function initLedger() {
   while (from <= head && chunks < CONFIG.catchUpMax) {
     const to = Math.min(from + CONFIG.catchUpChunk, head);
     try {
-      const logs = await rpc('eth_getLogs', [{ address: CONFIG.v2, fromBlock: '0x' + from.toString(16),
-                                               toBlock: '0x' + to.toString(16), topics: [TRANSFER_TOPIC] }]);
-      (logs || []).forEach(applyLog);
+      const logs = await getLogsOne(CONFIG.v2, [TRANSFER_TOPIC], from, to);
+      logs.forEach(applyLog);
     } catch (e) { break; }
     from = to + 1; chunks++; LEDGER.block = Math.min(to, head);
     renderHolders(); renderStatus();
@@ -2298,7 +2520,10 @@ function boot() {
   document.getElementById('lookupIn').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(e.target.value); });
 
   tick(pullMarket, 'market');
-  tick(pullChain, 'chain').then(() => tick(pullEvents, 'events'));
+  tick(pullChain, 'chain')
+    .then(() => tick(pullFees, 'fees'))       /* the panels people argue about first */
+    .then(() => tick(pullMints, 'mints'))
+    .then(() => tick(pullEvents, 'events'));
   tick(pullBoard, 'board');
   tick(pullGecko, 'gecko');
   initLedger();
@@ -2329,6 +2554,8 @@ function boot() {
   setInterval(() => tick(pullMarket, 'market'), CONFIG.ms.market);
   setInterval(() => tick(pullChain, 'chain'), CONFIG.ms.chain);
   setInterval(() => tick(pullEvents, 'events'), CONFIG.ms.events);
+  setInterval(() => tick(pullMints, 'mints'), CONFIG.ms.mints);
+  setInterval(() => tick(pullFees, 'fees'), CONFIG.ms.fees);
   setInterval(() => tick(pullBoard, 'board'), CONFIG.ms.board);
   setInterval(renderStatus, 5000);
 }
