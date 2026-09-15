@@ -27,6 +27,7 @@ jobs:
           python3 dump_all.py
           python3 flows.py
           python3 timeline.py
+          python3 sell_attrib.py
 
       - name: Re-inject into index.html
         run: python3 scripts/inject.py
@@ -45,7 +46,14 @@ jobs:
           if int(hold.group(1)) != ledger["block"]:
               sys.exit("injection did not take: page says block %s, ledger says %s"
                        % (hold.group(1), ledger["block"]))
-          print("injected through block %s" % ledger["block"])
+          # window.SA silently went unrefreshed from launch until 15 Sep. Verify it too.
+          sa_page = re.search(r'window\.SA=\{[^}]*?"block":(\d+)', html)
+          sa_file = json.loads(pathlib.Path("tools/sell_attrib.json").read_text())
+          assert sa_page, "window.SA literal not found in index.html"
+          if int(sa_page.group(1)) != sa_file["block"]:
+              sys.exit("sell-attrib injection did not take: page %s, ledger %s"
+                       % (sa_page.group(1), sa_file["block"]))
+          print("injected through block %s (sell-attrib %s)" % (ledger["block"], sa_file["block"]))
           EOF
 
       # A push can lose a race with a human commit landing during the 12-minute

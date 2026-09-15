@@ -97,6 +97,14 @@ te.update({"hookFee": f["hookFeeAccrued"], "hookSold": f["hookSold"],
 sub(r"window\.TEAMEXIT=\{.*?\};",
     "window.TEAMEXIT=" + json.dumps(te, separators=(",", ":")) + ";", "window.TEAMEXIT")
 
+# ── sell-side attribution ───────────────────────────────────────────────
+# This literal went unrefreshed from launch until 15 September because it was
+# never wired into the refresh job — the same failure the correction box in §07
+# describes. It is in the pipeline now.
+sa = load("sell_attrib.json")
+sub(r"window\.SA=\{.*?\};",
+    "window.SA=" + json.dumps(sa, separators=(",", ":")) + ";", "window.SA")
+
 html_path.write_text(s)
-print("injected %d holders, %d flows, %d entitlements, %d timeline days at block %d"
-      % (len(h["holders"]), len(flows), len(e), len(daily), h["block"]))
+print("injected %d holders, %d flows, %d entitlements, %d timeline days, sell-attrib block %d, at block %d"
+      % (len(h["holders"]), len(flows), len(e), len(daily), sa["block"], h["block"]))
