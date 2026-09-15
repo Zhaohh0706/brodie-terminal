@@ -216,7 +216,13 @@ main{flex:1 1 auto; min-width:0; padding:0 16px 80px}
 .trail-step .what{font-size:13px; line-height:1.6; overflow-wrap:anywhere}
 .trail-step .what b{font-family:var(--f-disp); font-size:17px; font-weight:600; letter-spacing:.01em}
 @media (max-width:640px){ .trail-step{grid-template-columns:1fr; gap:3px} }
-.correction{border:1px solid var(--down); border-left-width:3px; background:var(--surface); padding:13px 16px; margin-bottom:14px}
+.correction{border:1px solid var(--line); border-left:3px solid var(--down); background:var(--surface); padding:0 16px; margin-bottom:14px}
+.correction>summary{cursor:pointer; list-style:none; padding:10px 0; font-size:12px; color:var(--ink-2); display:flex; align-items:center; gap:8px}
+.correction>summary::-webkit-details-marker{display:none}
+.correction>summary::before{content:"▸"; color:var(--down); font-size:11px; transition:transform .15s}
+.correction[open]>summary::before{transform:rotate(90deg)}
+.correction>summary b{color:var(--down); font-weight:600}
+.correction[open]{padding-bottom:13px}
 .correction h4{margin:0 0 5px; font-family:var(--f-disp); font-size:17px; font-weight:600; color:var(--down)}
 .correction p{margin:0 0 8px; font-size:12.5px; color:var(--ink-2); line-height:1.65; max-width:76ch}
 .correction p:last-child{margin-bottom:0}
@@ -855,7 +861,7 @@ window.QSTATUS={};
 
 /* sell-side attribution: where every token sold into the pool came from.
    Rebuild with tools/sell_attrib.py. */
-window.SA={"generated":"2026-09-09T17:15:45Z","block":58712350,"totalSold":973059477,"sellers":551,"cats":[["round_trip",394650116],["received_then_sold",361718904],["liquidity",132045778],["claim_dump",78732148],["fee_hook",5912531]],"topDumpers":[["0xccc8478f58ff3f2debb309f10f1f17231f06caca",4941801,4941801],["0x0210ba0798e8e1880263ea47a342a1df4a3d0448",4673325,4673325],["0x8462a53fc9e3c47dea586ee3244cde24a2a407dd",4611052,4611052],["0x67ea48f0e1b34aee06da2205116275f6a8e1d6e5",4303959,4303959],["0x7ff1bdb0e09714319a9ab2bfbd32ef7afdbbc782",4257415,4257415],["0x5b4be05814c7ccb9df725855e60b513138344d80",4197330,4197330],["0xc8feee4b352c46b15ed12492df669911d8496e51",3792768,6357800],["0xc3111d8ff869bb8a386342909c288caa262e985e",3784444,3784444],["0xa0168012eeb409507264f71792866621441693be",2130100,5743971],["0xf12ac39596b595855884ad0a615ccfacd40d17fa",1900000,1976016],["0xd67b04d03d1d0bb91ca5e5b494cb0922f2212f1d",1835855,1835855],["0x21ee8009897144cb08aa603bce48e9edaae00a1a",1514593,1514593]]};
+window.SA={"generated":"2026-09-15T00:50:11Z","block":63244958,"totalSold":1279722225.5741096,"categories":{"liquidity":132045777.97500709,"claim_dump":121538980.24898887,"round_trip":455114481.55494756,"received_then_sold":563000733.6738863,"unattributed":4.008882115158485e-09,"fee_hook":8022252.1212789845},"topClaimDumpers":[["0x8753e78c7fcd2c274405bb97d2393ccc4217745e",20502565.15,20502565.15],["0xab768d257dd3d08faa0c2fde172ec244795f7514",5162484.68,5162484.68],["0xccc8478f58ff3f2debb309f10f1f17231f06caca",4941801.42,4941801.42],["0x0210ba0798e8e1880263ea47a342a1df4a3d0448",4673325.46,4673325.46],["0x8462a53fc9e3c47dea586ee3244cde24a2a407dd",4611051.79,4611051.79],["0x49605f9ac67fb01ccf96c2fbc1eb7018e1833d4c",4480695.56,4480695.56],["0x67ea48f0e1b34aee06da2205116275f6a8e1d6e5",4303958.89,4303958.89],["0x7ff1bdb0e09714319a9ab2bfbd32ef7afdbbc782",4257415.31,4257415.31],["0x5b4be05814c7ccb9df725855e60b513138344d80",4197330.04,4197330.04],["0xc8feee4b352c46b15ed12492df669911d8496e51",3792767.95,6357800.24],["0xc3111d8ff869bb8a386342909c288caa262e985e",3784443.78,3784443.78],["0x3d9dd11aab08d23e3d51d8c9f8aa81b7744fe7e1",3571987.51,4750654.73],["0xa0168012eeb409507264f71792866621441693be",2130100.07,5743970.57],["0x83f17d3eb2d69091de3677432626f55491f219f8",1901523.23,1901523.23],["0xf12ac39596b595855884ad0a615ccfacd40d17fa",1900000.0,1976015.92],["0xd67b04d03d1d0bb91ca5e5b494cb0922f2212f1d",1835854.91,1835854.91],["0xae2cfdfe5d081bca9dee2f12c9a8956d098c16f7",1634000.0,11665109.6],["0x21ee8009897144cb08aa603bce48e9edaae00a1a",1514593.41,1514593.41],["0xe90c0a6c84125e82b1f8f5f3167953e73338f964",1498714.44,1498714.44],["0xeb60fa492ce016ccd395db23fa9d4492421bf9ec",1469017.1,1706031.78]],"sellers":596};
 
 /* fee timeline: daily payouts per beneficiary, sweep counts and every team buy.
    Rebuild with tools/timeline.py. */
@@ -1885,6 +1891,12 @@ function renderSellers() {
       cell(T('migration tokens dumped', '迁移币砸盘'), tok(claim), (claim / tot * 100).toFixed(2) + T('% of all selling', '% 的总卖压')) +
       cell(T('everything else', '其余'), tok(tot - hook - claim), T('traders and liquidity', '交易者与流动性')) +
     '</div>' +
+    /* this panel is a replayed snapshot, not a live read — say so, and say how old */
+    '<p class="cap" style="margin:-4px 0 12px">' +
+      T('Full-history replay, refreshed on a schedule rather than read live. As of block ', '全历史重放，按计划刷新而非实时读取。数据截止区块 ') +
+      nf(sa.block) + (sa.generated ? ' \u00b7 ' + sa.generated.replace('T',' ').replace('Z',' UTC') : '') +
+      (D.block && sa.block ? T(' \u00b7 ', ' \u00b7 ') + nf(D.block - sa.block) + T(' blocks behind head', ' 个区块之前') : '') +
+    '</p>' +
     '<figure class="fig" style="border:1px solid var(--line); padding:14px; margin:0 0 14px">' +
       '<h4 style="margin:0">' + T('Every token ever sold into the pool, by where the seller got it', '所有卖入池子的币，按卖方的来源拆分') + '</h4>' +
       '<p class="cap">' + T('A sale is attributed to the token source that wallet actually held — minted first, then bought, then received. Totals exceed supply because tokens are bought and sold repeatedly.',
@@ -2041,7 +2053,8 @@ function renderTeamExit() {
     '</span></div>'));
   const gap = Math.round((x.exit[x.exit.length - 1].t - x.exit[0].t) / 60);
   host.innerHTML =
-    '<div class="correction"><h4>' + T('Correction — this page had it wrong until 12 September', '更正 —— 本页在 9 月 12 日之前是错的') + '</h4>' +
+    '<details class="correction"><summary><b>' + T('Correction log', '更正记录') + '</b>' +
+    T('this panel was wrong until 12 September — two errors, both fixed below', '本栏在 9 月 12 日之前是错的 —— 两处错误，均已在下方更正') + '</summary>' +
     '<p>' + T('This panel previously reported the fee wallet as having bought 581,896 BRODIE and never sold. Both halves were wrong, for two separate reasons, and both are fixed above.',
               '本栏此前报告手续费钱包买入 581,896 枚且从未卖出。两半都是错的，各有原因，现已全部更正。') + '</p>' +
     '<p><b>' + T('1. A blind spot in the method. ', '一、口径盲区。') + '</b>' +
@@ -2057,7 +2070,7 @@ function renderTeamExit() {
       '回购的定义是把代币买离市场并让它留在市场之外。这批代币花 ' + x.spentEth.toFixed(3) +
       ' ETH 买入，九天后以 ' + x.recvEth.toFixed(3) + ' ETH 全部卖出，亏损 ' + Math.abs(x.netEth).toFixed(3) +
       ' ETH，一枚不剩地回到市场。不管这是什么，都不该叫回购，本页已不再在此处使用这个词。') + '</p>' +
-    '<p>' + T('Credit for spotting it goes to the reader who traced the sub-wallet by hand.', '这个问题是读者手工追踪子钱包发现的。') + '</p></div>' +
+    '<p>' + T('Credit for spotting it goes to the reader who traced the sub-wallet by hand.', '这个问题是读者手工追踪子钱包发现的。') + '</p></details>' +
     '<div class="grid g4">' +
       cell(T('bought', '买入'), x.spentEth.toFixed(3) + ' ETH', tok(x.bought) + T(' BRODIE · 17 fills', ' 枚 · 17 笔')) +
       cell(T('sold', '卖出'), x.recvEth.toFixed(3) + ' ETH', tok(x.sold) + T(' BRODIE · 2 fills', ' 枚 · 2 笔')) +
