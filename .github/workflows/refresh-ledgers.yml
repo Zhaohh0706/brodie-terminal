@@ -56,6 +56,11 @@ jobs:
           print("injected through block %s (sell-attrib %s)" % (ledger["block"], sa_file["block"]))
           EOF
 
+      # Block numbers matching is not the same as the page still working. On
+      # 15 September every number check passed while boot() was dead.
+      - name: Smoke-test the page against its own data
+        run: python3 scripts/smoke.py
+
       # A push can lose a race with a human commit landing during the 12-minute
       # replay. Rebasing a 300KB single-line literal is not worth attempting, so
       # on rejection we take the newest page, re-apply the fresh ledgers to it,
