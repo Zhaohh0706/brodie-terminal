@@ -1,7 +1,7 @@
 {
- "block": 63725985,
- "generated": "2026-09-15T14:26:00Z",
- "transfers": 34528,
+ "block": 63864900,
+ "generated": "2026-09-15T18:33:28Z",
+ "transfers": 34564,
  "minted": 812377483.854608,
  "burned": 0.0,
  "supply_from_logs": 812377483.854608,
@@ -2283,8 +2283,8 @@
    3.3517635515315973
   ]
  ],
- "holders": 724,
- "pool_balance": 340708586.8653711,
+ "holders": 722,
+ "pool_balance": 344907821.13666344,
  "never_sold": [
   [
    "0x095ca29cf6487ef59ddfd99adc8c248cb13217b3",
@@ -2359,7 +2359,7 @@
    true
   ]
  ],
- "never_sold_total": 83241770.01405737,
- "never_sold_count": 125,
+ "never_sold_total": 83400774.16296767,
+ "never_sold_count": 126,
  "v1_in_poolmanager": 8568877.440166341
 }
