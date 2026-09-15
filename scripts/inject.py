@@ -101,7 +101,21 @@ sub(r"window\.TEAMEXIT=\{.*?\};",
 # This literal went unrefreshed from launch until 15 September because it was
 # never wired into the refresh job — the same failure the correction box in §07
 # describes. It is in the pipeline now.
-sa = load("sell_attrib.json")
+raw = load("sell_attrib.json")
+# sell_attrib.py writes {categories: {...}, topClaimDumpers: [...]}; the page reads
+# sa.cats as [[name, value], ...] and sa.topDumpers as [[addr, sold, minted], ...].
+# Emitting the raw shape is what broke boot() on 15 September — renderSellers threw
+# on sa.cats.find and took every other panel down with it. Map it explicitly.
+sa = {
+    "generated": raw["generated"], "block": raw["block"],
+    "totalSold": raw["totalSold"], "sellers": raw["sellers"],
+    "cats": sorted(([k, v] for k, v in raw["categories"].items() if v > 0),
+                   key=lambda kv: -kv[1]),
+    "topDumpers": raw["topClaimDumpers"],
+}
+for need in ("fee_hook", "claim_dump"):
+    if not any(c[0] == need for c in sa["cats"]):
+        sa["cats"].append([need, 0])          # renderSellers indexes these two by name
 sub(r"window\.SA=\{.*?\};",
     "window.SA=" + json.dumps(sa, separators=(",", ":")) + ";", "window.SA")
 
