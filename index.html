@@ -861,7 +861,7 @@ window.QSTATUS={};
 
 /* sell-side attribution: where every token sold into the pool came from.
    Rebuild with tools/sell_attrib.py. */
-window.SA={"generated":"2026-09-15T00:50:11Z","block":63244958,"totalSold":1279722225.5741096,"categories":{"liquidity":132045777.97500709,"claim_dump":121538980.24898887,"round_trip":455114481.55494756,"received_then_sold":563000733.6738863,"unattributed":4.008882115158485e-09,"fee_hook":8022252.1212789845},"topClaimDumpers":[["0x8753e78c7fcd2c274405bb97d2393ccc4217745e",20502565.15,20502565.15],["0xab768d257dd3d08faa0c2fde172ec244795f7514",5162484.68,5162484.68],["0xccc8478f58ff3f2debb309f10f1f17231f06caca",4941801.42,4941801.42],["0x0210ba0798e8e1880263ea47a342a1df4a3d0448",4673325.46,4673325.46],["0x8462a53fc9e3c47dea586ee3244cde24a2a407dd",4611051.79,4611051.79],["0x49605f9ac67fb01ccf96c2fbc1eb7018e1833d4c",4480695.56,4480695.56],["0x67ea48f0e1b34aee06da2205116275f6a8e1d6e5",4303958.89,4303958.89],["0x7ff1bdb0e09714319a9ab2bfbd32ef7afdbbc782",4257415.31,4257415.31],["0x5b4be05814c7ccb9df725855e60b513138344d80",4197330.04,4197330.04],["0xc8feee4b352c46b15ed12492df669911d8496e51",3792767.95,6357800.24],["0xc3111d8ff869bb8a386342909c288caa262e985e",3784443.78,3784443.78],["0x3d9dd11aab08d23e3d51d8c9f8aa81b7744fe7e1",3571987.51,4750654.73],["0xa0168012eeb409507264f71792866621441693be",2130100.07,5743970.57],["0x83f17d3eb2d69091de3677432626f55491f219f8",1901523.23,1901523.23],["0xf12ac39596b595855884ad0a615ccfacd40d17fa",1900000.0,1976015.92],["0xd67b04d03d1d0bb91ca5e5b494cb0922f2212f1d",1835854.91,1835854.91],["0xae2cfdfe5d081bca9dee2f12c9a8956d098c16f7",1634000.0,11665109.6],["0x21ee8009897144cb08aa603bce48e9edaae00a1a",1514593.41,1514593.41],["0xe90c0a6c84125e82b1f8f5f3167953e73338f964",1498714.44,1498714.44],["0xeb60fa492ce016ccd395db23fa9d4492421bf9ec",1469017.1,1706031.78]],"sellers":596};
+window.SA={"generated":"2026-09-15T00:50:11Z","block":63244958,"totalSold":1279722225.5741096,"sellers":596,"cats":[["received_then_sold",563000733.6738863],["round_trip",455114481.55494756],["liquidity",132045777.97500709],["claim_dump",121538980.24898887],["fee_hook",8022252.1212789845],["unattributed",4.008882115158485e-09]],"topDumpers":[["0x8753e78c7fcd2c274405bb97d2393ccc4217745e",20502565.15,20502565.15],["0xab768d257dd3d08faa0c2fde172ec244795f7514",5162484.68,5162484.68],["0xccc8478f58ff3f2debb309f10f1f17231f06caca",4941801.42,4941801.42],["0x0210ba0798e8e1880263ea47a342a1df4a3d0448",4673325.46,4673325.46],["0x8462a53fc9e3c47dea586ee3244cde24a2a407dd",4611051.79,4611051.79],["0x49605f9ac67fb01ccf96c2fbc1eb7018e1833d4c",4480695.56,4480695.56],["0x67ea48f0e1b34aee06da2205116275f6a8e1d6e5",4303958.89,4303958.89],["0x7ff1bdb0e09714319a9ab2bfbd32ef7afdbbc782",4257415.31,4257415.31],["0x5b4be05814c7ccb9df725855e60b513138344d80",4197330.04,4197330.04],["0xc8feee4b352c46b15ed12492df669911d8496e51",3792767.95,6357800.24],["0xc3111d8ff869bb8a386342909c288caa262e985e",3784443.78,3784443.78],["0x3d9dd11aab08d23e3d51d8c9f8aa81b7744fe7e1",3571987.51,4750654.73],["0xa0168012eeb409507264f71792866621441693be",2130100.07,5743970.57],["0x83f17d3eb2d69091de3677432626f55491f219f8",1901523.23,1901523.23],["0xf12ac39596b595855884ad0a615ccfacd40d17fa",1900000.0,1976015.92],["0xd67b04d03d1d0bb91ca5e5b494cb0922f2212f1d",1835854.91,1835854.91],["0xae2cfdfe5d081bca9dee2f12c9a8956d098c16f7",1634000.0,11665109.6],["0x21ee8009897144cb08aa603bce48e9edaae00a1a",1514593.41,1514593.41],["0xe90c0a6c84125e82b1f8f5f3167953e73338f964",1498714.44,1498714.44],["0xeb60fa492ce016ccd395db23fa9d4492421bf9ec",1469017.1,1706031.78]]};
 
 /* fee timeline: daily payouts per beneficiary, sweep counts and every team buy.
    Rebuild with tools/timeline.py. */
@@ -1850,6 +1850,10 @@ function renderQA() {
 function renderSellers() {
   const sa = window.SA; const host = document.getElementById('sellBox');
   if (!sa || !host) return;
+  /* tolerate either literal shape: cats[[name,value]] or categories{name:value} */
+  if (!sa.cats && sa.categories) sa.cats = Object.entries(sa.categories).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]);
+  if (!sa.topDumpers && sa.topClaimDumpers) sa.topDumpers = sa.topClaimDumpers;
+  if (!Array.isArray(sa.cats)) return;
   const LAB = {
     round_trip: ['bought on the market, then sold', '在市场买入后卖出'],
     received_then_sold: ['received by transfer, then sold', '通过转账收到后卖出'],
@@ -1880,8 +1884,8 @@ function renderSellers() {
     '<tr><td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + r[0] + '" rel="noopener" target="_blank">' + short(r[0]) + '</a></td>' +
     '<td class="r">' + nf(r[2]) + '</td><td class="r">' + nf(r[1]) + '</td>' +
     '<td class="r"><b>' + (r[1] / r[2] * 100).toFixed(1) + '%</b></td></tr>').join('');
-  const hook = sa.cats.find(c => c[0] === 'fee_hook')[1];
-  const claim = sa.cats.find(c => c[0] === 'claim_dump')[1];
+  const catVal = k => { const e = sa.cats.find(c => c[0] === k); return e ? e[1] : 0; };
+  const hook = catVal('fee_hook'), claim = catVal('claim_dump');
   host.innerHTML =
     '<div class="grid g4">' +
       cell(T('sold into the pool', '卖入池子总量'), tok(tot), nf(sa.sellers) + T(' selling addresses, all time', ' 个卖出地址，全历史')) +
@@ -2291,7 +2295,16 @@ function renderStatus() {
   $('#footStamp').textContent = T('compiled ', '编译于 ') + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC · ' +
     T('feed: ', '数据源：') + (live ? 'live' : 'snapshot');
 }
-function renderAll() { renderRail(); renderTape(); renderMarket(); renderCandles(); renderTrades(); renderSupply(); renderHolders(); renderMigrate(); renderImpostors(); renderPeers(); renderStatus(); renderQA(); markChanges(); addExportButtons(); }
+/* Every panel is isolated. A bad baked literal once threw inside renderSellers,
+   which killed boot() and left the whole page showing a stale snapshot with the
+   status chip stuck on BOOT. One panel failing must never take the rest down. */
+function renderAll() {
+  [renderRail, renderTape, renderMarket, renderCandles, renderTrades, renderSupply,
+   renderHolders, renderMigrate, renderImpostors, renderPeers, renderStatus, renderQA,
+   markChanges, addExportButtons].forEach(fn => {
+    try { fn(); } catch (e) { console.error('panel failed:', fn.name, e); }
+  });
+}
 
 /* ── export a chart as a PNG · resolves CSS variables first, since a detached
       SVG has no access to the document's custom properties ───────────────── */
