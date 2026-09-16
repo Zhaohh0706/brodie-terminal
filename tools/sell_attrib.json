@@ -1,14 +1,14 @@
 {
- "generated": "2026-09-15T21:56:36Z",
- "block": 63988060,
- "totalSold": 1313220590.671145,
+ "generated": "2026-09-16T00:22:03Z",
+ "block": 64073653,
+ "totalSold": 1313241832.3662357,
  "categories": {
   "liquidity": 132045777.97500709,
   "claim_dump": 123128682.12344512,
   "round_trip": 473268618.93985,
-  "received_then_sold": 576330682.441011,
+  "received_then_sold": 576341532.0178945,
   "unattributed": 4.008882115158485e-09,
-  "fee_hook": 8446829.19183106
+  "fee_hook": 8457221.310038459
  },
  "topClaimDumpers": [
   [
