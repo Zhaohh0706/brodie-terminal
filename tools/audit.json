@@ -1,7 +1,7 @@
 {
- "block": 66618743,
- "generated": "2026-09-18T23:29:57Z",
- "transfers": 35095,
+ "block": 66690677,
+ "generated": "2026-09-19T01:35:14Z",
+ "transfers": 35104,
  "minted": 812510589.7288543,
  "burned": 0.0,
  "supply_from_logs": 812510589.7288543,
@@ -2284,7 +2284,7 @@
   ]
  ],
  "holders": 682,
- "pool_balance": 362599517.17557704,
+ "pool_balance": 362687386.2261403,
  "never_sold": [
   [
    "0x095ca29cf6487ef59ddfd99adc8c248cb13217b3",
