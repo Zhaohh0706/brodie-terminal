@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """When did every fee sweep, payout and team buy actually happen?
 Writes timeline.json: timestamped events for the hook, the splitter and the
-four fee beneficiaries."""
+two BRODIE fee beneficiaries.
+
+The hook and the escrow are shared across every Pons token, so a Credited
+event reaching them is not necessarily ours. Each payout transaction pays
+exactly one creator 70% and the protocol 30%, so a transaction is BRODIE's
+only when the creator side of it is BRODIE's own creatorFeeRecipient, read
+live from the migrator. Filtering on the hook alone merged two other tokens
+into our ledger until 2026-09-20."""
 import json,urllib.request,time,collections
 RPCS=["https://robinhood-rpc.publicnode.com","https://rpc.mainnet.chain.robinhood.com","https://rpc.ordofi.network"]
 HDR={"content-type":"application/json","user-agent":"Mozilla/5.0"}
@@ -18,12 +25,19 @@ V2="0x737054bd706cba68eaF4661411FeDE5F6C2952e5"
 HOOK="0x332f85e7e323214b2d55286414b059ebb1f2a044"
 SPLIT="0xbc39b6502e1a6ab36e4a5c5026a35f08342a0a9c"
 PM="0x8366a39cc670b4001a1121b8f6a443a643e40951"
+MIGRATOR="0x9310bc8BF95FA35608a9f08F76b55B4FdDDc1eF0"
 ACC="0x4e45da441832cf53bdaa69235704fc0575e68210f459ee1562911024b12967d5"
 TR="0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-TEAM=["0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd",
-      "0xd64503dd73eb2a6f11856455e52bff8564172ef7","0x2cf505f3cbb36e06d4bd4758d10716b5416baad0"]
 def p32(a): return "0x000000000000000000000000"+a[2:].lower()
 latest=int(rpc("eth_blockNumber",[]),16)
+def addr_call(to,sel):
+    r=rpc("eth_call",[{"to":to,"data":sel},"latest"])
+    if not r or len(r)<66: raise SystemExit(f"cannot read {sel} on {to}")
+    return "0x"+r[26:66]
+CREATOR=addr_call(MIGRATOR,"0x9fa36cdc")      # creatorFeeRecipient() — BRODIE's 70% side
+PROTOCOL=addr_call(HOOK,"0x64df049e")         # protocolFeeRecipient() — Pons' 30%, shared
+print(f"creator {CREATOR} · protocol {PROTOCOL}",flush=True)
+TEAM=[CREATOR,PROTOCOL]
 def scan(addr,topics,start,step=1_000_000):
     out=[];b=start
     while b<=latest:
@@ -36,7 +50,14 @@ def scan(addr,topics,start,step=1_000_000):
         print(f"  {e}/{latest} n={len(out)}",flush=True)
     return out
 print("scanning splitter accruals…",flush=True)
-acc=scan(SPLIT,[ACC],49_000_000)
+acc_all=scan(SPLIT,[ACC],49_000_000)
+# One payout transaction = one token's fee split. Keep a transaction only when
+# BRODIE's own creator is paid inside it; the 30% protocol leg then belongs to
+# us too. Everything else on this shared escrow is another token's revenue.
+ours={l["transactionHash"] for l in acc_all if "0x"+l["topics"][1][26:]==CREATOR}
+acc=[l for l in acc_all if l["transactionHash"] in ours]
+dropped=len(acc_all)-len(acc)
+print(f"  accruals {len(acc_all)} → {len(acc)} BRODIE ({dropped} belong to other tokens)",flush=True)
 print("scanning team buys…",flush=True)
 buys={}
 for t in TEAM:
@@ -68,7 +89,9 @@ for t in TEAM:
         b=int(l["blockNumber"],16)
         ev.append({"t":T(b),"blk":b,"kind":"buy","to":t,"tokens":int(l["data"],16)/1e18,"tx":l["transactionHash"]})
 ev.sort(key=lambda e:(e["t"],e["blk"]))
-json.dump({"generated":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"block":latest,"events":ev},
+json.dump({"generated":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"block":latest,
+           "creator":CREATOR,"protocol":PROTOCOL,
+           "droppedForeignAccruals":dropped,"events":ev},
           open("timeline.json","w"))
 print("events:",len(ev),"| payouts",sum(1 for e in ev if e['kind']=='payout'),
       "sweeps",sum(1 for e in ev if e['kind']=='sweep'),"buys",sum(1 for e in ev if e['kind']=='buy'),flush=True)
