@@ -56,12 +56,15 @@ sub(r"window\.ENT=\{.*?\};",
 
 # ── fee timeline, aggregated per day per beneficiary ────────────────────
 tl = load("timeline.json")
-PARTIES = [("0x28e35d8c909df0d084945e4d80b17dbd36b0e02c", "A", 35.0),
-           ("0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd", "B", 30.0),
-           ("0xd64503dd73eb2a6f11856455e52bff8564172ef7", "C", 21.6),
-           ("0x2cf505f3cbb36e06d4bd4758d10716b5416baad0", "D", 13.4)]
+# BRODIE pays exactly two recipients, 70/30, and the ledger names them itself
+# so this stays right when the creator side moves. Older ledgers carried four
+# parties because the shared escrow was read without a per-token filter.
+if "creator" not in tl:
+    sys.exit("timeline.json predates the 70/30 fix — rerun tools/timeline.py")
+PARTIES = [(tl["creator"], "creator", 70.0),
+           (tl["protocol"], "protocol", 30.0)]
 idx = {a: i for i, (a, _, _) in enumerate(PARTIES)}
-daily = collections.defaultdict(lambda: {"eth": [0.0] * 4, "sw": 0, "sold": 0.0})
+daily = collections.defaultdict(lambda: {"eth": [0.0] * len(PARTIES), "sw": 0, "sold": 0.0})
 for ev in tl["events"]:
     day = datetime.datetime.utcfromtimestamp(ev["t"]).strftime("%Y-%m-%d")
     if ev["kind"] == "payout" and ev.get("to") in idx:
