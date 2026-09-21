@@ -34,7 +34,15 @@ def addr_call(to,sel):
     r=rpc("eth_call",[{"to":to,"data":sel},"latest"])
     if not r or len(r)<66: raise SystemExit(f"cannot read {sel} on {to}")
     return "0x"+r[26:66]
-CREATOR=addr_call(MIGRATOR,"0x9fa36cdc")      # creatorFeeRecipient() — BRODIE's 70% side
+POOL_ID="b6eae9d1f1838c4302d500e80d7aa854e45a6455f502215c7b970745b62d4b76"  # keccak(PoolKey(ETH,BRODIE,10000,200,hook))
+def word_addr(to,data,i):
+    r=rpc("eth_call",[{"to":to,"data":data},"latest"])
+    if not r or len(r)<2+(i+1)*64: raise SystemExit(f"cannot read word {i} of {data[:10]} on {to}")
+    return "0x"+r[2+i*64+24:2+(i+1)*64]
+# Live creatorFeeRecipient = word 4 of the hook's per-pool record. The migrator's
+# creatorFeeRecipient() (0x9fa36cdc) is a write-once copy that does NOT follow a
+# hand-over; word 5 here is the immutable creator. Verified 2026-09-22 by simulation.
+CREATOR=word_addr(HOOK,"0xad091230"+POOL_ID,4)   # BRODIE's 70% side, follows transferCreatorFeeRecipient
 PROTOCOL=addr_call(HOOK,"0x64df049e")         # protocolFeeRecipient() — Pons' 30%, shared
 print(f"creator {CREATOR} · protocol {PROTOCOL}",flush=True)
 TEAM=[CREATOR,PROTOCOL]

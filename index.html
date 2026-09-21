@@ -899,6 +899,7 @@ const CONFIG = {
   migrator: '0x9310bc8BF95FA35608a9f08F76b55B4FdDDc1eF0',   /* sole minter of V2; deposit / claim / epochs */
   escrow:   '0xbc39b6502e1a6ab36e4a5c5026a35f08342a0a9c',   /* PonsV2FeeEscrow: Credited / Claimed events */
   hook:     '0x332f85e7e323214b2d55286414b059ebb1f2a044',   /* v4 hook that credits the escrow */
+  poolId:   '0xb6eae9d1f1838c4302d500e80d7aa854e45a6455f502215c7b970745b62d4b76', /* keccak(PoolKey(ETH, BRODIE, 10000, 200, hook)) */
   deployBlock:    48381897,        /* V2 token + migrator created, 2026-08-28 14:47:54 UTC */
   firstMintBlock: 49296036,        /* epoch-1 settle: first mint, 100,008,380 to the pool seed */
   seedToPool: 132045777.975,       /* V2 minted to the migrator itself and pushed into the v4 pool (5 epoch settles) */
@@ -915,7 +916,8 @@ const SEL = {
   totalMinted: '0xa2309ff8', totalCredits: '0xb5bd3eb9', totalDeposits: '0x7d882097', maxSupply: '0xd5abeb01',
   mintDeadline: '0xd4e78086', mintingOpen: '0x8f4bb497', depositEnd: '0x99b6f607',
   currentEpoch: '0x76671808', epochCount: '0x829965cc', buybackEnabled: '0x160d0da5',
-  creatorFeeRecipient: '0x9fa36cdc'
+  creatorFeeRecipient: '0x9fa36cdc',   /* on the migrator: write-once copy, does NOT follow a hand-over */
+  hookPoolRecord: '0xad091230'         /* hook(poolId) → 13 words; word 4 = live creatorFeeRecipient, word 5 = immutable creator */
 };
 
 /* ── baked snapshot: verified 2026-09-09 13:30 UTC, block 58,583,451 ─────── */
@@ -1270,9 +1272,17 @@ async function pullFees() {
      proof a credit is ours. One payout transaction splits one token's fee 70/30,
      so the transaction is BRODIE's exactly when our own creator is paid in it.
      The creator is read from the chain, not hard-coded, so a future handover of
-     the fee recipient keeps this panel correct without a redeploy. */
+     the fee recipient keeps this panel correct without a redeploy.
+     It must come from the hook's per-pool record, word 4. The migrator's own
+     creatorFeeRecipient() is a write-once copy that never changes after a
+     handover (verified 2026-09-22 by simulating a transfer: word 4 moved,
+     word 5 and the migrator getter did not). */
   let creator = null;
-  try { creator = addrOf(await call(CONFIG.migrator, SEL.creatorFeeRecipient)); } catch (e) {}
+  try {
+    const rec = await call(CONFIG.hook, SEL.hookPoolRecord + CONFIG.poolId.slice(2));
+    if (rec && rec.length >= 2 + 5 * 64) creator = addrOf('0x' + rec.slice(2 + 4 * 64, 2 + 5 * 64));
+  } catch (e) {}
+  if (!creator) { try { creator = addrOf(await call(CONFIG.migrator, SEL.creatorFeeRecipient)); } catch (e) {} }
   if (!creator) creator = parties[0];
   const ourTx = new Set();
   cr.forEach(l => { if (addrOf(l.topics[1]) === creator) ourTx.add(l.transactionHash); });
