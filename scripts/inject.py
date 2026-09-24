@@ -1,58 +1,47 @@
 #!/usr/bin/env python3
-"""Re-inject the replayed ledgers into index.html.
+"""Write the replayed ledgers to data/*.json, which the page fetches.
 
-Every literal the page reads from disk is rewritten here, so a refresh run
-cannot leave one panel current and another frozen — which is exactly how the
-9 September sale stayed invisible for two days.
+  data/hold.json  every holder + large pool flows; the page streams new
+                  Transfer events on top, so this only has to be roughly fresh
+  data/ent.json   migration deposits per address; fetched only when someone
+                  checks an address on the Claim or Holders tab
+  data/tl.json    daily fee payouts per recipient; shown until the live scan lands
 
-Reads tools/{holders_all,entitlements_all,timeline,flows}.json and rewrites
-window.HOLD / window.ENT / window.TL / the live fields of window.TEAMEXIT.
-Run after the tools/ scripts. Exits non-zero if any anchor is missing.
+Run after the tools/ scripts; scripts/smoke.py checks the result. Keeping the
+data out of index.html means a refresh never rewrites the page itself.
 """
-import collections, datetime, json, pathlib, re, sys
+import collections, datetime, json, pathlib, sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
-html_path = root / "index.html"
-s = html_path.read_text()
+out = root / "data"
+out.mkdir(exist_ok=True)
 
 
-def num(x):
+def rnd(x):
     x = float(x)
-    if x <= 0:
-        return "1e-9"                      # sub-micro dust: floored, still a holder
     r = round(x, 6)
-    if r == 0:
-        return "1e-9"
-    return str(int(r)) if r == int(r) else ("%.6f" % r).rstrip("0").rstrip(".")
+    return 1e-9 if x <= 0 or r == 0 else r      # sub-micro dust: floored, still a holder
 
 
 def load(name):
     return json.loads((root / "tools" / name).read_text())
 
 
-def sub(pattern, replacement, label):
-    global s
-    s, n = re.subn(pattern, lambda _: replacement, s, count=1, flags=re.S)
-    if n != 1:
-        sys.exit("anchor not found: %s" % label)
+def write(name, obj):
+    (out / name).write_text(json.dumps(obj, separators=(",", ":")))
 
 
 # ── holders + pool flows ────────────────────────────────────────────────
 h = load("holders_all.json")
-flows = {a: v for a, v in h["flows"].items() if max(v[0], v[1]) >= 250000}
-sub(r"window\.HOLD=\{.*?\};",
-    'window.HOLD={"block":%d,"generated":"%s","holders":{%s},"flows":{%s}};' % (
-        h["block"], h["generated"],
-        ",".join('"%s":%s' % (a, num(v)) for a, v in h["holders"].items()),
-        ",".join('"%s":[%s,%s]' % (a, num(v[0]), num(v[1])) for a, v in flows.items())),
-    "window.HOLD")
+write("hold.json", {
+    "block": h["block"], "generated": h["generated"],
+    "holders": {a: rnd(v) for a, v in h["holders"].items()},
+    "flows": {a: [rnd(v[0]), rnd(v[1])] for a, v in h["flows"].items() if max(v[0], v[1]) >= 250000},
+})
 
 # ── migration entitlements ──────────────────────────────────────────────
 e = load("entitlements_all.json")["all"]
-sub(r"window\.ENT=\{.*?\};",
-    "window.ENT={%s};" % ",".join(
-        '"%s":[%s,%s,%d]' % (a, num(v[0]), num(v[1]), v[2]) for a, v in e.items()),
-    "window.ENT")
+write("ent.json", {a: [rnd(v[0]), rnd(v[1]), v[2]] for a, v in e.items()})
 
 # ── fee timeline, aggregated per day per beneficiary ────────────────────
 tl = load("timeline.json")
@@ -70,7 +59,7 @@ PARTIES = [(a, "burn vault" if a == VAULT else "creator" if i == 0 else "creator
 idx = {a: i for i, (a, _, _) in enumerate(PARTIES)}
 daily = collections.defaultdict(lambda: {"eth": [0.0] * len(PARTIES), "sw": 0, "sold": 0.0})
 for ev in tl["events"]:
-    day = datetime.datetime.utcfromtimestamp(ev["t"]).strftime("%Y-%m-%d")
+    day = datetime.datetime.fromtimestamp(ev["t"], datetime.timezone.utc).strftime("%Y-%m-%d")
     if ev["kind"] == "payout" and ev.get("to") in idx:
         daily[day]["eth"][idx[ev["to"]]] += ev["eth"]
     elif ev["kind"] == "sweep":
@@ -79,8 +68,7 @@ for ev in tl["events"]:
 sweeps = [ev for ev in tl["events"] if ev["kind"] == "sweep"]
 payouts = [ev for ev in tl["events"] if ev["kind"] == "payout" and ev.get("to") in idx]
 buys = [ev for ev in tl["events"] if ev["kind"] == "buy"]
-sub(r"window\.TL=\{.*?\};",
-    "window.TL=" + json.dumps({
+write("tl.json", ({
         "generated": tl["generated"], "block": tl["block"],
         "parties": [[a, l, sh] for a, l, sh in PARTIES],
         "daily": [[d, [round(x, 4) for x in daily[d]["eth"]], daily[d]["sw"], round(daily[d]["sold"])]
@@ -89,43 +77,7 @@ sub(r"window\.TL=\{.*?\};",
                   "tokens": round(b["tokens"], 2), "tx": b["tx"]} for b in buys],
         "firstSweep": sweeps[0]["t"], "lastSweep": sweeps[-1]["t"], "sweeps": len(sweeps),
         "firstPayout": payouts[0]["t"], "lastPayout": payouts[-1]["t"], "payouts": len(payouts),
-    }, separators=(",", ":")) + ";",
-    "window.TL")
+    }))
 
-# ── the live counters inside the team-exit literal ──────────────────────
-f = load("flows.json")
-m = re.search(r"window\.TEAMEXIT=(\{.*?\});", s, re.S)
-if not m:
-    sys.exit("anchor not found: window.TEAMEXIT")
-te = json.loads(m.group(1))
-te.update({"hookFee": f["hookFeeAccrued"], "hookSold": f["hookSold"],
-           "chainBought": f["totalBought"], "chainSold": f["totalSold"],
-           "txs": f["txs"], "block": f["block"], "generated": f["generated"]})
-sub(r"window\.TEAMEXIT=\{.*?\};",
-    "window.TEAMEXIT=" + json.dumps(te, separators=(",", ":")) + ";", "window.TEAMEXIT")
-
-# ── sell-side attribution ───────────────────────────────────────────────
-# This literal went unrefreshed from launch until 15 September because it was
-# never wired into the refresh job — the same failure the correction box in §07
-# describes. It is in the pipeline now.
-raw = load("sell_attrib.json")
-# sell_attrib.py writes {categories: {...}, topClaimDumpers: [...]}; the page reads
-# sa.cats as [[name, value], ...] and sa.topDumpers as [[addr, sold, minted], ...].
-# Emitting the raw shape is what broke boot() on 15 September — renderSellers threw
-# on sa.cats.find and took every other panel down with it. Map it explicitly.
-sa = {
-    "generated": raw["generated"], "block": raw["block"],
-    "totalSold": raw["totalSold"], "sellers": raw["sellers"],
-    "cats": sorted(([k, v] for k, v in raw["categories"].items() if v > 0),
-                   key=lambda kv: -kv[1]),
-    "topDumpers": raw["topClaimDumpers"],
-}
-for need in ("fee_hook", "claim_dump"):
-    if not any(c[0] == need for c in sa["cats"]):
-        sa["cats"].append([need, 0])          # renderSellers indexes these two by name
-sub(r"window\.SA=\{.*?\};",
-    "window.SA=" + json.dumps(sa, separators=(",", ":")) + ";", "window.SA")
-
-html_path.write_text(s)
-print("injected %d holders, %d flows, %d entitlements, %d timeline days, sell-attrib block %d, at block %d"
-      % (len(h["holders"]), len(flows), len(e), len(daily), sa["block"], h["block"]))
+print("wrote data/: %d holders, %d entitlements, %d fee days, holders at block %d"
+      % (len(h["holders"]), len(e), len(daily), h["block"]))

@@ -36,8 +36,15 @@ try:
 except RuntimeError as e:
     print("estimateGas reverted (someone may have just burned, or below minimum):",str(e)[:160]); sys.exit(0)
 gp=int(rpc('eth_gasPrice',[]),16)
-if bal < gas*gp*3: print(f"keeper wallet {me} low on gas: {bal/1e18:.6f} ETH"); sys.exit(0)
-tx={"chainId":CHAIN,"nonce":int(rpc('eth_getTransactionCount',[me,'pending']),16),"gas":int(gas*1.3),
-    "maxFeePerGas":gp*2,"maxPriorityFeePerGas":0,"to":vault,"value":0,"data":sel('burnNow()'),"type":2}
+# Self-funding: the vault pays its caller 0.5% only after 27 idle hours, so the
+# keeper burns on time while it has gas, and when it runs low it waits for that
+# tip window and refills from it. One burn's tip covers several calls.
+limit, fee = int(gas*1.2), int(gp*1.25)
+need = limit*fee                      # what the node checks before accepting the tx
+if bal < need: print(f"keeper wallet {me} cannot afford one call ({bal/1e18:.8f} ETH) — top it up"); sys.exit(0)
+if bal < need*4 and tip == 0:
+    print(f"low on gas ({bal/1e18:.8f} ETH): waiting for the 0.5% tip window to refill"); sys.exit(0)
+tx={"chainId":CHAIN,"nonce":int(rpc('eth_getTransactionCount',[me,'pending']),16),"gas":limit,
+    "maxFeePerGas":fee,"maxPriorityFeePerGas":0,"to":vault,"value":0,"data":sel('burnNow()'),"type":2}
 h=rpc('eth_sendRawTransaction',['0x'+acct.sign_transaction(tx).raw_transaction.hex()])
 print("sent burnNow():",h)

@@ -1,240 +1,62 @@
-# $BRODIE V2 Terminal
+# $BRODIE Terminal
 
-Single-file dashboard for **$BRODIE V2** on Robinhood Chain (chainId 4663),
-modelled on the $PONS Terminal at stateofblocks.com. No build step, no backend.
+Live dashboard for $BRODIE on Robinhood Chain (chain id 4663): the burn vault,
+fees, the V1 → V2 claim, market data and holders. Static site, no backend.
 
-    open index.html          # or serve it: python3 -m http.server 8731
+Live at https://brodie-terminal.vercel.app
 
-Drop `index.html` on any static host (Vercel, Netlify, GitHub Pages, S3) as-is.
+    python3 -m http.server 8731     # local preview at http://localhost:8731
 
-## How it gets its numbers
+## Layout
 
-The page tries live sources first and falls back to a timestamped snapshot
-baked into the `SNAP` object if the browser cannot reach them.
+```
+index.html          the page: markup, styles and script in one file
+data/               ledgers the page fetches (written by scripts/inject.py)
+  hold.json           every holder + large pool flows; the page streams new transfers on top
+  tl.json             daily fee payouts per recipient; shown until the live scan finishes
+  ent.json            V1 deposits per address; fetched only when someone checks an address
+assets/             logo, hero video + poster, memes (assets/memes/s = stickers, /g = gallery)
+tools/              full-history replays that produce the ledgers (run by the refresh job)
+scripts/inject.py   tools/*.json → data/*.json
+scripts/smoke.py    checks data/ has the shape the page reads and that the script parses
+keeper/keeper.py    calls burnNow() on the vault when its window is open
+```
 
-| Panel | Source | Live in the browser? |
+## Where the numbers come from
+
+| What | Source | Refresh |
 |---|---|---|
-| Price, liquidity, volume, txns | `api.dexscreener.com` | yes — CORS `*` |
-| Supply, dead balances, block | `rpc.mainnet.chain.robinhood.com` `eth_call` | yes — CORS `*` |
-| Minted / burned / claimable / deadline | migrator `totalMinted()`, `totalCredits()`, `maxSupply()`, token `mintDeadline()` — burned = totalMinted − totalSupply | yes, every 30s |
-| Mint history (count, first, last, per-migrator concentration) | `eth_getLogs` Transfer-from-0x0 since deployment, 4M-block chunks | yes, every 3 min |
-| Fee credits, claims, escrow balances, sweeps, daily buckets | `eth_getLogs` on PonsV2FeeEscrow (`Credited` / `Claimed`) + hook→PoolManager transfers | yes, every 90s |
-| Burn scan | same RPC, `eth_getLogs` over ~25h of blocks | yes |
-| Impostor board, comps | DexScreener search | yes |
-| Holder count, top holders, buyback audit | offline replay, see below | no — snapshot |
+| Price, liquidity, volume | DexScreener | 10 s |
+| Candles and trades (Market tab only) | GeckoTerminal | 45 s / 12 s |
+| Supply, minted, credits, balances | Robinhood Chain RPC `eth_call` | 30 s |
+| Fees | escrow `Credited` events, scanned incrementally | 90 s |
+| Burn vault state and burns | vault views + `Burned` events | 60 s |
+| Holders | `data/hold.json` + live `Transfer` stream over websocket | live |
 
-Refresh intervals, RPC list and scan width live in `CONFIG` at the top of the
-script. Robinhood Chain runs ~100 ms blocks, so 24h ≈ 864,000 blocks — that is
-why the log scan is chunked.
+Polling pauses while the tab is hidden, only the open tab re-renders, and log
+scans only fetch blocks they have not seen yet.
 
-## Re-running the on-chain audit
+Fees count as BRODIE's when a payout transaction pays one of BRODIE's creator
+recipients: the live one (the burn vault since 2026-09-24) or a former one
+(`CONFIG.formerCreators`). The hook and escrow are shared by every Pons token.
 
-`tools/onchain_audit.py` replays every V2 `Transfer` event since genesis
-(block 49,296,036) and writes `tools/audit.json`: mint distribution, burn
-totals, holder count, top holders, and addresses that only ever bought out of
-the pool and never sold. Takes a few minutes.
+## Jobs
 
-    python3 tools/onchain_audit.py
+- `.github/workflows/refresh-ledgers.yml` (every 30 min): replays the chain in
+  `tools/`, writes `data/`, runs the smoke test, commits. A push to `main`
+  deploys through Vercel's Git integration.
+- `.github/workflows/burn-keeper.yml` (every 15 min): runs `keeper/keeper.py`.
+  Needs the variable `VAULT_ADDRESS` and the secret `KEEPER_KEY`. The keeper
+  wallet has no privileges; when it runs low on gas it waits for the vault's
+  0.5% caller tip (paid after 27 idle hours) to refill.
 
-Then paste the results into the `SNAP` object in `index.html`.
+To refresh by hand: `cd tools && sh refresh_all.sh`.
 
-## What the audit found (2026-09-09, block 58,603,719)
+## Adding memes
 
-- Genesis mint **795,068,399.48** to **562 addresses** — V2 was minted, not
-  swapped out of V1. Largest single mint 16.61%, top 10 35.58%.
-- **Zero burns.** No transfer to `0x0` or `0x…dEaD` in 32,156 events;
-  `totalSupply` has never moved.
-- **No buyback address.** 132 wallets only ever bought and never sold, holding
-  73.7M (9.3% of supply) — all retail-sized, none treasury-scale.
-- V1 `totalSupply` is still exactly 1,000,000,000; only 7.42M V1 (0.74%) has
-  reached the v4 PoolManager.
-
-These findings are stated on the page in §04 and §06. If you republish with
-different claims, re-run the audit first.
-
-## Burn tab (added 2026-09-22)
-
-The landing view is the story hero plus the **Burn** tab. Everything in it is
-read live from the burn vault at `0xC0f342a8936755697C535F1e8E0D712a8da672f8`:
-
-| Panel | Source |
-|---|---|
-| Phase strip (deployed → verified → recipient → first burn) | hook pool record word 4 == vault, `burnCount()` |
-| Ring, totals, rates, daily chart, last 20 burns | `Burned` events from the vault's deploy block 69,411,335 |
-| Next window | `windowState()`; `lastRunAt() == 0` means the first run is still pending |
-| ETH ready to burn | `eth_getBalance(vault)` + escrow `balanceOf(vault)` |
-
-`CONFIG.vault*`, `SEL.windowState…` and `CONFIG.topics.burned` hold the
-addresses and selectors; `pullVault()` / `renderBurn()` / `renderHero()` are the
-only new functions. Until the fee recipient is handed over, the tab shows the
-"armed · awaiting handover" state and the current recipient it read from the
-hook.
-
-`assets/` is no longer in `.vercelignore`: the hero video
-(`brodie-walk.mp4`, 580 KB) and the four story images ship with the page.
-Dark is the default theme; the toggle persists a light preference.
-
-## Splitting into routes
-
-The page is one document with anchor sections (`#contract`, `#supply`,
-`#holders`, `#migrate`, `#impostors`, `#peers`, `#origin`, `#sources`,
-`#risk`). To match the `/burns`, `/holders`, `/story` sitemap, cut each
-`<section>` into its own file and keep the `<style>` block shared.
+Drop a square `.webp` into `assets/memes/s` (hero sticker, about 360 px) or
+`assets/memes/g` (story gallery, about 720 px) and add its name to `STICKERS`
+or `GALLERY` in `index.html`. Three stickers and four gallery images are picked
+at random on every visit.
 
 Not affiliated with Robinhood Markets, Inc.
-
-## Buyback verification (added after the team claimed a 0.6% buyback)
-
-`tools/buyback_audit.py` replays all V2 transfers and ranks every address by
-BRODIE bought out of the v4 PoolManager minus BRODIE sold into it, then flags
-the addresses that receive a share of the protocol fee stream.
-
-Result at block 58,603,719: the only address provably paid by the fee splitter
-bought **581,895.72** BRODIE (**0.073%** of supply) against a claimed 0.6%
-(4,770,410 BRODIE) — a 8.2× gap. Several unlinked wallets did buy more than
-0.6%, but none has ever received a payout from the splitter.
-
-Two figures that resemble a buyback and are not: the hook took 5,955,651 BRODIE
-out of the pool as fee accrual and sold 5,912,531 of it straight back, and the
-LP deployer sent 132,045,777.98 into the pool as liquidity. Both are the right
-order of magnitude pointing the wrong way.
-
-This is rendered on the page as §07 "Who actually bought".
-
-## Real-time architecture
-
-Modelled on the $PONS Terminal, which is a static page that fetches live APIs in
-the browser and reads pre-computed JSON from a CDN
-(`data.stateofblocks.com/pons/*.json`). Same split here.
-
-### Live in the browser — no backend needed
-
-| Data | Source | Interval |
-|---|---|---|
-| Price, liquidity, volume, txns | DexScreener `/tokens/` | 10s |
-| Candles (OHLCV) | GeckoTerminal `/networks/robinhood/pools/<poolId>/ohlcv/` | 45s |
-| Trade tape | GeckoTerminal `/pools/<poolId>/trades` | 12s |
-| m5/m15/m30 stats, reserves | GeckoTerminal `/pools/<poolId>` | 10s |
-| Supply, balances, block, any address lookup | Robinhood RPC `eth_call` | 30s |
-| Burn scan | Robinhood RPC `eth_getLogs` | 120s |
-| Impostor board, comps | DexScreener `/search`, `/tokens/` | 5min |
-
-All four hosts send `Access-Control-Allow-Origin: *`, so this works from any
-static host with no proxy. Intervals live in `CONFIG.ms`.
-
-### Baked ledgers — rebuilt by script, pasted into the page
-
-Full-history replays cannot run in a browser (32k+ log events, minutes per pass):
-
-| Ledger | Script | Rows |
-|---|---|---|
-| Holders, top holders, buyers, burns | `tools/onchain_audit.py` | 779 holders |
-| Buyback leaderboard | `tools/buyback_audit.py` | 9 ranked |
-| Migration entitlements (`window.ENT`) | `tools/dump_all.py` | 629 depositors |
-
-To make these self-updating, run the scripts on a cron and serve their JSON
-next to the page, then `fetch('./data/ledger.json')` instead of using the inline
-literal. A GitHub Action on a 15-minute schedule that commits `data/*.json` is
-enough — that is exactly the `data.stateofblocks.com` pattern, without paying
-for an indexer.
-
-### Interactive pieces
-
-- Tab bar (Tape / Fees & burn / Holders / Migration / Contracts / Chain / About)
-- Candle range toggles: 1H / 6H / 24H / 7D / ALL
-- Live trade tape with a pause button; new fills flash in
-- **Address lookup** — paste any address for live balances, its migration
-  deposit and entitlement, whether that entitlement was ever issued, and any
-  flagged role (fee beneficiary, hook, launchpad, pool)
-- EN / 中文 toggle, light / dark toggle
-
-## Deploying it
-
-One file, no build step, no server, no database. Pick any static host:
-
-**Cloudflare Pages / Netlify** — drag the folder onto the dashboard, or:
-```
-npx wrangler pages deploy .        # Cloudflare
-npx netlify deploy --prod --dir .  # Netlify
-```
-
-**Vercel**
-```
-npx vercel --prod
-```
-
-**GitHub Pages** — push the repo, Settings → Pages → deploy from branch. Note the
-site URL then contains your GitHub username (`<user>.github.io/<repo>`); attach a
-custom domain, or use one of the hosts above, if you would rather not publish
-that link between the repo and your account.
-
-The `.github/workflows/refresh-ledgers.yml` job only runs on GitHub. If you host
-elsewhere, keep the repo on GitHub for the cron and point the host at it.
-
-### What the page stores and sends
-
-- **Stored on the visitor's device:** one `localStorage` key, `brodie-theme`
-  (`"light"` or `"dark"`). Nothing else — no cookies, no sessionStorage, no
-  IndexedDB, no analytics, no fingerprinting. Every read and write is wrapped in
-  try/catch, so the page works with site data blocked.
-- **Sent off the page:** read-only requests to `api.dexscreener.com`,
-  `api.geckoterminal.com`, `rpc.mainnet.chain.robinhood.com`,
-  `wss://robinhood-rpc.publicnode.com` and Google Fonts. No wallet connection is
-  ever requested, no address is ever transmitted anywhere except as a public
-  `eth_call` when a visitor types one into the lookup box.
-- **Contains no operator identity.** The file has no author name, email, local
-  path, repository URL or session identifier in it. Every address it displays was
-  discovered on-chain and is public.
-
-Visitors' IP addresses are naturally visible to those five hosts, as with any
-page that calls a third-party API. If that matters for your audience, proxy the
-calls through your own domain.
-
-## What still needs the team
-
-Everything on this page is either an on-chain fact or an inference from one. The
-inferences are marked, and §15 lists the seven questions only the team can close:
-
-1. Confirm the official contract set (hook, splitter, operator, launchpad)
-2. Who the four fee beneficiaries are and what each share funds
-3. Which address does the buybacks — the 0.6% claim vs the 0.073% measured
-4. The 68 unissued entitlements (56,344,918 BRODIE) — deadline, bug, or pending
-5. Whether the 132,045,778 initial LP is locked, for how long, and by whom
-6. Whether a burn mechanism is planned — zero burns to date
-7. A published policy for what fee revenue is for
-
-Each answered question converts a panel from "inferred" to "on-chain +
-confirmed". That is the only thing this dashboard cannot do for itself.
-
-## Live
-
-**https://brodie-terminal.vercel.app**
-
-Deployed from this repo to Vercel. The repo stays private; only `index.html`
-(plus `vercel.json`) is served — `.vercelignore` keeps the tools, ledgers and
-source artwork out of the deployment. Deployment-specific preview URLs stay
-behind Vercel Authentication; the production alias is public.
-
-### Making the cron redeploy automatically
-
-`refresh-ledgers.yml` replays the chain every 30 minutes and commits the updated
-ledgers. To have that commit also redeploy, add two repository secrets:
-
-```
-gh secret set VERCEL_TOKEN --repo <owner>/brodie-terminal   # vercel.com/account/tokens
-gh secret set VERCEL_SCOPE --repo <owner>/brodie-terminal   # your Vercel team slug
-```
-
-Without them the workflow still refreshes the ledgers in the repo — you just run
-`vercel deploy --prod --yes --scope <slug>` yourself when you want it live.
-
-### Custom domain
-
-```
-vercel domains add <yourdomain> --scope <slug>
-vercel alias set brodie-terminal.vercel.app <yourdomain> --scope <slug>
-```
-
-Point the domain's DNS at Vercel as the CLI instructs. HTTPS is issued
-automatically. Turn on WHOIS privacy at your registrar — it is free at
-Cloudflare and Namecheap, and it keeps your name off the public WHOIS record.

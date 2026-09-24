@@ -1,6 +1,6 @@
 # Calls burnNow() on the burn vault whenever its window is open.
 #   Variables -> VAULT_ADDRESS = 0xC0f342a8936755697C535F1e8E0D712a8da672f8
-#   Secrets   -> KEEPER_KEY    = the no-privilege deployer wallet 0x0Bf6…a96B, gas only
+#   Secrets   -> KEEPER_KEY    = the no-privilege deployer wallet 0x0Bf6…a96B; it refills itself from the 0.5% tip
 # Until both exist the job exits immediately and does nothing.
 name: burn keeper
 on:
