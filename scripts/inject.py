@@ -61,8 +61,12 @@ tl = load("timeline.json")
 # parties because the shared escrow was read without a per-token filter.
 if "creator" not in tl:
     sys.exit("timeline.json predates the 70/30 fix — rerun tools/timeline.py")
-PARTIES = [(tl["creator"], "creator", 70.0),
-           (tl["protocol"], "protocol", 30.0)]
+# Every address that ever held the creator role keeps its own column; the live
+# one comes first. Since 2026-09-24 that is the burn vault, then the old wallet.
+VAULT = "0xc0f342a8936755697c535f1e8e0d712a8da672f8"
+creators = tl.get("creators") or [tl["creator"]]
+PARTIES = [(a, "burn vault" if a == VAULT else "creator" if i == 0 else "creator → 24 Sep", 70.0)
+           for i, a in enumerate(creators)] + [(tl["protocol"], "protocol", 30.0)]
 idx = {a: i for i, (a, _, _) in enumerate(PARTIES)}
 daily = collections.defaultdict(lambda: {"eth": [0.0] * len(PARTIES), "sw": 0, "sold": 0.0})
 for ev in tl["events"]:

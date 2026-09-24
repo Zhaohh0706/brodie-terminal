@@ -1,0 +1,22 @@
+# Calls burnNow() on the burn vault whenever its window is open.
+#   Variables -> VAULT_ADDRESS = 0xC0f342a8936755697C535F1e8E0D712a8da672f8
+#   Secrets   -> KEEPER_KEY    = the no-privilege deployer wallet 0x0Bf6…a96B, gas only
+# Until both exist the job exits immediately and does nothing.
+name: burn keeper
+on:
+  schedule:
+    - cron: '*/15 * * * *'     # buckets are ~38 min; 15 min never misses one
+  workflow_dispatch:
+jobs:
+  keep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -q eth-account==0.13.7 eth-utils
+      - run: python3 keeper/keeper.py
+        env:
+          VAULT_ADDRESS: ${{ vars.VAULT_ADDRESS }}
+          KEEPER_KEY:    ${{ secrets.KEEPER_KEY }}
