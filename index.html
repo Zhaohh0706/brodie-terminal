@@ -523,7 +523,6 @@ footer .links a{border-bottom:0}
     <div class="rail" id="rail" aria-label="Live market rail"></div>
     <div class="tb-ctl">
       <span class="chip live" id="feedChip" title="Data feed status"><span class="dot"></span><span id="feedTxt">BOOT</span></span>
-      <button class="btn" id="langBtn" type="button">中文</button>
       <button class="btn" id="themeBtn" type="button" aria-label="Toggle theme">◐</button>
     </div>
   </div>
@@ -1077,7 +1076,7 @@ const SNAP = {
 
 /* ── state ──────────────────────────────────────────────────────────────── */
 const D = JSON.parse(JSON.stringify(SNAP));
-let lang = 'en';
+let lang = 'en';   /* English only: the 中文 toggle was removed on 2026-09-24; the zh strings stay in place, unused */
 let feed = { market:'snapshot', chain:'snapshot', board:'snapshot', mints:'idle', fees:'idle', vault:'idle' };
 D.mint = null; D.mints = null; D.feesLive = null; D.vault = null;   /* filled by pullChain / pullMints / pullFees */
 
@@ -2465,7 +2464,6 @@ function applyLang() {
     if (n.dataset.en == null) n.dataset.en = n.innerHTML;
     n.innerHTML = lang === 'zh' ? n.dataset.zh : n.dataset.en;
   });
-  $('#langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
   if (document.getElementById('tabbar')) renderTabs();
   document.documentElement.lang = lang === 'zh' ? 'zh' : 'en';
   renderMemes();
@@ -2568,7 +2566,6 @@ function offlineNote(host) {
 function boot() {
   applyLang();
   initTheme(); initCopy(); initTabs();
-  $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; applyLang(); });
   document.getElementById('lookupIn').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(e.target.value); });
   document.getElementById('claimIn').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(e.target.value, 'claimOut'); });
   /* the sticky tab bar sits under the top bar, whose height changes when it wraps on phones */
