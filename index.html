@@ -929,6 +929,9 @@ const CONFIG = {
   /* the burn vault: keyless fee recipient, deployed 2026-09-22. Reads live; nothing baked. */
   vault:      '0xC0f342a8936755697C535F1e8E0D712a8da672f8',
   vaultBlock: 69411335,
+  /* the token's own burns are scanned from the vault's deploy block. The range from deployBlock
+     to there (48,381,897 → 69,411,334) was scanned on 2026-09-24 and held no Transfer to 0x0. */
+  burnedBeforeVault: 0,
   vaultTx:    '0xc2b08555587b9605982106c01ed2fe4d34541bb378de9dd631060b6766d4e32e',
   /* the creator fee recipient moved to the vault on 2026-09-24 01:32 UTC. Every address that ever
      held the role is BRODIE's creator side; dropping the old one erased all pre-handover fees */
@@ -1182,7 +1185,7 @@ const utc = t => new Date(t * 1000).toISOString().slice(0, 16).replace('T', ' ')
 const blockTimes = new Map();
 async function blockTime(b) {
   if (blockTimes.has(b)) return blockTimes.get(b);
-  const r = await rpc('eth_getBlockByNumber', ['0x' + b.toString(16), false]);
+  const r = await queued('eth_getBlockByNumber', ['0x' + b.toString(16), false]);
   const t = hexNum(r && r.timestamp);
   /* never cache a failed read: one cached 0 turned every interpolated date into 1970–2026
      and filled the daily fee table with hundreds of phantom days */
@@ -1211,28 +1214,40 @@ function interp(anchors, b) {
   }
   return anchors[anchors.length - 1][1];
 }
-/* Log scans go through one lane: the public RPC throttles parallel eth_getLogs, and a throttled
-   preflight surfaces as a bare "Failed to fetch". Serialise, retry with backoff, never overlap. */
-let logLane = Promise.resolve();
+/* Log scans go through one lane: the public RPC rate-limits eth_getLogs (429, "log query timed
+   out"), and a throttled preflight surfaces as a bare "Failed to fetch". One worker, a short gap
+   between calls, retries with backoff — and the vault's two small scans jump the queue, so the
+   burn panel never waits behind a history replay of mints and fees. */
+const logQ = [];
+let logBusy = false, lastLogAt = 0;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-function getLogsOne(address, topics, from, to) {
-  const params = [{ address, fromBlock: '0x' + from.toString(16), toBlock: '0x' + to.toString(16), topics }];
-  const run = async () => {
-    let last;
-    for (let i = 0; i < 4; i++) {
-      try { const logs = await rpc('eth_getLogs', params); return logs || []; }
-      catch (e) { last = e; await sleep(1200 * (i + 1)); }
-    }
-    throw last;
-  };
-  const p = logLane.then(run, run);
-  logLane = p.catch(() => {});
-  return p;
+function getLogsOne(address, topics, from, to, urgent) {
+  return new Promise((resolve, reject) => {
+    const job = { params: [{ address, fromBlock: '0x' + from.toString(16), toBlock: '0x' + to.toString(16), topics }], resolve, reject };
+    if (urgent) logQ.unshift(job); else logQ.push(job);
+    pumpLogs();
+  });
 }
-async function getLogsChunked(address, topics, from, to, chunk) {
+async function pumpLogs() {
+  if (logBusy) return;
+  logBusy = true;
+  while (logQ.length) {
+    const job = logQ.shift();
+    const gap = 350 - (Date.now() - lastLogAt);
+    if (gap > 0) await sleep(gap);
+    let last = null;
+    for (let i = 0; i < 4; i++) {
+      try { lastLogAt = Date.now(); const logs = await rpc('eth_getLogs', job.params); job.resolve(logs || []); break; }
+      catch (e) { last = e; if (i < 3) await sleep(1500 * (i + 1)); }
+      if (i === 3) job.reject(last);
+    }
+  }
+  logBusy = false;
+}
+async function getLogsChunked(address, topics, from, to, chunk, urgent) {
   const out = [];
   for (let b = from; b <= to; b += chunk) {
-    const logs = await getLogsOne(address, topics, b, Math.min(b + chunk - 1, to));
+    const logs = await getLogsOne(address, topics, b, Math.min(b + chunk - 1, to), urgent);
     logs.forEach(l => out.push(l));
   }
   return out;
@@ -1955,6 +1970,19 @@ function renderImpostors() {
    Burned event says so. */
 const VAULT_LOGS = { logs: [], to: 0, anchors: null };
 const BURN_LOGS = { logs: [], to: 0 };      /* every Transfer of the token to 0x0, incremental like MINT_LOGS */
+/* both lists are tiny, so they live in localStorage between visits: a repeat visit scans only the
+   blocks since last time. A stale or broken entry is simply ignored. */
+const VCACHE = 'brodie-vault-logs-v1';
+try {
+  const c = JSON.parse(localStorage.getItem(VCACHE) || 'null');
+  if (c && c.to >= CONFIG.vaultBlock && Array.isArray(c.logs) && Array.isArray(c.blogs)) {
+    VAULT_LOGS.logs = c.logs; VAULT_LOGS.to = c.to; BURN_LOGS.logs = c.blogs; BURN_LOGS.to = c.bto;
+  }
+} catch (e) {}
+function saveVaultCache() {
+  if (VAULT_LOGS.logs.length + BURN_LOGS.logs.length > 3000) return;
+  try { localStorage.setItem(VCACHE, JSON.stringify({ to: VAULT_LOGS.to, logs: VAULT_LOGS.logs, bto: BURN_LOGS.to, blogs: BURN_LOGS.logs })); } catch (e) {}
+}
 async function pullVault() {
   const V = CONFIG.vault;
   const [ws, tb, te, bc, ema, lr, bal, esc, rec, bn] = await Promise.all([
@@ -1971,18 +1999,19 @@ async function pullVault() {
   const recipient = rec && rec.length >= 2 + 5 * 64 ? addrOf(word(rec, 4)) : null;
   const from = VAULT_LOGS.to ? VAULT_LOGS.to + 1 : CONFIG.vaultBlock;
   if (from <= head) {
-    const fresh = await getLogsChunked(V, [CONFIG.topics.burned], from, head, CONFIG.logChunk * 2);
+    const fresh = await getLogsChunked(V, [CONFIG.topics.burned], from, head, CONFIG.logChunk * 2, true);
     for (const l of fresh) VAULT_LOGS.logs.push(l);
     VAULT_LOGS.to = head;
   }
   /* burns of the token itself, whoever did them: the only live source of "burned" (see pullChain) */
-  const bfrom = BURN_LOGS.to ? BURN_LOGS.to + 1 : CONFIG.deployBlock;
+  const bfrom = BURN_LOGS.to ? BURN_LOGS.to + 1 : CONFIG.vaultBlock;
   if (bfrom <= head) {
-    const fresh = await getLogsChunked(CONFIG.v2, [CONFIG.topics.transfer, null, pad(ZERO_ADDR)], bfrom, head, CONFIG.logChunk * 2);
+    const fresh = await getLogsChunked(CONFIG.v2, [CONFIG.topics.transfer, null, pad(ZERO_ADDR)], bfrom, head, CONFIG.logChunk * 2, true);
     for (const l of fresh) BURN_LOGS.logs.push(l);
     BURN_LOGS.to = head;
   }
-  D.burnEvents = { sum: BURN_LOGS.logs.reduce((a, l) => a + dec(l.data), 0), count: BURN_LOGS.logs.length, scannedTo: head };
+  saveVaultCache();
+  D.burnEvents = { sum: CONFIG.burnedBeforeVault + BURN_LOGS.logs.reduce((a, l) => a + dec(l.data), 0), count: BURN_LOGS.logs.length, scannedTo: head };
   D.burnedV2 = D.burnEvents.sum;
   const burns = VAULT_LOGS.logs.map(l => ({
     seq: hexNum(l.topics[1]), caller: addrOf(l.topics[2]),
@@ -1998,7 +2027,7 @@ async function pullVault() {
     }
     const anchors = VAULT_LOGS.anchors;
     burns.forEach(b => { b.t = interp(anchors, b.blk); });
-    for (const b of burns.slice(-20)) b.t = await blockTime(b.blk).catch(() => b.t);   /* exact for the rows the reader sees */
+    await Promise.all(burns.slice(-20).map(b => blockTime(b.blk).then(t => { b.t = t; }).catch(() => {})));   /* exact for the rows the reader sees, one batch */
   }
   D.vault = {
     earliestAt: hexNum(word(ws, 0)), guaranteedAt: hexNum(word(ws, 1)), openNow: hexNum(word(ws, 2)) === 1,
@@ -2054,10 +2083,21 @@ function celebrate(n, b) {
   }
 }
 
+/* Until the live read lands, or whenever the RPC is down, the burn panel shows the baked list
+   from data/tl.json (every burn up to the ledger job's last run) and says it is a snapshot. */
+function snapVault() {
+  const s = window.TL && window.TL.burns;
+  if (!s || !Array.isArray(s.burns)) return null;
+  const last = s.burns[s.burns.length - 1], lastRunAt = last ? last.t : 0;
+  return { snapshot: true, at: s.generated, burns: s.burns, count: s.count, totalBurned: s.totalBurned, totalEth: s.totalEth,
+           lastRunAt, earliestAt: lastRunAt + 21 * 3600, guaranteedAt: lastRunAt + 33 * 3600, openNow: false, nextDrawAt: 0, tipBps: 0,
+           recipient: s.recipient, isRecipient: !!s.isRecipient, balance: NaN, escrowCredit: NaN, ema: last ? last.ema : 0 };
+}
+
 /* ── hero · three numbers that tell the story ───────────────────────────── */
 const MINT_CLOSE = Date.UTC(2026, 11, 21, 16, 47, 47) / 1000;   /* mintDeadline(), overridden by the live read */
 function renderHero() {
-  const m = D.mint, v = D.vault;
+  const m = D.mint, v = D.vault || snapVault();
   const minted = m ? m.minted : D.mintedV2;
   const burned = Math.max(v ? v.totalBurned : 0, Math.max(0, minted - D.supplyV2) + D.deadV2);
   const unclaimed = m ? m.unclaimed : D.migration.unminted;
@@ -2088,9 +2128,9 @@ const adl = a => '<a href="' + BS + 'address/' + a + '" rel="noopener" target="_
 const hm = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), mm = Math.floor(s % 3600 / 60); return h ? h + 'h ' + String(mm).padStart(2, '0') + 'm' : mm + 'm ' + String(s % 60).padStart(2, '0') + 's'; };
 let ringMemo = '';
 function renderBurn() {
-  const v = D.vault, m = D.mint;
+  const v = D.vault || snapVault(), m = D.mint;
   const minted = m ? m.minted : D.mintedV2;
-  const live = !!v, isRec = live && v.isRecipient, count = live ? v.count : 0;
+  const live = !!D.vault, have = !!v, isRec = have && v.isRecipient, count = have ? v.count : 0;
   if (live && SEEN_BURNS !== null && count > SEEN_BURNS) celebrate(count, v.burns[count - 1]);
   if (live) SEEN_BURNS = count;
   const wait = '<span class="skeleton" style="display:inline-block; width:5em; height:.75em; vertical-align:middle"></span>';
@@ -2100,9 +2140,10 @@ function renderBurn() {
   const ethf = x => x > 0 ? x.toFixed(4) : '0';
 
   const chip = $('#burnChip');
-  chip.className = 'chip ' + (count ? 'fire live' : isRec ? 'ok live' : live ? 'warn' : '');
-  chip.innerHTML = (count || isRec ? '<span class="dot"></span>' : '') +
-    (count ? T('BURNING · #', '销毁中 · 第 ') + count + T('', ' 次') : isRec ? T('COLLECTING FEES', '归集手续费中') : live ? T('ARMED · AWAITING HANDOVER', '已就位 · 等待交接') : T('SNIFFING THE CHAIN…', '嗅探链上数据中…'));
+  chip.className = 'chip ' + (!live && have ? 'warn' : count ? 'fire live' : isRec ? 'ok live' : live ? 'warn' : '');
+  chip.innerHTML = (live && (count || isRec) ? '<span class="dot"></span>' : '') +
+    (!live && have ? T('SNAPSHOT · AS OF ', '快照 · 截至 ') + utc(Date.parse(v.at) / 1000).slice(5, 16)
+     : count ? T('BURNING · #', '销毁中 · 第 ') + count + T('', ' 次') : isRec ? T('COLLECTING FEES', '归集手续费中') : live ? T('ARMED · AWAITING HANDOVER', '已就位 · 等待交接') : T('SNIFFING THE CHAIN…', '嗅探链上数据中…'));
 
   /* phases: the only four things that have to happen, and which of them have */
   const ph = (st, n, t, d) => '<div class="ph ' + st + '"><span class="n">' + (st === 'done' ? '✓' : n) + '</span><div><div class="t">' + t + '</div><div class="d">' + d + '</div></div></div>';
@@ -2110,26 +2151,26 @@ function renderBurn() {
   $('#burnPhase').innerHTML =
     ph('done', 1, T('Vault deployed', '金库已部署'), '2026-09-22 · ' + txl(CONFIG.vaultTx) + ' · ' + T('no owner, no admin functions', '无 owner、无管理函数') + ' · <a href="' + BS + 'address/' + CONFIG.vault + '?tab=contract" rel="noopener" target="_blank">' + T('source verified ✓', '源码已验证 ✓') + '</a>') +
     ph('done', 2, T('Pons checked claim()', 'Pons 核对 claim()'), T('2026-09-23 · the vault can claim the creator share', '2026-09-23 · 金库可以领取 creator 份额')) +
-    ph(isRec ? 'done' : live ? 'now' : '', 3, T('Fee recipient → vault', '收款人 → 金库'), !live ? wait : isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
-    ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : !live ? wait : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
+    ph(isRec ? 'done' : have ? 'now' : '', 3, T('Fee recipient → vault', '收款人 → 金库'), !have ? wait : isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (have && v.recipient ? adl(v.recipient) : '—')) +
+    ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : !have ? wait : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
 
   /* the milestone ring: progress to the next round number of BRODIE burned, with the
      share of supply underneath. A share-of-supply ring would sit empty for months. */
-  const burnedTot = live ? v.totalBurned : 0;
+  const burnedTot = have ? v.totalBurned : 0;
   const pctB = minted ? burnedTot / minted * 100 : 0;
   const MILESTONES = [1e5, 2.5e5, 5e5, 1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8, 2.5e8, 5e8, 1e9];
   const goal = MILESTONES.find(g => g > burnedTot) || MILESTONES[MILESTONES.length - 1];
   const ms = g => g >= 1e9 ? g / 1e9 + 'B' : g >= 1e6 ? g / 1e6 + 'M' : g / 1e3 + 'K';
   const prog = Math.min(1, burnedTot / goal);
   const C = 2 * Math.PI * 54, off = C * (1 - prog);
-  const ringKey = burnedTot.toFixed(0) + '|' + Math.round(minted) + '|' + lang + '|' + live;
+  const ringKey = burnedTot.toFixed(0) + '|' + Math.round(minted) + '|' + lang + '|' + have;
   if (ringMemo !== ringKey) {
     $('#burnRing').innerHTML =
       '<svg viewBox="0 0 140 140"><circle class="track" cx="70" cy="70" r="54"/>' +
       '<circle class="arc" cx="70" cy="70" r="54" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + C.toFixed(2) + '"/>' +
-      '<text class="big" x="70" y="73" text-anchor="middle">' + (!live ? '…' : (prog * 100).toFixed(prog < 0.1 ? 1 : 0) + '%') + '</text>' +
+      '<text class="big" x="70" y="73" text-anchor="middle">' + (!have ? '…' : (prog * 100).toFixed(prog < 0.1 ? 1 : 0) + '%') + '</text>' +
       '<text class="small" x="70" y="91" text-anchor="middle">' + T('TO ' + ms(goal) + ' BURNED', '目标 ' + ms(goal)) + '</text></svg>' +
-      '<p class="cap">' + (live ? '<b>' + cuTxt('ringcap', burnedTot, 'int', nf(Math.round(burnedTot))) + '</b> ' + T('burned · ', '已销毁 · ') + (pctB > 0 && pctB < 0.01 ? '<0.01' : pctB.toFixed(2)) + T('% of supply', '% 的供应') : T('reading the vault…', '读取金库中…')) + '</p>';
+      '<p class="cap">' + (have ? '<b>' + cuTxt('ringcap', burnedTot, 'int', nf(Math.round(burnedTot))) + '</b> ' + T('burned · ', '已销毁 · ') + (pctB > 0 && pctB < 0.01 ? '<0.01' : pctB.toFixed(2)) + T('% of supply', '% 的供应') : T('reading the vault…', '读取金库中…')) + '</p>';
     countUps($('#burnRing'));
     const arc = $('#burnRing .arc');
     requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = off.toFixed(2); }));
@@ -2138,16 +2179,16 @@ function renderBurn() {
 
   /* next window: honest about every state the vault can be in */
   let win, winSub;
-  if (!live) { win = '…'; winSub = ''; }
+  if (!have) { win = '…'; winSub = ''; }
   else if (!isRec) { win = '—'; winSub = T('opens once the vault is the recipient', '成为收款人后才会开始'); }
   else if (v.lastRunAt === 0) {
-    win = ammo >= 0.005 ? T('OPEN NOW', '现在可烧') : T('WAITING', '等待中');
-    winSub = ammo >= 0.005 ? T('first burn: anyone can call burnNow()', '首次销毁：任何人可调用 burnNow()') : T('needs ≥ 0.005 ETH · has ', '需要 ≥ 0.005 ETH · 现有 ') + ammo.toFixed(4);
+    win = !live ? wait : ammo >= 0.005 ? T('OPEN NOW', '现在可烧') : T('WAITING', '等待中');
+    winSub = !live ? T('reading the vault…', '读取金库中…') : ammo >= 0.005 ? T('first burn: anyone can call burnNow()', '首次销毁：任何人可调用 burnNow()') : T('needs ≥ 0.005 ETH · has ', '需要 ≥ 0.005 ETH · 现有 ') + ammo.toFixed(4);
   } else if (v.openNow) { win = T('OPEN NOW', '现在可烧'); winSub = T('this draw hit · anyone can call burnNow() · latest ', '这轮抽中了 · 任何人可调用 burnNow() · 最迟 ') + utc(v.guaranteedAt).slice(5, 16) + ' UTC' + (v.tipBps ? ' · ' + T('tip ', '小费 ') + (v.tipBps / 100) + '%' : ''); }
   else if (now < v.earliestAt) { win = '<span class="countdown">' + hm(v.earliestAt - now) + '</span>'; winSub = T('until the random draws begin · no fixed time after that · latest ', '后开始随机抽签 · 之后没有固定时间 · 最迟 ') + utc(v.guaranteedAt).slice(5, 16) + ' UTC'; }
-  else { win = T('DRAWING', '抽签中'); winSub = T('a draw every ~38 min, this one missed · next ', '每 ~38 分钟抽一次，这轮未中 · 下次 ') + utc(v.nextDrawAt).slice(11, 16) + T(' · at most ', ' · 最多再等 ') + hm(v.guaranteedAt - now); }
+  else { win = T('DRAWING', '抽签中'); winSub = (live ? T('a draw every ~38 min, this one missed · next ', '每 ~38 分钟抽一次，这轮未中 · 下次 ') + utc(v.nextDrawAt).slice(11, 16) : T('inside the random window · reading the live state…', '已进入随机窗口 · 正在读取实时状态…')) + T(' · at most ', ' · 最多再等 ') + hm(v.guaranteedAt - now); }
 
-  if (!live) {
+  if (!have) {
     /* nothing has been read yet: show that, never a zero that looks like a fact */
     $('#burnHero').innerHTML = [T('next burn window', '下次销毁窗口'), T('ETH ready to burn', '待烧 ETH'), T('spend this round', '本轮花费比例'), T('burned · all time', '累计销毁'), T('last burn', '最近一次'), T('avg fill', '平均成交价')]
       .map((l, i) => cell(l, wait, T('reading the vault…', '读取金库中…'), i === 0 ? 'hero' : '')).join('');
@@ -2160,7 +2201,7 @@ function renderBurn() {
     cell(T('next burn window', '下次销毁窗口'), win, winSub, 'hero',
          T('There is no fixed burn time. From 21 hours after the last burn, the vault gets a random chance about every 38 minutes, which works out to roughly one burn a day. By 33 hours it always burns. The randomness comes from block hashes, so nobody can predict it.',
            '销毁没有固定时间。上次销毁 21 小时后，大约每 38 分钟随机抽一次，平均一天一次；到 33 小时一定会烧。随机数来自区块哈希，没人能提前知道。')) +
-    cell(T('ETH ready to burn', '待烧 ETH'), ethf(live ? ammo : 0) + ' ETH', usdExact(ammo * eth) + ' · ' + (isRec && !count ? Math.min(100, ammo / 0.005 * 100).toFixed(0) + T('% of the 0.005 ETH needed for burn #1', '% · 首烧需要 0.005 ETH') : T('vault balance + unclaimed credit', '金库余额 + 未领取额度'))) +
+    cell(T('ETH ready to burn', '待烧 ETH'), live ? ethf(ammo) + ' ETH' : wait, !live ? T('reading the vault…', '读取金库中…') : usdExact(ammo * eth) + ' · ' + (isRec && !count ? Math.min(100, ammo / 0.005 * 100).toFixed(0) + T('% of the 0.005 ETH needed for burn #1', '% · 首烧需要 0.005 ETH') : T('vault balance + unclaimed credit', '金库余额 + 未领取额度'))) +
     cell(T('spend this round', '本轮花费比例'), frac.toFixed(0) + '%', last ? T('EMA / spot = ', 'EMA / 现货 = ') + (last.ema / last.spot).toFixed(3) + (last.capped ? T(' · depth-capped', ' · 被深度封顶') : '') : T('first burn seeds the EMA', '首次销毁建立均线'),
          '', T('Spends 50% × (average price ÷ current price) of its balance, between 15% and 100%. It spends more when the price is below its average.', '每次花掉余额的 50% × (均价 ÷ 现价)，在 15% 到 100% 之间。价格低于均价时花得更多。')) +
     (count ? cell(T('burned · all time', '累计销毁'), cuTxt('bh-burned', burnedTot, 'int', nf(Math.round(burnedTot))), v.totalEth.toFixed(4) + T(' ETH spent · ', ' ETH 投入 · ') + usdExact(v.totalEth * eth) + ' · ' + nf(count) + T(count === 1 ? ' burn' : ' burns', ' 次')) +
@@ -2181,7 +2222,7 @@ function renderBurn() {
   /* daily chart, last 30 days */
   const days = [], today = Math.floor(now / 86400);
   for (let i = 29; i >= 0; i--) days.push({ d: (today - i) * 86400, tok: 0, eth: 0, n: 0 });
-  (live ? v.burns : []).forEach(b => { const i = 29 - (today - Math.floor(b.t / 86400)); if (i >= 0 && i < 30) { days[i].tok += b.tokens; days[i].eth += b.eth; days[i].n++; } });
+  (have ? v.burns : []).forEach(b => { const i = 29 - (today - Math.floor(b.t / 86400)); if (i >= 0 && i < 30) { days[i].tok += b.tokens; days[i].eth += b.eth; days[i].n++; } });
   const W = boxW('burnChartBox', 32), L = 54, R = 14, T0 = 16, PB = count ? 150 : 58;
   const max = Math.max(...days.map(d => d.tok), 1);
   const pw = (W - L - R) / 30, bw = Math.min(pw * 0.62, 30);
@@ -2209,7 +2250,7 @@ function renderBurn() {
     '<div class="legend"><span><i style="background:var(--fire)"></i>' + T('burned that day', '当日销毁') + '</span><span><i style="background:var(--lime)"></i>' + T('30-day cumulative', '30 天累计') + '</span></div>';
 
   /* last 20 burns */
-  const rows = (live ? v.burns.slice(-20).reverse() : []).map(b =>
+  const rows = (have ? v.burns.slice(-20).reverse() : []).map(b =>
     '<tr><td><b>#' + b.seq + '</b></td><td class="mono">' + utc(b.t).slice(0, 16) + '</td>' +
     '<td class="r">' + b.eth.toFixed(4) + '</td><td class="r">' + nf(Math.round(b.tokens)) + '</td>' +
     '<td class="r">' + price(b.fill * eth) + '</td>' +

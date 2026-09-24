@@ -5,7 +5,8 @@
                   Transfer events on top, so this only has to be roughly fresh
   data/ent.json   migration deposits per address; fetched only when someone
                   checks an address on the Claim or Holders tab
-  data/tl.json    daily fee payouts per recipient; shown until the live scan lands
+  data/tl.json    daily fee payouts per recipient, plus the vault's burn list;
+                  shown until the live scan lands
 
 Run after the tools/ scripts; scripts/smoke.py checks the result. Keeping the
 data out of index.html means a refresh never rewrites the page itself.
@@ -77,6 +78,9 @@ write("tl.json", ({
                   "tokens": round(b["tokens"], 2), "tx": b["tx"]} for b in buys],
         "firstSweep": sweeps[0]["t"], "lastSweep": sweeps[-1]["t"], "sweeps": len(sweeps),
         "firstPayout": payouts[0]["t"], "lastPayout": payouts[-1]["t"], "payouts": len(payouts),
+        # every burn so far (tools/burns.py): the page paints its burn panel from this before
+        # its own chain read lands, and keeps it, marked as a snapshot, if the RPC is down
+        "burns": load("burns.json") if (root / "tools" / "burns.json").exists() else None,
     }))
 
 print("wrote data/: %d holders, %d entitlements, %d fee days, holders at block %d"

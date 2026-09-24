@@ -45,6 +45,12 @@ if hold and len(hold.get("holders", {})) < 100:
 
 tl = data("tl.json")
 require(tl, "tl.json", ["block", "generated", "parties", "daily", "sweeps", "payouts"])
+if tl and tl.get("burns"):
+    b = tl["burns"]
+    if not isinstance(b.get("burns"), list) or not all(k in b for k in ("count", "totalBurned", "totalEth", "generated")):
+        fails.append("data/tl.json burns block is missing count/totalBurned/totalEth/generated/burns")
+    elif any(not all(k in x for k in ("seq", "t", "blk", "tx", "eth", "tokens", "spot", "ema", "frac")) for x in b["burns"]):
+        fails.append("data/tl.json burns rows are missing fields the page reads")
 if tl and tl.get("daily") and tl.get("parties"):
     if any(len(d[1]) != len(tl["parties"]) for d in tl["daily"]):
         fails.append("data/tl.json daily rows do not match its party list")
