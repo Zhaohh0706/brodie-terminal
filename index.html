@@ -280,7 +280,6 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .ring svg{width:180px; height:180px; display:block}
 .ring .track{fill:none; stroke:var(--surface-3); stroke-width:10}
 .ring .arc{fill:none; stroke:url(#burnGrad); stroke-width:10; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dashoffset 1.2s cubic-bezier(.22,.61,.36,1); filter:drop-shadow(0 0 5px var(--fire-soft))}
-.ring .flame{font-size:14px}
 .ring .big{font-family:var(--f-disp); font-weight:800; font-size:34px; letter-spacing:-.02em; fill:var(--ink)}
 .ring .small{font-family:var(--f-mono); font-size:8.5px; letter-spacing:.14em; fill:var(--ink-3); text-transform:uppercase}
 .ring .cap{font-size:12px; color:var(--ink-3); margin:0}
@@ -293,7 +292,7 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 }
 .burn-empty .flame{font-size:30px; line-height:1; filter:grayscale(.3); flex:0 0 auto}
 .burn-empty > div{flex:1 1 auto; min-width:0}
-@media (max-width:720px){ .furnace .g3 .cell.hero{grid-column:1/-1} .burn-empty{padding:16px} .burn-empty .flame{font-size:24px} }
+@media (max-width:720px){ .furnace .g3 .cell.hero, .furnace .g3 .cell:last-child{grid-column:1/-1} .burn-empty{padding:16px} .burn-empty .flame{font-size:24px} }
 .burn-empty b{color:var(--ink)}
 .rules{display:grid; gap:0; margin:0}
 .rule{display:grid; grid-template-columns:120px 1fr; gap:14px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; align-items:baseline}
@@ -370,6 +369,9 @@ tbody tr.fresh td{animation:flash 1.6s ease-out 1}
 .fig h4{margin:0 0 2px; font-family:var(--f-disp); font-size:17px; font-weight:600; letter-spacing:-.01em}
 .fig .cap{margin:0 0 12px; font-size:11.5px; color:var(--ink-3); line-height:1.5}
 .fig svg{display:block; width:100%; height:auto; overflow:visible}
+.pace{display:flex; gap:18px; flex-wrap:wrap; font-family:var(--f-mono); font-size:12.5px; margin:-4px 0 12px}
+.pace i{font-style:normal; color:var(--ink-3); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; margin-right:5px}
+.pace em{font-style:normal; color:var(--ink-3); font-size:11px}
 .legend{display:flex; gap:14px; flex-wrap:wrap; font-family:var(--f-mono); font-size:10.5px; color:var(--ink-2); margin-top:10px}
 .legend span{display:inline-flex; align-items:center; gap:5px}
 .legend i{width:9px; height:9px; display:inline-block; border-radius:2px}
@@ -412,8 +414,6 @@ button.btn.rng.on{color:var(--lime-ink); border-color:var(--lime); background:va
   padding:7px 14px; cursor:pointer; white-space:nowrap; position:relative; z-index:1; transition:color .18s ease;
 }
 .tabs button:hover{color:var(--ink)}
-.tabs button .ico{font-size:12px; margin-right:5px; opacity:.75; font-style:normal}
-.tabs button.on .ico{opacity:1}
 .tabs button.on{color:var(--lime-ink)}
 .tabs .ink{
   position:absolute; top:4px; bottom:4px; left:0; width:0; border-radius:999px; background:var(--lime);
@@ -572,7 +572,6 @@ footer .links a{border-bottom:0}
         <div class="ring" id="burnRing"></div>
         <div class="grid g3" id="burnHero"></div>
       </div>
-      <div class="grid g4" id="burnRates"></div>
       <div class="charts" style="grid-template-columns:1fr">
         <figure class="fig" id="burnChartBox"></figure>
       </div>
@@ -2103,7 +2102,7 @@ function renderBurn() {
   const chip = $('#burnChip');
   chip.className = 'chip ' + (count ? 'fire live' : isRec ? 'ok live' : live ? 'warn' : '');
   chip.innerHTML = (count || isRec ? '<span class="dot"></span>' : '') +
-    (count ? T('BURNING · #', '销毁中 · 第 ') + count + T('', ' 次') : isRec ? T('COLLECTING FEES', '归集手续费中') : live ? T('ARMED · AWAITING HANDOVER', '已就位 · 等待交接') : '🐕 ' + T('SNIFFING THE CHAIN…', '嗅探链上数据中…'));
+    (count ? T('BURNING · #', '销毁中 · 第 ') + count + T('', ' 次') : isRec ? T('COLLECTING FEES', '归集手续费中') : live ? T('ARMED · AWAITING HANDOVER', '已就位 · 等待交接') : T('SNIFFING THE CHAIN…', '嗅探链上数据中…'));
 
   /* phases: the only four things that have to happen, and which of them have */
   const ph = (st, n, t, d) => '<div class="ph ' + st + '"><span class="n">' + (st === 'done' ? '✓' : n) + '</span><div><div class="t">' + t + '</div><div class="d">' + d + '</div></div></div>';
@@ -2114,19 +2113,23 @@ function renderBurn() {
     ph(isRec ? 'done' : live ? 'now' : '', 3, T('Fee recipient → vault', '收款人 → 金库'), !live ? wait : isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
     ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : !live ? wait : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
 
-  /* the furnace ring: share of everything ever minted that no longer exists */
+  /* the milestone ring: progress to the next round number of BRODIE burned, with the
+     share of supply underneath. A share-of-supply ring would sit empty for months. */
   const burnedTot = live ? v.totalBurned : 0;
   const pctB = minted ? burnedTot / minted * 100 : 0;
-  const C = 2 * Math.PI * 54, off = C * (1 - Math.min(1, pctB / 100));
-  const ringKey = pctB.toFixed(4) + '|' + Math.round(minted) + '|' + lang + '|' + live;
+  const MILESTONES = [1e5, 2.5e5, 5e5, 1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8, 2.5e8, 5e8, 1e9];
+  const goal = MILESTONES.find(g => g > burnedTot) || MILESTONES[MILESTONES.length - 1];
+  const ms = g => g >= 1e9 ? g / 1e9 + 'B' : g >= 1e6 ? g / 1e6 + 'M' : g / 1e3 + 'K';
+  const prog = Math.min(1, burnedTot / goal);
+  const C = 2 * Math.PI * 54, off = C * (1 - prog);
+  const ringKey = burnedTot.toFixed(0) + '|' + Math.round(minted) + '|' + lang + '|' + live;
   if (ringMemo !== ringKey) {
     $('#burnRing').innerHTML =
       '<svg viewBox="0 0 140 140"><circle class="track" cx="70" cy="70" r="54"/>' +
       '<circle class="arc" cx="70" cy="70" r="54" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + C.toFixed(2) + '"/>' +
-      '<text class="big" x="70" y="73" text-anchor="middle">' + (!live ? '…' : (pctB > 0 && pctB < 0.01 ? '<0.01' : pctB.toFixed(2)) + '%') + '</text>' +
-      '<text class="small" x="70" y="91" text-anchor="middle">' + T('SUPPLY BURNED', '供应已销毁') + '</text>' +
-      (burnedTot > 0 ? '<text class="flame" x="70" y="24" text-anchor="middle">🔥</text>' : '') + '</svg>' +
-      '<p class="cap">' + (live ? '<b>' + cuTxt('ringcap', burnedTot, 'int', nf(Math.round(burnedTot))) + '</b> ' + T('of ', '／') + tok(minted) + T(' minted', ' 已铸') : T('reading the vault…', '读取金库中…')) + '</p>';
+      '<text class="big" x="70" y="73" text-anchor="middle">' + (!live ? '…' : (prog * 100).toFixed(prog < 0.1 ? 1 : 0) + '%') + '</text>' +
+      '<text class="small" x="70" y="91" text-anchor="middle">' + T('TO ' + ms(goal) + ' BURNED', '目标 ' + ms(goal)) + '</text></svg>' +
+      '<p class="cap">' + (live ? '<b>' + cuTxt('ringcap', burnedTot, 'int', nf(Math.round(burnedTot))) + '</b> ' + T('burned · ', '已销毁 · ') + (pctB > 0 && pctB < 0.01 ? '<0.01' : pctB.toFixed(2)) + T('% of supply', '% 的供应') : T('reading the vault…', '读取金库中…')) + '</p>';
     countUps($('#burnRing'));
     const arc = $('#burnRing .arc');
     requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = off.toFixed(2); }));
@@ -2146,9 +2149,8 @@ function renderBurn() {
 
   if (!live) {
     /* nothing has been read yet: show that, never a zero that looks like a fact */
-    $('#burnHero').innerHTML = [T('next burn window', '下次销毁窗口'), T('ETH ready to burn', '待烧 ETH'), T('spend this round', '本轮花费比例'), T('ETH burned through', '累计投入 ETH'), T('BRODIE burned', '累计销毁 BRODIE'), T('avg fill', '平均成交价')]
+    $('#burnHero').innerHTML = [T('next burn window', '下次销毁窗口'), T('ETH ready to burn', '待烧 ETH'), T('spend this round', '本轮花费比例'), T('burned · all time', '累计销毁'), T('last burn', '最近一次'), T('avg fill', '平均成交价')]
       .map((l, i) => cell(l, wait, T('reading the vault…', '读取金库中…'), i === 0 ? 'hero' : '')).join('');
-    $('#burnRates').hidden = true;
     $('#burnChartBox').innerHTML = '<h4>' + T('Burns per day · last 30 days', '每日销毁 · 最近 30 天') + '</h4><p class="cap">' + T('reading burns from the chain…', '正在从链上读取销毁记录…') + '</p>';
     $('#burnTable').innerHTML = '';
   } else {
@@ -2161,20 +2163,20 @@ function renderBurn() {
     cell(T('ETH ready to burn', '待烧 ETH'), ethf(live ? ammo : 0) + ' ETH', usdExact(ammo * eth) + ' · ' + (isRec && !count ? Math.min(100, ammo / 0.005 * 100).toFixed(0) + T('% of the 0.005 ETH needed for burn #1', '% · 首烧需要 0.005 ETH') : T('vault balance + unclaimed credit', '金库余额 + 未领取额度'))) +
     cell(T('spend this round', '本轮花费比例'), frac.toFixed(0) + '%', last ? T('EMA / spot = ', 'EMA / 现货 = ') + (last.ema / last.spot).toFixed(3) + (last.capped ? T(' · depth-capped', ' · 被深度封顶') : '') : T('first burn seeds the EMA', '首次销毁建立均线'),
          '', T('Spends 50% × (average price ÷ current price) of its balance, between 15% and 100%. It spends more when the price is below its average.', '每次花掉余额的 50% × (均价 ÷ 现价)，在 15% 到 100% 之间。价格低于均价时花得更多。')) +
-    (count ? cell(T('ETH burned through', '累计投入 ETH'), (live ? v.totalEth : 0).toFixed(4), usdExact((live ? v.totalEth : 0) * eth) + ' · ' + nf(count) + T(' burns', ' 次')) +
-    cell(T('BRODIE burned', '累计销毁 BRODIE'), cuTxt('bh-burned', burnedTot, 'int', nf(Math.round(burnedTot))), last ? T('last ', '最近 ') + nf(Math.round(last.tokens)) + ' · ' + ago(new Date(last.t * 1000).toISOString()) + T(' ago', '前') : T('none yet', '尚无')) +
-    cell(T('avg fill', '平均成交价'), last ? price(v.totalEth / v.totalBurned * eth) : '—', last ? T('ETH spent ÷ tokens burned, in USD', '投入 ETH ÷ 销毁数量，按美元') : T('appears after the first burn', '首次销毁后显示')) : '') +
+    (count ? cell(T('burned · all time', '累计销毁'), cuTxt('bh-burned', burnedTot, 'int', nf(Math.round(burnedTot))), v.totalEth.toFixed(4) + T(' ETH spent · ', ' ETH 投入 · ') + usdExact(v.totalEth * eth) + ' · ' + nf(count) + T(count === 1 ? ' burn' : ' burns', ' 次')) +
+    cell(T('last burn', '最近一次'), ago(new Date(last.t * 1000).toISOString()) + T(' ago', '前'), '#' + last.seq + ' · ' + nf(Math.round(last.tokens)) + ' BRODIE · ' + last.eth.toFixed(4) + ' ETH · ' + txl(last.tx)) +
+    cell(T('avg fill', '平均成交价'), price(v.totalEth / v.totalBurned * eth), T('ETH spent ÷ tokens burned, in USD', '投入 ETH ÷ 销毁数量，按美元')) : '') +
     (count ? '' : '<div class="burn-empty" style="grid-column:1/-1; margin:0"><span class="flame">🔥</span><div><b>' + T('No burns yet.', '还没有销毁。') + '</b> ' +
       (isRec ? T('The vault has been collecting fees since 24 September. The first burn happens once it has 0.005 ETH.', '金库从 9 月 24 日开始收手续费，攒够 0.005 ETH 就会进行第一次销毁。')
              : T('The vault is ready, but the creator fee still goes to the previous wallet. Once it is switched, the creator’s 70% of fees will be burned here.', '金库已就绪，但 creator 手续费仍在前任钱包。切换后，creator 的 70% 手续费会在这里销毁。')) +
       '</div></div>');
 
-  /* rates */
-  const win_ = (s, k) => (live ? v.burns : []).filter(b => now - b.t <= s).reduce((a, b) => a + b[k], 0);
-  const rate = (lbl, s) => cell(lbl, cuTxt('rate' + s, s ? win_(s, 'tokens') : burnedTot, 'int', nf(Math.round(s ? win_(s, 'tokens') : burnedTot))), (s ? win_(s, 'eth') : (live ? v.totalEth : 0)).toFixed(4) + ' ETH · ' + nf(s ? (live ? v.burns : []).filter(b => now - b.t <= s).length : count) + T(' burns', ' 次'));
-  $('#burnRates').hidden = !count;
-  $('#burnRates').innerHTML = rate(T('burned · 24h', '销毁 · 24 小时'), 86400) + rate(T('burned · 7d', '销毁 · 7 天'), 7 * 86400) + rate(T('burned · 30d', '销毁 · 30 天'), 30 * 86400) + rate(T('burned · all time', '销毁 · 累计'), 0);
-  countUps($('#burnHero')); countUps($('#burnRates'));
+  /* pace: three small figures in the chart header, not four cards repeating one number */
+  const win_ = (s, k) => v.burns.filter(b => now - b.t <= s).reduce((a, b) => a + b[k], 0);
+  const nwin = s => v.burns.filter(b => now - b.t <= s).length;
+  const pace = [[T('24h', '24 小时'), 86400], [T('7d', '7 天'), 7 * 86400], [T('30d', '30 天'), 30 * 86400]]
+    .map(([l, sec]) => '<span><i>' + l + '</i>' + nf(Math.round(win_(sec, 'tokens'))) + ' <em>' + nwin(sec) + T(nwin(sec) === 1 ? ' burn' : ' burns', ' 次') + ' · ' + win_(sec, 'eth').toFixed(4) + ' ETH</em></span>').join('');
+  countUps($('#burnHero'));
 
   /* daily chart, last 30 days */
   const days = [], today = Math.floor(now / 86400);
@@ -2202,6 +2204,7 @@ function renderBurn() {
   $('#burnChartBox').innerHTML =
     '<h4>' + T('Burns per day · last 30 days', '每日销毁 · 最近 30 天') + '</h4>' +
     '<p class="cap">' + T('Bars show BRODIE burned per day (UTC). The line is the 30-day total.', '柱子是每天（UTC）销毁的 BRODIE，折线是 30 天累计。') + '</p>' +
+    (count ? '<div class="pace">' + pace + '</div>' : '') +
     SVG('0 0 ' + W + ' ' + (PB + 22), g) +
     '<div class="legend"><span><i style="background:var(--fire)"></i>' + T('burned that day', '当日销毁') + '</span><span><i style="background:var(--lime)"></i>' + T('30-day cumulative', '30 天累计') + '</span></div>';
 
@@ -2454,19 +2457,19 @@ function initCopy() {
   });
 }
 const TABS = [
-  ['burn',      'Burn',         '销毁',   '🔥'],
-  ['fees',      'Fees',         '手续费', '💸'],
-  ['migration', 'Claim',        '领取',   '🎫'],
-  ['tape',      'Market',       '行情',   '📈'],
-  ['holders',   'Holders',      '持仓',   '🐾'],
-  ['contracts', 'Contracts',    '合约',   '📜'],
-  ['story',     'Story',        '故事',   '📖'],
-  ['about',     'About',        '关于',   '🐶']
+  ['burn',      'Burn',         '销毁'],
+  ['fees',      'Fees',         '手续费'],
+  ['migration', 'Claim',        '领取'],
+  ['tape',      'Market',       '行情'],
+  ['holders',   'Holders',      '持仓'],
+  ['contracts', 'Contracts',    '合约'],
+  ['story',     'Story',        '故事'],
+  ['about',     'About',        '关于']
 ];
 let tab = TABS.some(t => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : 'burn';
 function renderTabs() {
   document.getElementById('tabbar').innerHTML =
-    TABS.map(t => '<button type="button" data-tabkey="' + t[0] + '"' + (t[0] === tab ? ' class="on"' : '') + '><span class="ico">' + t[3] + '</span>' + T(t[1], t[2]) + '</button>').join('');
+    TABS.map(t => '<button type="button" data-tabkey="' + t[0] + '"' + (t[0] === tab ? ' class="on"' : '') + '>' + T(t[1], t[2]) + '</button>').join('');
   document.querySelectorAll('.sec[data-tab]').forEach(sec => {
     sec.classList.toggle('show', sec.dataset.tab === tab);
   });
