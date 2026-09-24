@@ -111,9 +111,14 @@ a:hover{border-bottom-color:var(--lime); color:var(--lime)}
 .tb-ctl{display:flex; gap:6px; flex:0 0 auto; align-items:center; margin-left:auto}
 @media (max-width:720px){
   .topbar-in{flex-wrap:wrap; gap:8px 10px; padding:8px 12px}
-  .rail{order:3; flex:1 1 100%; border:0; border-top:1px solid var(--line); padding-top:4px}
-  .rail-cell{min-width:0; padding:2px 10px 0 0; border:0}
+  .rail{order:3; flex:1 1 100%; border:0; border-top:1px solid var(--line); padding-top:4px;
+        -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+  .rail-cell{min-width:0; padding:2px 12px 0 0; border:0}
+  .rail-cell:last-child{padding-right:40px}   /* so the last value clears the fade */
   .brand span{display:none}
+  .brand .seal{width:30px; height:30px}
+  .brand b{font-size:17px}
+  button.btn, a.btn{padding:5px 9px; font-size:10.5px}
 }
 button.btn{
   font-family:var(--f-mono); font-size:11px; color:var(--ink-2); background:var(--surface-2);
@@ -147,6 +152,22 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 :root[data-theme="light"] .mast::before{filter:invert(1); opacity:.07}
 .mast-in{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,.9fr); gap:36px; align-items:center}
 @media (max-width:900px){ .mast-in{grid-template-columns:minmax(0,1fr); gap:28px} }
+@media (max-width:640px){
+  .mast{padding:26px 0 22px}
+  .mast-in{gap:18px}
+  .kicker{font-size:9px; letter-spacing:.14em; margin-bottom:10px}
+  .thesis{font-size:16.5px; line-height:1.45; margin-top:14px}
+  .hero-stats{margin-top:18px; gap:8px}
+  .hs{padding:12px 13px 11px}
+  .hs .val{font-size:clamp(22px, 7vw, 30px); white-space:nowrap; overflow-wrap:normal}
+  .hs .lbl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .hero-cta{margin-top:14px; gap:8px}
+  .hero-cta .btn{flex:1 1 calc(50% - 4px); justify-content:center; text-align:center; padding:11px 10px; font-size:12px}
+  .hero-cta .btn.primary{flex-basis:100%}
+  .mast-media{max-width:340px; margin:4px auto 0}
+  .sticker{width:24%; border-radius:14px}
+  .sticker.s1{left:0; top:4%} .sticker.s2{right:0; top:16%} .sticker.s3{left:6%; bottom:0}
+}
 .mast-copy{min-width:0}
 .mast h1{
   margin:0; font-family:var(--f-disp); font-weight:800; letter-spacing:-.03em;
@@ -165,6 +186,7 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .thesis strong{color:var(--ink); font-weight:600}
 .hero-stats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:26px 0 0}
 @media (max-width:640px){ .hero-stats{grid-template-columns:1fr 1fr} .hero-stats .hs:first-child{grid-column:1/-1} }
+@media (max-width:380px){ .hero-stats{grid-template-columns:1fr} }
 .hs{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px 13px; min-width:0; position:relative; overflow:hidden; transition:transform .18s ease, border-color .18s ease}
 .hs:hover{transform:translateY(-2px); border-color:var(--line-2)}
 .hs::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--lime); opacity:.85}
@@ -256,7 +278,31 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 /* ── burn engine ────────────────────────────────────────────────────────── */
 .phase{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0 0 18px}
 @media (max-width:820px){ .phase{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:520px){ .phase{grid-template-columns:1fr; gap:6px} .ph{padding:11px 13px} }
+@media (max-width:520px){ .phase{grid-template-columns:1fr; gap:6px} .ph{padding:11px 13px} .ph .n{width:24px; height:24px; font-size:10px} .ph .t{font-size:13px} .ph .d{font-size:11px} }
+@media (max-width:640px){
+  .sec{padding:26px 0 8px}
+  .sec-head h2{font-size:25px}
+  .sec-note{font-size:13.5px; margin-bottom:14px}
+  .ring{padding:14px 12px 12px; flex-direction:row; gap:14px; text-align:left; justify-content:flex-start}
+  .ring svg{width:124px; height:124px; flex:0 0 auto}
+  .ring .big{font-size:26px}
+  .ring .cap{font-size:12.5px; line-height:1.45}
+  .cell{padding:11px 12px 11px}
+  .cell .val{font-size:clamp(16px, 5vw, 19px); white-space:nowrap; overflow-wrap:normal; overflow:hidden; text-overflow:clip}
+  .cell.hero .val{font-size:clamp(20px, 6.5vw, 26px); white-space:nowrap}
+  .cell .lbl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .cell .sub{font-size:11px}
+  .fig{padding:12px 12px 13px}
+  .fig h4{font-size:15.5px}
+  .pace{gap:6px 14px; font-size:12px}
+  .rule{grid-template-columns:1fr; gap:2px; padding:8px 0}
+  .rule .v{font-size:12.5px}
+  .flow li{grid-template-columns:22px 1fr; gap:10px; padding:8px 0; font-size:12.5px}
+  footer{padding:18px 14px 36px; font-size:11px; gap:14px}
+  footer .links{gap:12px}
+  .btn{min-height:40px}
+  .tabs button{min-height:36px}
+}
 .ph.now{border-color:var(--lime); box-shadow:0 0 0 3px var(--lime-soft)}
 .ph{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:13px 15px 12px;
@@ -344,8 +390,11 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 }
 
 /* ── tables ─────────────────────────────────────────────────────────────── */
-.tw{overflow-x:auto; border:1px solid var(--line); background:var(--surface); margin-bottom:14px; border-radius:var(--r)}
+.tw{overflow-x:auto; border:1px solid var(--line); background:var(--surface); margin-bottom:14px; border-radius:var(--r); -webkit-overflow-scrolling:touch; position:relative}
 table{border-collapse:collapse; width:100%; font-size:12px; min-width:560px; font-family:var(--f-mono)}
+/* wide tables scroll sideways on phones; say so once, above the table, instead of cutting a column mid-word */
+.tw.wide::before{content:"swipe sideways for more columns →"; display:block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:7px 12px 0}
+@media (max-width:720px){ table{min-width:520px; font-size:11.5px} tbody td, thead th{padding-left:9px; padding-right:9px} }
 thead th{
   text-align:left; font-weight:500; font-size:9px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--ink-3); padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap;
@@ -406,6 +455,13 @@ button.btn.rng.on{color:var(--lime-ink); border-color:var(--lime); background:va
 }
 .tabs::-webkit-scrollbar{display:none}
 .tabs.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+/* on phones the strip is wider than the screen: a chevron says so, and it scrolls smoothly by finger */
+.tabs{scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch}
+.tabs button{scroll-snap-align:center}
+.tabwrap{position:relative}
+.tabwrap::after{content:"›"; position:absolute; right:10px; top:50%; translate:0 -50%; font-size:18px; line-height:1; color:var(--ink-3); pointer-events:none; opacity:0; transition:opacity .2s}
+.tabwrap.more-r::after{opacity:1}
+@media (max-width:720px){ .tabs button{padding:7px 12px; font-size:12.5px} }
 .tabs.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px); mask-image:linear-gradient(90deg,transparent,#000 44px)}
 .tabs.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent)}
 .tabs button{
@@ -556,7 +612,7 @@ footer .links a{border-bottom:0}
       </div>
     </section>
 
-    <nav class="tabs" id="tabbar" aria-label="Sections"></nav>
+    <div class="tabwrap" id="tabwrap"><nav class="tabs" id="tabbar" aria-label="Sections"></nav></div>
 
     <!-- ─────────── 00 · BURN ENGINE ─────────── -->
     <section class="sec" id="burn" data-tab="burn">
@@ -1734,7 +1790,13 @@ function slideTabInk() {
   ink.style.width = on.offsetWidth + 'px';
   ink.style.transform = 'translateX(' + (on.offsetLeft - bar.scrollLeft) + 'px)';
   bar.classList.toggle('more-l', bar.scrollLeft > 2);
-  bar.classList.toggle('more-r', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 2);
+  const moreR = bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 2;
+  bar.classList.toggle('more-r', moreR);
+  const wrap = document.getElementById('tabwrap');
+  if (wrap) wrap.classList.toggle('more-r', moreR);
+  /* keep the active tab in view when it was chosen from the hero buttons or a hash */
+  if (on.offsetLeft < bar.scrollLeft || on.offsetLeft + on.offsetWidth > bar.scrollLeft + bar.clientWidth)
+    bar.scrollTo({ left: on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2, behavior: 'smooth' });
 }
 function renderRail() {
   const r = [
@@ -2038,6 +2100,12 @@ async function pullVault() {
   };
   feed.vault = 'live';
 }
+
+/* mark every table that is wider than its box, so the swipe hint appears only where it is needed */
+function markWideTables() {
+  document.querySelectorAll('.tw').forEach(tw => tw.classList.toggle('wide', tw.scrollWidth > tw.clientWidth + 4));
+}
+addEventListener('resize', () => { clearTimeout(window.__mwt); window.__mwt = setTimeout(markWideTables, 120); });
 
 /* ── small delights ─────────────────────────────────────────────────────── */
 const REDUCED = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2541,6 +2609,7 @@ function tick(fn, key) {
     try { await fn(); } catch (e) { feed[key] = feed[key] === 'live' ? 'stale' : 'blocked'; }
     inflight[key] = null;
     renderAll();
+    markWideTables();
   })());
 }
 /* a hidden tab polls nothing; it catches up the moment it is shown again */
