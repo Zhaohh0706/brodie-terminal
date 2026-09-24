@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brodie Terminal</title>
-<meta name="description" content="Live, verifiable dashboard for $BRODIE on Robinhood Chain — every fee the pool earns is bought back and burned by a keyless vault. Burns, fees, claims and holders, all read from the chain.">
+<meta name="description" content="Live, verifiable dashboard for $BRODIE on Robinhood Chain — the creator’s 70% of every pool fee is bought back and burned by a keyless vault. Burns, fees, claims and holders, all read from the chain.">
 <meta name="theme-color" content="#0A0E0C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,6 +51,7 @@
 
 /* ── base ───────────────────────────────────────────────────────────────── */
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
 body{
   margin:0; background:var(--bg); color:var(--ink);
@@ -62,6 +63,7 @@ body{
   background-attachment:fixed;
   overflow-x:clip;
 }
+html{overflow-x:clip}
 img{max-width:100%}
 a{color:inherit; text-decoration:none; border-bottom:1px solid var(--line-2); transition:color .15s ease, border-color .15s ease}
 a:hover{border-bottom-color:var(--lime); color:var(--lime)}
@@ -126,6 +128,8 @@ button.btn.primary{background:var(--lime); color:var(--lime-ink); border-color:v
 button.btn.primary:hover{filter:brightness(1.06)}
 a.btn{display:inline-flex; align-items:center; gap:6px; font-family:var(--f-mono); font-size:11px; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--line); padding:5px 11px; letter-spacing:.06em; border-radius:999px}
 a.btn:hover{color:var(--ink); border-color:var(--line-2)}
+a.btn.primary{background:var(--lime); color:var(--lime-ink); border-color:var(--lime); font-weight:700}
+a.btn.primary:hover{color:var(--lime-ink); filter:brightness(1.06)}
 
 /* ── shell ──────────────────────────────────────────────────────────────── */
 .shell{max-width:1360px; margin:0 auto; display:flex; gap:0; align-items:flex-start}
@@ -134,7 +138,7 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 @media (max-width: 940px){ main{padding:0 14px 60px} }
 
 /* ── sections ───────────────────────────────────────────────────────────── */
-.sec{padding:34px 0 10px}
+.sec{padding:34px 0 10px; scroll-margin-top:calc(var(--tb-h, 53px) + 58px)}
 .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px; flex-wrap:wrap; position:relative; padding-bottom:10px}
 .sec-head .ord{
   font-family:var(--f-mono); font-size:10px; letter-spacing:.16em; color:var(--lime);
@@ -144,7 +148,7 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .sec-note{margin:2px 0 20px; color:var(--ink-2); font-size:14px; max-width:76ch; line-height:1.6}
 
 /* ── hero ───────────────────────────────────────────────────────────────── */
-.mast{padding:44px 0 34px; position:relative}
+.mast{padding:44px 0 34px; position:relative; overflow-x:clip}
 .mast-in{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,.9fr); gap:36px; align-items:center}
 @media (max-width:900px){ .mast-in{grid-template-columns:minmax(0,1fr); gap:28px} }
 .mast-copy{min-width:0}
@@ -155,9 +159,9 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .mast h1 em{font-style:italic; font-weight:400; color:var(--lime)}
 .kicker{
   font-family:var(--f-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3);
-  margin:0 0 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin:0 0 16px; display:flex; align-items:baseline; gap:10px; line-height:1.6;
 }
-.kicker .dot{width:7px; height:7px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 4px var(--lime-soft); animation:pulse 2.2s ease-in-out infinite}
+.kicker .dot{flex:0 0 auto; align-self:center; width:7px; height:7px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 4px var(--lime-soft); animation:pulse 2.2s ease-in-out infinite}
 .thesis{
   font-family:var(--f-prose); font-size:19px; line-height:1.5; color:var(--ink-2);
   margin:20px 0 0; max-width:56ch;
@@ -257,6 +261,8 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 /* ── burn engine ────────────────────────────────────────────────────────── */
 .phase{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0 0 18px}
 @media (max-width:820px){ .phase{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:520px){ .phase{grid-template-columns:1fr; gap:6px} .ph{padding:11px 13px} }
+.ph.now{border-color:var(--lime); box-shadow:0 0 0 3px var(--lime-soft)}
 .ph{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:13px 15px 12px;
   display:flex; gap:12px; align-items:flex-start; min-width:0; position:relative;
@@ -287,9 +293,11 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .countdown{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
 .burn-empty{
   border:1px dashed var(--line-2); border-radius:var(--r); padding:22px 20px; color:var(--ink-2); font-size:14px; line-height:1.6;
-  background:var(--surface); margin-bottom:14px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+  background:var(--surface); margin-bottom:14px; display:flex; gap:14px; align-items:flex-start;
 }
-.burn-empty .flame{font-size:34px; line-height:1; filter:grayscale(.3)}
+.burn-empty .flame{font-size:30px; line-height:1; filter:grayscale(.3); flex:0 0 auto}
+.burn-empty > div{flex:1 1 auto; min-width:0}
+@media (max-width:720px){ .furnace .g3 .cell.hero{grid-column:1/-1} .burn-empty{padding:16px} .burn-empty .flame{font-size:24px} }
 .burn-empty b{color:var(--ink)}
 .rules{display:grid; gap:0; margin:0}
 .rule{display:grid; grid-template-columns:120px 1fr; gap:14px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; align-items:baseline}
@@ -366,7 +374,6 @@ tbody tr.fresh td{animation:flash 1.6s ease-out 1}
 .fig h4{margin:0 0 2px; font-family:var(--f-disp); font-size:17px; font-weight:600; letter-spacing:-.01em}
 .fig .cap{margin:0 0 12px; font-size:11.5px; color:var(--ink-3); line-height:1.5}
 .fig svg{display:block; width:100%; height:auto; overflow:visible}
-#chartSupply svg, #chartFlow svg{max-width:720px; margin:0 auto}
 .legend{display:flex; gap:14px; flex-wrap:wrap; font-family:var(--f-mono); font-size:10.5px; color:var(--ink-2); margin-top:10px}
 .legend span{display:inline-flex; align-items:center; gap:5px}
 .legend i{width:9px; height:9px; display:inline-block; border-radius:2px}
@@ -397,11 +404,14 @@ button.btn.rng.on{color:var(--lime-ink); border-color:var(--lime); background:va
 
 /* ── tabs ───────────────────────────────────────────────────────────────── */
 .tabs{
-  display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; position:sticky; top:53px; z-index:20;
+  display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; position:sticky; top:calc(var(--tb-h, 53px) + 6px); z-index:20;
   background:color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
   border:1px solid var(--line); border-radius:999px; padding:4px; margin:0 0 6px;
 }
 .tabs::-webkit-scrollbar{display:none}
+.tabs.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+.tabs.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px); mask-image:linear-gradient(90deg,transparent,#000 44px)}
+.tabs.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(90deg,transparent,#000 44px,#000 calc(100% - 44px),transparent)}
 .tabs button{
   flex:0 0 auto; font-family:var(--f-ui); font-size:13px; font-weight:600; letter-spacing:.01em;
   background:none; border:0; color:var(--ink-3); border-radius:999px;
@@ -484,7 +494,10 @@ footer{
   border-top:1px solid var(--line); padding:22px 18px 44px; max-width:1360px; margin:0 auto;
   display:flex; gap:20px; flex-wrap:wrap; justify-content:space-between; font-size:11.5px; color:var(--ink-3); font-family:var(--f-mono);
 }
-footer .links{display:flex; gap:16px; flex-wrap:wrap}
+footer .links{display:flex; gap:16px; flex-wrap:wrap; align-items:center}
+footer .links a{border-bottom:0}
+.claim-cta{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:0 0 14px}
+.claim-cta .btn{font-size:12px; padding:9px 16px}
 .stamp{font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
 .seal svg{transition:transform 1.4s cubic-bezier(.22,.61,.36,1)}
 .brand:hover .seal svg{transform:rotate(24deg)}
@@ -544,9 +557,9 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <section class="mast" id="hero">
       <div class="mast-in">
         <div class="mast-copy">
-          <p class="kicker"><span class="dot"></span><span data-zh="Robinhood 唯一点过名的狗 · 链 4663 · 每一笔手续费都在销毁">The only dog Robinhood ever named · chain 4663 · every fee burns</span></p>
+          <p class="kicker"><span class="dot"></span><span data-zh="Robinhood 唯一点过名的狗 · 链 4663 · 每笔手续费的 70% 都在销毁">The only dog Robinhood ever named · chain 4663 · 70% of every fee burns</span></p>
           <h1 data-zh="他<em>还在</em>这儿。">Still <em>here.</em></h1>
-          <p class="thesis" data-zh="2016 年 Robinhood 给他起了名字，然后忘了他十年。2026 年有人把他做成币、拉起来、拿着手续费走了。<strong>狗没走。</strong>现在这个池子赚的每一笔手续费都会自动买回他、烧掉他——没有钥匙、没有 owner，这次没有人能带着钱离开。">Named by Robinhood in 2016 and forgotten for ten years. Made into a coin in 2026, run up, and left behind by the people who launched it. <strong>The dog stayed.</strong> Now every fee this pool earns buys him back and burns him — automatically, with no keys, no owner, and nobody to walk off with the money this time.</p>
+          <p class="thesis" data-zh="2016 年 Robinhood 给他起了名字，然后忘了他十年。2026 年他被做成了币，经历了一只狗不该经历的那么多风波。<strong>狗没走。</strong>现在这个池子每一笔手续费里 creator 的 70% 都会自动买回他、烧掉他——没有钥匙，没有 owner，不需要任何人记得去做。">Named by Robinhood in 2016 and forgotten for ten years. Made into a coin in 2026, and put through more drama than any dog deserves. <strong>The dog stayed.</strong> Now the creator’s 70% of every fee this pool earns buys him back and burns him — automatically, with no keys, no owner, and nobody who has to remember to do it.</p>
           <div class="hero-stats" id="heroStats"></div>
           <div class="hero-cta">
             <button class="btn primary" type="button" data-tabkey="burn" data-zh="销毁引擎 ↓">Burn engine ↓</button>
@@ -558,9 +571,10 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
           <div class="frame">
             <video autoplay muted loop playsinline preload="metadata" poster="data:image/webp;base64,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" src="assets/brodie-walk.mp4"></video>
           </div>
-          <img class="sticker s1" src="assets/meme-081.webp" alt="" loading="lazy">
-          <img class="sticker s2" src="assets/meme-071.webp" alt="" loading="lazy">
-          <img class="sticker s3" src="assets/sparkle-eyes.webp" alt="" loading="lazy">
+          <!-- filled from STICKERS on every visit -->
+          <img class="sticker s1" alt="">
+          <img class="sticker s2" alt="">
+          <img class="sticker s3" alt="">
         </div>
       </div>
     </section>
@@ -570,7 +584,6 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 00 · BURN ENGINE ─────────── -->
     <section class="sec" id="burn" data-tab="burn">
       <div class="sec-head">
-        <span class="ord">§00</span>
         <h2 data-zh="销毁引擎">Burn engine</h2>
         <span class="chip" id="burnChip">—</span>
       </div>
@@ -595,7 +608,6 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 01 · LIVE TAPE ─────────── -->
     <section class="sec" id="livetape" data-tab="tape">
       <div class="sec-head">
-        <span class="ord">§01</span>
         <h2 data-zh="实时行情">Live tape</h2>
         <span class="chip" id="asofChip">—</span>
         <span class="chip ok" id="ledgerChip" hidden></span>
@@ -610,10 +622,9 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 02 · CONTRACT ─────────── -->
     <section class="sec" id="contract" data-tab="contracts">
       <div class="sec-head">
-        <span class="ord">§02</span>
         <h2 data-zh="合约核验">Contract check</h2>
       </div>
-      <p class="sec-note" data-zh="罗宾汉链上目前至少有 12 个名为 BRODIE 的代币（见仿冒盘一栏）。买之前只有一件事重要：地址。">There are at least a dozen tokens named BRODIE live on Robinhood Chain right now (see the impostor board). Before anything else, check the address.</p>
+      <p class="sec-note" data-zh="罗宾汉链上有好几个名为 BRODIE 的代币（见下方仿冒盘）。买之前只有一件事重要：地址。">Several tokens named BRODIE trade on Robinhood Chain (see the impostor board below). Before anything else, check the address.</p>
 
       <div class="ca primary">
         <div class="ca-head">
@@ -644,7 +655,7 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
           <button class="btn" type="button" data-copy="0x45F82AC5d507e988f7406935da8eEfe495a360e0" data-zh="复制">Copy</button>
         </div>
         <div class="ca-foot">
-          <span data-zh="原开发者已抛售手续费；PONS 团队接手后发行 V2">Original dev dumped fees; PONS team took over and issued V2</span>
+          <span data-zh="已由 V2 取代 · 12 月 21 日前可在 ponsfamily.com 迁移领取">Replaced by V2 · migrate at ponsfamily.com before Dec 21</span>
           <span id="caV1Mc">—</span>
         </div>
       </div>
@@ -660,7 +671,7 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
           <button class="btn" type="button" data-copy="0xC0f342a8936755697C535F1e8E0D712a8da672f8" data-zh="复制">Copy</button>
         </div>
         <div class="ca-foot">
-          <span data-zh="部署于 2026-09-22 · 运行时 6,080 字节">Deployed 2026-09-22 · 6,080-byte runtime</span>
+          <span data-zh="部署于 2026-09-22 · 自 2026-09-24 起为 creator 手续费收款人">Deployed 2026-09-22 · creator fee recipient since 2026-09-24</span>
           <span data-zh="收到的每一枚 ETH 只有一个出口：买入并 burn()">Every ETH it receives has one exit: buy and burn()</span>
         </div>
       </div>
@@ -679,11 +690,11 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
         <div class="cell">
           <span class="lbl" data-zh="官方账号">Official accounts</span>
           <span class="val" style="font-size:14px; font-family:var(--f-mono); font-weight:400; line-height:1.6">
-            <a href="https://x.com/BrodieHasFun" rel="noopener" target="_blank">@BrodieHasFun</a><br>
-            <a href="https://www.brodiehasfun.com/" rel="noopener" target="_blank">brodiehasfun.com</a><br>
+            <a href="https://x.com/Brodieonhood" rel="noopener" target="_blank">@Brodieonhood</a><br>
+            <a href="https://brodie-terminal.vercel.app/" rel="noopener" target="_blank">brodie-terminal.vercel.app</a><br>
             <a href="https://www.ponsfamily.com/migrate" rel="noopener" target="_blank">ponsfamily.com/migrate</a>
           </span>
-          <span class="sub" data-zh="这三个是 DexScreener 上与 V2 合约绑定的链接，可作为交叉验证。">These three are the links bound to the V2 contract on DexScreener — usable as cross-checks.</span>
+          <span class="sub" data-zh="社区 X 账号、本站、以及唯一官方迁移入口。其它自称官方的链接都请先核对合约地址。">The community X account, this terminal, and the only official migration route. Check the contract address against anything else that claims to be official.</span>
         </div>
       </div>
     </section>
@@ -691,7 +702,6 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 03 · MARKET ─────────── -->
     <section class="sec" id="market" data-tab="tape">
       <div class="sec-head">
-        <span class="ord">§03</span>
         <h2 data-zh="市场与流向">Market &amp; flow</h2>
       </div>
       <p class="sec-note" data-zh="小市值 meme 的关键不是价格，而是「流动性够不够撑住你的仓位」以及「成交在加速还是在熄火」。下面四张图就为这两个问题服务。">For a token this size the question is not price, it is whether liquidity can absorb your position and whether activity is accelerating or dying. The four figures below answer exactly that.</p>
@@ -717,7 +727,6 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 04 · SUPPLY ─────────── -->
     <section class="sec" id="supply" data-tab="fees">
       <div class="sec-head">
-        <span class="ord">§04</span>
         <h2 data-zh="供应账本">Supply ledger</h2>
       </div>
       <p class="sec-note" data-zh="V2 只会通过两条路改变总量：迁移合约按需铸出，代币自带的 burn() 销毁。这一栏只记录链上能核验的东西：totalMinted / totalSupply / 额度 / 截止时间都是实时读取；销毁量由 totalMinted − totalSupply 这个恒等式直接判定，不靠截图，也不靠快照。金库的逐笔销毁账本在「销毁」一栏。">V2's supply only ever moves two ways: the migration contract mints on demand, and the token's own burn() destroys. This section records only what the chain can verify: totalMinted, totalSupply, credits and deadline are read live, and the amount burned follows from the identity totalMinted − totalSupply, not from screenshots or a snapshot. The burn-by-burn ledger lives in the Burn tab.</p>
@@ -735,62 +744,25 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
       <div id="burnBox"></div>
 
       <div class="sec-head" style="margin-top:26px">
-        <span class="ord">§05</span>
         <h2 data-zh="手续费流向与回购">Fee flow &amp; buybacks</h2>
-        <span data-prov="fees"></span>
       </div>
-      <p class="sec-note" data-zh="池子按 1% 收费，费用先在 hook 累积，归集后换成 ETH，经托管合约按固定的 70 / 30 分给两个收款人：creator 收款人拿 70%，Pons 协议多签拿 30%。creator 这一侧正在交接给销毁金库；交接后这 70% 的唯一去向就是买入并销毁。下面是迄今为止全部资金流的实测结果——包括前任团队真正花在回购上的金额。">The pool charges 1%. Fees accrue at the hook, get swept into ETH, and the escrow pays two recipients in a fixed 70 / 30 split: 70% to the creator fee recipient, 30% to the Pons protocol Safe. The creator side is being handed to the burn vault; after that, the only place those 70% can go is a buy and a burn. Below is the measured flow so far — including how much the previous team actually spent on buying.</p>
+      <p class="sec-note" data-zh="池子按 1% 收费，费用先在 hook 累积，归集后换成 ETH，经托管合约按固定的 70 / 30 分给两个收款人：creator 收款人拿 70%，Pons 协议多签拿 30%。creator 这一侧已于 9 月 24 日交给销毁金库，这 70% 现在唯一的去向就是买入并销毁。下面是迄今为止全部手续费的实测结果。">The pool charges 1%. Fees accrue at the hook, get swept into ETH, and the escrow pays two recipients in a fixed 70 / 30 split: 70% to the creator fee recipient, 30% to the Pons protocol Safe. Since 24 September the creator side belongs to the burn vault, so the only place that 70% can go is a buy and a burn. Below is every fee measured so far.</p>
       <div id="feeBox"></div>
 
-      <div class="sec-head" style="margin-top:26px" id="destination">
-        <span class="ord">§06</span>
-        <h2 data-zh="手续费去了哪">Where the fees went</h2>
-      </div>
-      <p class="sec-note" data-zh="两个收款地址各自领了多少、现在还剩多少、已经转走多少。领取额来自分账合约的事件，余额每 30 秒实时读取。注意协议方那个多签是全部 Pons 代币共用的，它持有的 ETH 并非全部来自 BRODIE。">What each of the two recipient wallets was paid, what it still holds, and how much has already left. Payouts come from the splitter's events; balances are read live every 30 seconds. Note the protocol Safe is shared across every Pons token, so the ETH it holds is not all ours.</p>
-      <div id="destBox"></div>
-
-    </section>
-
-    <!-- ─────────── 05 · FLOWS ─────────── -->
-    <section class="sec" id="buyers" data-tab="flows">
-      <div class="sec-head">
-        <span class="ord">§07</span>
-        <h2 data-zh="谁在买，谁在卖">Who buys, who sells</h2>
-        <span data-prov="flows"></span>
-      </div>
-      <p class="sec-note" data-zh="每个从池子里净买入的大地址，按创世以来全部 32,164 笔转账统计（买入＝从 v4 PoolManager 收到，卖出＝转入 PoolManager）。用来核对任何「我们回购了 X%」的说法：先看金额对不对，再看那个地址有没有从手续费分账里拿过钱。">Every address holding a large net position bought out of the pool, computed across all 32,164 transfers since genesis — a buy is BRODIE received from the v4 PoolManager, a sell is BRODIE sent to it. Use it to check any "we bought back X%" claim: match the amount first, then check whether that address has ever been paid by the fee splitter.</p>
-      <div id="exitBox"></div>
-      <div id="buyBox"></div>
-
-      <div class="sec-head" style="margin-top:26px" id="timeline">
-        <span class="ord">§08</span>
-        <h2 data-zh="时间线：什么时候发生的">Timeline — when it happened</h2>
-      </div>
-      <p class="sec-note" data-zh="每一笔手续费归集、每一次分账、以及那唯一一次回购的确切时间。区块时间戳直接从链上读取，不是估算。">Every fee sweep, every payout and the single buyback, with the exact time each happened. Block timestamps are read from the chain, not estimated.</p>
-      <div id="tlBox"></div>
-
-      <div class="sec-head" style="margin-top:30px" id="sellers">
-        <span class="ord">§09</span>
-        <h2 data-zh="卖压来自谁">Who is selling</h2>
-      </div>
-      <p class="sec-note" data-zh="把每一枚卖入池子的 BRODIE 按卖方的持币来源归类：手续费 hook、注入流动性、迁移领到的额度、还是市场上买来的。这是核对「团队在砸盘吗」的正确口径。">Every BRODIE ever sold into the pool, classified by where the seller's tokens came from: the fee hook, liquidity operations, a migration allocation, or the open market. This is the right frame for checking whether the team is selling.</p>
-      <div id="sellBox"></div>
     </section>
 
     <!-- ─────────── 05 · HOLDERS ─────────── -->
     <section class="sec" id="holders" data-tab="holders">
       <div class="sec-head">
-        <span class="ord">§10</span>
         <h2 data-zh="持仓分布">Holders &amp; distribution</h2>
-        <span data-prov="holders"></span>
       </div>
-      <p class="sec-note" data-zh="持仓人数与集中度需要索引器，浏览器里没法即时重放全部 Transfer 事件。下面的数字来自离线重放快照，标注了时间；实时口径请点开 Blockscout 交叉核对。">Holder counts and concentration need an indexer — a browser cannot replay every Transfer event on demand. The figures below come from a timestamped offline replay; cross-check the live number on Blockscout.</p>
+      <p class="sec-note" data-zh="持仓人数先从一份全历史离线重放开始，页面再把每一笔新的 Transfer 事件实时叠加上去，所以下面的人数与排名是实时的。可以点 Blockscout 交叉核对。">Holder counts start from a full offline replay of every Transfer since genesis; the page then applies each new Transfer on top of it, so the count and ranking below are live. Cross-check any figure on Blockscout.</p>
       <div class="lookup">
         <div class="lookup-in">
           <input id="lookupIn" type="text" spellcheck="false" autocomplete="off"
                  placeholder="0x… check any address" aria-label="Address lookup">
           <button class="btn" type="button" id="lookupBtn" data-zh="查询">Look up</button>
-          <button class="btn" type="button" data-lookup="0x5083727d6fa9a56ce5fbc4cdf672ec13ff0ed596" data-zh="示例：最大的未发放额度">Example: largest unissued claim</button>
+          <button class="btn" type="button" data-lookup="0x5083727d6fa9a56ce5fbc4cdf672ec13ff0ed596" data-zh="示例：最大的未领取额度">Example: largest unclaimed credit</button>
         </div>
         <div class="lookup-out" id="lookupOut"></div>
       </div>
@@ -801,24 +773,33 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 06 · MIGRATION ─────────── -->
     <section class="sec" id="migrate" data-tab="migration">
       <div class="sec-head">
-        <span class="ord">§11</span>
         <h2 data-zh="领取 · V1 → V2">Claim · V1 → V2</h2>
-        <span data-prov="migration"></span>
       </div>
       <div class="note">
         <b data-zh="唯一官方迁移入口：">Only official migration route:</b>
         <a href="https://www.ponsfamily.com/migrate" rel="noopener" target="_blank">ponsfamily.com/migrate</a>.
         <span data-zh="任何要求你把 V1 代币直接转到某个私人地址、或者索取助记词/私钥的「客服」都是骗子。迁移是一次链上兑换，不是转账。">Anyone asking you to send V1 tokens to a personal address, or asking for a seed phrase, is a scammer. Migration is an on-chain swap, not a transfer.</span>
       </div>
+      <div class="claim-cta">
+        <a class="btn primary" href="https://www.ponsfamily.com/migrate" rel="noopener" target="_blank" data-zh="去 ponsfamily.com 领取 ↗">Claim on ponsfamily.com ↗</a>
+        <span class="mut" id="claimDays"></span>
+      </div>
+      <div class="lookup">
+        <div class="lookup-in">
+          <input id="claimIn" type="text" spellcheck="false" autocomplete="off"
+                 placeholder="0x… deposited V1? check what you are owed" aria-label="Check a migration deposit">
+          <button class="btn" type="button" id="claimBtn" data-zh="查询">Check</button>
+        </div>
+        <div class="lookup-out" id="claimOut"></div>
+      </div>
       <div class="grid g4" id="migGrid"></div>
-      <p class="sec-note" data-zh="机制说明：迁移不是 1:1 的 burn-swap，也不走那个 v4 迁移池。存入者调用迁移合约 0x9310bc8b… 的 deposit(uint256) 把 V1 存进去，合约按当时的 epoch 记一笔额度：五轮存入上限 3.0 / 2.8 / 2.1 / 1.4 / 0.7 亿，兑换率 100 / 80 / 60 / 40 / 20%，合计 10 亿 V1 换 7.2 亿额度。存入的 V1 被卖回旧的 1% 池换成 ETH，作为新 v4 池的 ETH 一侧；V2 在存入者调用 claim() 时才按额度铸出，铸造开放到 2026-12-21。V1 一枚都没销毁，V1 的 totalSupply 至今仍是精确的 10 亿。">How it actually worked: migration was not a 1:1 burn-swap and it did not run through the v4 migration pool. Depositors called deposit(uint256) on the migration contract at 0x9310bc8b…, which logged a credit at that epoch's rate — five epochs capped at 300M / 280M / 210M / 140M / 70M, paying 100 / 80 / 60 / 40 / 20%, so 1,000,000,000 V1 became 720,000,000 of credits. The deposited V1 was sold back into the old 1% pool for ETH, which seeded the ETH side of the new v4 pool; the V2 is only minted when a depositor calls claim(), and minting stays open until 2026-12-21. No V1 was ever destroyed; its totalSupply is still exactly 1,000,000,000.</p>
-      <div class="note risk"><b data-zh="约 7.8% 的额度还没有被领取。">About 7.8% of credits have not been claimed yet.</b> <span data-zh="迁移合约把每笔存入记为额度，V2 在存入者调用 claim() 时才按额度铸出。截至上方所示区块，仍有约 5,600 万枚额度未领。这不是「没有储备」——铸造是按需进行的，上限之内随领随铸——但铸造窗口会在 2026-12-21 16:47 UTC 永久关闭，之后任何人都能调用 renounceMinter()，没领的就作废。存入过的人请在截止前领取。">The migration contract records each deposit as a credit; the V2 is only minted when the depositor calls claim(). As of the block shown above, roughly 56M of credits are still unclaimed. That is not a missing reserve — minting is on demand, within MAX_SUPPLY — but the mint window closes for good on 2026-12-21 16:47 UTC, after which anyone can call renounceMinter() and unclaimed credits are lost. If you deposited, claim before then.</span></div>
+      <p class="sec-note" data-zh="机制说明：迁移不是 1:1 的 burn-swap，也不走那个 v4 迁移池。存入者调用迁移合约 0x9310bc8b… 的 deposit(uint256) 把 V1 存进去，合约按当时的 epoch 记一笔额度：五轮存入上限 3.0 / 2.8 / 2.1 / 1.4 / 0.7 亿，兑换率 100 / 80 / 60 / 40 / 20%，合计 10 亿 V1 换 7.2 亿额度。存入的 V1 被卖回旧的 1% 池换成 ETH，作为新 v4 池的 ETH 一侧；V2 在存入者调用 claim() 时才按额度铸出，铸造开放到 2026-12-21。V1 一枚都没销毁，V1 的 totalSupply 至今仍是精确的 10 亿。">How it works: migration is not a 1:1 burn-swap and it did not run through the v4 migration pool. Depositors called deposit(uint256) on the migration contract at 0x9310bc8b…, which logged a credit at that epoch's rate — five epochs capped at 300M / 280M / 210M / 140M / 70M, paying 100 / 80 / 60 / 40 / 20%, so 1,000,000,000 V1 became 720,000,000 of credits. The deposited V1 was sold back into the old 1% pool for ETH, which seeded the ETH side of the new v4 pool; the V2 is only minted when a depositor calls claim(), and minting stays open until 2026-12-21. No V1 was ever destroyed; its totalSupply is still exactly 1,000,000,000.</p>
+      <div class="note risk" id="claimNote" hidden><b data-zh="约 7.8% 的额度还没有被领取。">About 7.8% of credits have not been claimed yet.</b> <span data-zh="迁移合约把每笔存入记为额度，V2 在存入者调用 claim() 时才按额度铸出。截至上方所示区块，仍有约 5,600 万枚额度未领。这不是「没有储备」——铸造是按需进行的，上限之内随领随铸——但铸造窗口会在 2026-12-21 16:47 UTC 永久关闭，之后任何人都能调用 renounceMinter()，没领的就作废。存入过的人请在截止前领取。">The migration contract records each deposit as a credit; the V2 is only minted when the depositor calls claim(). As of the block shown above, roughly 56M of credits are still unclaimed. That is not a missing reserve — minting is on demand, within MAX_SUPPLY — but the mint window closes for good on 2026-12-21 16:47 UTC, after which anyone can call renounceMinter() and unclaimed credits are lost. If you deposited, claim before then.</span></div>
     </section>
 
     <!-- ─────────── 07 · IMPOSTORS ─────────── -->
     <section class="sec" id="impostors" data-tab="contracts">
       <div class="sec-head">
-        <span class="ord">§12</span>
         <h2 data-zh="仿冒盘">Impostor board</h2>
         <span class="chip warn" id="impCount">—</span>
       </div>
@@ -826,39 +807,19 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
       <div id="impTable"></div>
     </section>
 
-    <!-- ─────────── 08 · PEERS ─────────── -->
-    <section class="sec" id="peers" data-tab="chain">
-      <div class="sec-head">
-        <span class="ord">§13</span>
-        <h2 data-zh="同链对比">Robinhood Chain comps</h2>
-      </div>
-      <p class="sec-note" data-zh="与 $PONS 及同链其它 meme 的量级对照。注意每个代币取的是其流动性最深的池，不是全链聚合口径。">Scale check against $PONS and other memes on the same chain. Each row uses the token's deepest single pool, not a chain-wide aggregate.</p>
-      <div id="peerTable"></div>
-      <div class="note">
-        <b data-zh="同链唯一真正 burn() 的 meme 币。">The only meme on this chain with a real burn().</b>
-        <span data-zh="CASHCAT、PONS、WALLET、MEME 的「销毁」都是往 0x…dEaD 转账——总量不变，只是换了个地址存着。BRODIE 的代币合约自带 burn()，金库每次调用都让 totalSupply 真的减少。这是本页销毁数字可以直接对照 totalSupply 核验的原因。">CASHCAT, PONS, WALLET and MEME "burn" by sending to 0x…dEaD — total supply never moves, the tokens just sit at a different address. BRODIE's token contract has a real burn(), and every vault call makes totalSupply actually fall. That is why every burn figure on this page can be checked against totalSupply directly.</span>
-      </div>
-    </section>
-
     <!-- ─────────── 09 · ORIGIN ─────────── -->
     <section class="sec" id="origin" data-tab="story">
       <div class="sec-head">
-        <span class="ord">§14</span>
         <h2 data-zh="等待的狗">The dog who waits</h2>
       </div>
       <div class="story">
         <div class="prose">
           <p data-zh="2016 年 8 月的一个早上，Robinhood 官方账号在回复一位客户时晒出了办公室的狗。没有人觉得这条回复值得记住。">One August morning in 2016, Robinhood's official account answered a customer with a photo of the office dog. Nobody thought the reply was worth remembering.</p>
-          <p data-zh="然后这家公司上市、发链，Brodie 做了十年脚注。2026 年有人把那条推翻了出来，把他铸成币。图表做了图表会做的事：拉起来，然后 V1 开发者把手续费钱包卖空；接手的团队回购过一次，也卖了。">Then the company went public, launched a chain of its own, and Brodie stayed a footnote for ten years. In 2026 someone dug the tweet up and minted him. The chart did what charts do: it ran, then the V1 dev sold the fee wallet, and the team that took over bought back once and sold that too.</p>
-          <p data-zh="<strong>别的狗币是一个承诺，这一只是一份记录。</strong>起源是一条任何人都能查到的推。被丢下是链上的，一个钱包一个钱包——本页追过。而回应也在链上：一个没有 owner 的金库，把每一笔手续费都拿去买回他、烧掉他，不管有没有人在看。"><strong>Every other dog coin is a promise. This one is a record.</strong> The origin is a tweet anyone can look up. The abandonment is on-chain, wallet by wallet — this page traced it. And the answer is on-chain too: a vault with no owner that spends every fee buying him back and burning him, whether or not anyone is watching.</p>
+          <p data-zh="然后这家公司上市、发链，Brodie 做了十年脚注。2026 年有人把那条推翻了出来，把他铸成币。图表做了图表会做的事。团队来了又走，狗一直都在。">Then the company went public, launched a chain of its own, and Brodie stayed a footnote for ten years. In 2026 someone dug the tweet up and minted him. The chart did what charts do. Teams came and went; the dog never left.</p>
+          <p data-zh="<strong>别的狗币是一个承诺，这一只是一份记录。</strong>起源是一条任何人都能查到的推。而接下来的故事也写在链上：一个没有 owner 的金库，把每一笔手续费里 creator 的那 70% 拿去买回他、烧掉他，不管有没有人在看。"><strong>Every other dog coin is a promise. This one is a record.</strong> The origin is a tweet anyone can look up. And what comes next is on-chain too: a vault with no owner that spends the creator’s 70% of every fee buying him back and burning him, whether or not anyone is watching.</p>
           <p data-zh="狗会等。这是关于狗唯一没人能 fork 的事。">Dogs wait. It is the one thing about them nobody can fork.</p>
         </div>
-        <div class="gallery">
-          <figure><img src="assets/meme-081.webp" alt="Brodie frozen in an ice-cube tray" loading="lazy"><figcaption data-zh="慢一点，不代表没在发生。">Just because it's taking time doesn't mean it's not happening.</figcaption></figure>
-          <figure><img src="assets/meme-071.webp" alt="Brodie standing inside an hourglass" loading="lazy"><figcaption data-zh="沙漏里的狗。">The dog in the hourglass.</figcaption></figure>
-          <figure><img src="assets/meme-040.webp" alt="Two dogs in a train car, one fading, one holding" loading="lazy"><figcaption data-zh="fading brodie ／ HOLDING BRODIE">fading brodie / HOLDING BRODIE</figcaption></figure>
-          <figure><img src="assets/sparkle-eyes.webp" alt="Brodie with sparkling eyes" loading="lazy"><figcaption data-zh="0 天没有 Brodie 梗图。">0 days without Brodie memes.</figcaption></figure>
-        </div>
+        <div class="gallery" id="gallery"></div>
       </div>
       <blockquote class="tweet">
         <span data-zh="「我们也是一家对狗友好的公司⋯⋯来看看我们的办公室狗 Brodie。」">"We're a dog-friendly company as well… Check out our office dog, Brodie."</span>
@@ -875,40 +836,33 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
         </div>
         <div class="tl-row">
           <span class="when" data-zh="7 月 14 日">14 Jul</span>
-          <span class="what" data-zh="<b>V1 上线。</b>0x45F8… 的 WETH 池开盘。此后原开发者抛售了累积的手续费，V1 的可信度归零。"><b>V1 opens.</b> The WETH pool for 0x45F8… goes live. The original dev later dumps the accumulated fees and V1's credibility with them.</span>
+          <span class="what" data-zh="<b>V1 上线。</b>0x45F8… 的 WETH 池开盘。"><b>V1 opens.</b> The WETH pool for 0x45F8… goes live.</span>
         </div>
         <div class="tl-row">
           <span class="when" data-zh="8 月 29 日">29 Aug</span>
-          <span class="what" data-zh="<b>V2 上线。</b>PONS 团队接手，0x7370… 在 Uniswap v4 上开出 BRODIE/ETH 池，并在 ponsfamily.com 开放 V1 → V2 迁移。"><b>V2 opens.</b> The PONS team takes over. 0x7370… launches a BRODIE/ETH pool on Uniswap v4 and V1 → V2 migration goes live at ponsfamily.com.</span>
+          <span class="what" data-zh="<b>V2 上线。</b>BRODIE 迁到 Pons：0x7370… 在 Uniswap v4 上开出 BRODIE/ETH 池，并在 ponsfamily.com 开放 V1 → V2 迁移。"><b>V2 opens.</b> BRODIE moves to Pons: 0x7370… launches a BRODIE/ETH pool on Uniswap v4 and V1 → V2 migration goes live at ponsfamily.com.</span>
+        </div>
+        <div class="tl-row">
+          <span class="when" data-zh="9 月 22 日">22 Sep</span>
+          <span class="what" data-zh="<b>销毁金库上线。</b>一个没有 owner 的合约部署上链：它能收到的只有手续费，能做的只有在同一个池子里买回 BRODIE 并调用 burn()。"><b>Burn vault deployed.</b> A contract with no owner goes on-chain. All it can receive is fees, and all it can do with them is buy BRODIE back in the same pool and call burn().</span>
+        </div>
+        <div class="tl-row">
+          <span class="when" data-zh="9 月 24 日">24 Sep</span>
+          <span class="what" data-zh="<b>交接。</b>creator 手续费收款人转给金库——一次点击，无时间锁。从这一刻起，每笔手续费里 creator 的 70% 都会被烧掉。"><b>Handover.</b> The creator fee recipient moves to the vault — one click, no timelock. From here on, the creator’s 70% of every fee is burned.</span>
+        </div>
+        <div class="tl-row">
+          <span class="when" data-zh="下一步">Next</span>
+          <span class="what" data-zh="<b>第一次销毁。</b>金库攒够 0.005 ETH 就会买回并烧掉第一批 BRODIE，之后只要还有手续费进来，大约每天一次。"><b>Burn #1.</b> Once the vault holds 0.005 ETH it buys back and burns its first BRODIE — then roughly once a day for as long as fees keep coming in.</span>
         </div>
       </div>
       <div class="prose">
-        <p data-zh="社区口号是 “Not a gorillion. A Brodillion.” — 这是一句玩笑，但它准确描述了这类资产的定价方式：定价的不是现金流，是出处是否唯一、以及有多少人愿意一起认这个出处。这两件事都可能在一周内消失。">The community line is <strong>"Not a gorillion. A Brodillion."</strong> It is a joke, but it describes the pricing mechanism accurately: nothing here is priced off cash flow. It is priced off whether the provenance is unique and how many people keep agreeing that it matters. Both of those can evaporate inside a week.</p>
+        <p data-zh="社区口号是 “Not a gorillion. A Brodillion.” — 这是一句玩笑，也是一句承诺。">The community line is <strong>"Not a gorillion. A Brodillion."</strong> It is a joke, and it is also a promise.</p>
       </div>
     </section>
 
-
-    <!-- ─────────── OPEN QUESTIONS ─────────── -->
-    <section class="sec" id="questions" data-tab="about">
-      <div class="sec-head">
-        <span class="ord">§15</span>
-        <h2 data-zh="待团队确认的问题">Open questions for the team</h2>
-        <span class="chip warn">8</span>
-      </div>
-      <p class="sec-note" data-zh="链上数据能回答「发生了什么」，回答不了「为什么」和「接下来会怎样」。下面每一条都是只有项目方能确认的事——附上了对应的链上证据，方便直接拿去问。答案公开之后，本页对应的数字就可以从「推断」标记改成「已确认」。">Chain data answers what happened. It cannot answer why, or what comes next. Each item below is something only the team can confirm, with the on-chain evidence attached so it can be asked directly. Once any of them is answered in public, the matching figure on this page moves from inferred to confirmed.</p>
-      <div class="qa" id="qaBox"></div>
-      <div class="note" id="qaPublish" hidden></div>
-      <div class="note"><b data-zh="标注约定：">Labelling convention:</b>
-        <span class="prov chain">on-chain</span>
-        <span data-zh="＝可由任何人独立复现的链上事实。">= a chain fact anyone can reproduce independently.</span>
-        <span class="prov infer">inferred</span>
-        <span data-zh="＝由链上关系推断、尚未被项目方确认的结论。本页两者都有，并且分开标注。">= a conclusion drawn from on-chain relationships that the team has not confirmed. This page carries both, and marks them apart.</span>
-      </div>
-    </section>
     <!-- ─────────── 10 · SOURCES ─────────── -->
     <section class="sec" id="sources" data-tab="about">
       <div class="sec-head">
-        <span class="ord">§16</span>
         <h2 data-zh="数据来源与方法">Sources &amp; method</h2>
       </div>
       <div class="srcs">
@@ -925,7 +879,7 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
         <div class="src">
           <div class="lbl" data-zh="持仓">Holders</div>
           <div class="u">robinhoodchain.blockscout.com</div>
-          <div class="m" data-zh="持仓人数与前十占比需要索引器。Blockscout 有 Cloudflare 挑战，跨域直读常被拦截，因此本页显示离线重放快照并提供跳转核对。">Holder counts need an indexer. Blockscout sits behind a Cloudflare challenge that usually blocks cross-origin reads, so this page shows an offline replay snapshot and links out for verification.</div>
+          <div class="m" data-zh="持仓人数与前十占比需要索引器。Blockscout 有 Cloudflare 挑战，跨域直读常被拦截，因此本页先加载一份全历史离线重放，再在浏览器里逐条追加新的 Transfer 事件，人数与排名保持实时，并提供跳转核对。">Holder counts need an indexer. The page starts from a full offline replay of every Transfer since genesis, then streams each new Transfer on top of it in the browser, so the count and the top holders stay live. Blockscout is linked for cross-checks.</div>
         </div>
         <div class="src">
           <div class="lbl" data-zh="仿冒盘扫描">Impostor scan</div>
@@ -942,13 +896,12 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
     <!-- ─────────── 11 · RISK ─────────── -->
     <section class="sec" id="risk" data-tab="about">
       <div class="sec-head">
-        <span class="ord">§17</span>
         <h2 data-zh="风险披露">Risk disclosure</h2>
       </div>
       <div class="note risk">
         <p style="margin:0 0 9px" data-zh="这是一个独立仪表盘，与 Robinhood Markets, Inc. 无任何官方关系，也未获得其授权或背书。页面设计参考了 stateofblocks.com 的 $PONS Terminal，但双方无关联。"><b>Not affiliated with Robinhood Markets, Inc.</b> This is an independent dashboard, neither authorised nor endorsed by them. It is modelled on the $PONS Terminal at stateofblocks.com; there is no affiliation with that project either.</p>
         <p style="margin:0 0 9px" data-zh="$BRODIE 是 meme 代币，没有内在价值、没有现金流、没有赎回权。本页不构成投资建议。"><b>$BRODIE is a meme token</b> — no intrinsic value, no cash flow, no redemption right. Nothing here is investment advice.</p>
-        <p style="margin:0" data-zh="已知的具体风险：① 流动性集中在单一 v4 池，滑点对仓位规模极其敏感；② V1 原开发者有抛售历史；③ 同链存在十余个同名合约，买错地址不可逆；④ 本页展示的链上数字取自公开节点，节点可能延迟或返回不完整数据。"><b>Known specifics:</b> liquidity sits in a single v4 pool, so slippage is acutely size-sensitive; V1's original dev has a documented history of dumping fees; a dozen same-named contracts exist on the same chain and buying the wrong address is irreversible; and every on-chain figure here comes from public nodes that can lag or return incomplete data.</p>
+        <p style="margin:0" data-zh="已知的具体风险：① 流动性集中在单一 v4 池，滑点对仓位规模极其敏感；② 同链存在多个同名合约，买错地址不可逆；③ 本页展示的链上数字取自公开节点，节点可能延迟或返回不完整数据。"><b>Known specifics:</b> liquidity sits in a single v4 pool, so slippage is acutely size-sensitive; several same-named contracts exist on the same chain and buying the wrong address is irreversible; and every on-chain figure here comes from public nodes that can lag or return incomplete data.</p>
       </div>
     </section>
   </main>
@@ -962,7 +915,7 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
   <div class="links">
     <a href="https://dexscreener.com/robinhood/0xb6eae9d1f1838c4302d500e80d7aa854e45a6455f502215c7b970745b62d4b76" rel="noopener" target="_blank">DexScreener</a>
     <a href="https://robinhoodchain.blockscout.com/token/0x737054bd706cba68eaF4661411FeDE5F6C2952e5" rel="noopener" target="_blank">Blockscout</a>
-    <a href="https://x.com/BrodieHasFun" rel="noopener" target="_blank">@BrodieHasFun</a>
+    <a href="https://x.com/Brodieonhood" rel="noopener" target="_blank">@Brodieonhood</a>
     <a href="https://www.ponsfamily.com/migrate" rel="noopener" target="_blank">Migrate</a>
     <a href="https://robinhoodchain.blockscout.com/address/0xC0f342a8936755697C535F1e8E0D712a8da672f8" rel="noopener" target="_blank" data-zh="销毁金库">Burn vault</a>
     <a href="https://stateofblocks.com/dashboards/pons-terminal/" rel="noopener" target="_blank">$PONS Terminal</a>
@@ -975,10 +928,6 @@ footer .links{display:flex; gap:16px; flex-wrap:wrap}
    Rebuild with tools/flows.py. */
 window.TEAMEXIT={"generated":"2026-09-23T07:34:30Z","block":70337915,"feeWallet":"0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","subWallet":"0x78655106b9c6261a33f23309040ed75a2315497e","router":"0xbdbae060cbab0e9cfe802a7513dd5ecb36cda6c3","bought":6051759.63,"sold":6051759.63,"buyCount":17,"firstBuy":1788241903,"lastBuy":1788823709,"exit":[{"t":1788990286,"blk":58877688,"kind":"to_sub","amt":6051759.63,"tx":"0xbcb94edd000ced69c678d24c11ebf01102545f4c34ea34750d47526cbe5597f8"},{"t":1788990924,"blk":58884000,"kind":"sell","amt":4300000.0,"tx":"0x576a83bad61c7ce38d7e0e9dbf73a3ae08de38f868dafbd1e553f6af4dcafc5d"},{"t":1788990970,"blk":58884494,"kind":"sell","amt":1751759.63,"tx":"0x5ebb169f7dff697a1959aa4255350463ca49a2fc035eab00e4b9d94b977ef739"}],"hookFee":9572627.93,"hookSold":9572627.93,"chainBought":1033317058.1,"chainSold":1290633507.1,"txs":17996,"spentEth":3.065026,"recvEth":1.884515,"netEth":-1.180511,"avgBuyGwei":506.469,"avgSellGwei":311.4};
 
-/* the eight things only the team can close. status lives here so it is public;
-   a viewer's local ticks are their own notes until pasted back in. */
-window.QA=[{"id":"q1","q":"Confirm the official contract set","zq":"确认官方合约清单","w":"Every address on this page was inferred from the v4 Initialize event and the transfer graph, not published by anyone. If the team confirms the hook, splitter, operator and launchpad addresses, every figure here becomes verifiable rather than inferred.","zw":"本页所有地址都是我从 v4 Initialize 事件和转账关系图里推断出来的，没有任何一方公开过。团队一旦确认 hook、分账合约、归集地址和 launchpad 这四个地址，本页所有数字就从「推断」变成「可核验」。","ev":"hook 0x332f85e7… · splitter 0xbc39b650… · operator 0x84b8affb… · launchpad 0x9310bc8b…","panel":"fees"},{"id":"q2","q":"What is the creator's 70% fee share earmarked for?","zq":"creator 那 70% 手续费分成，用途是什么？","w":"Every BRODIE payout splits exactly 70 / 30: 70% to the creator fee recipient, 30% to the Pons protocol Safe. Across all 814 payout transactions there is not one exception. The creator side has drawn 6.87 ETH to date. Saying what that stream is for, and whether it is now committed to buyback and burn, turns an unexplained split into a published budget.","zw":"每一笔 BRODIE 分账都精确按 70 / 30 切分：creator 收款人 70%，Pons 协议多签 30%。全部 814 笔分账交易里无一例外。creator 一侧至今已取走 6.87 ETH。把这笔钱的用途讲清楚，以及它现在是否已承诺用于回购销毁，这个分成就从「来路不明」变成「公开预算」。","ev":"0x28e35d8c… 70% (creator) · 0x263ed295… 30% (Pons protocol Safe, shared by every Pons token)","panel":"fees"},{"id":"q3","q":"There was no buyback — so what was the 9 September round trip?","zq":"没有回购 —— 那 9 月 9 日那趟往返是什么？","w":"The fee wallet bought 6,051,760 BRODIE for 3.065 ETH between 1 and 7 September, moved all of it to a wallet that had never held a token, and sold the lot eleven minutes later for 1.884 ETH — a 1.181 ETH loss. 0.761% of supply was bought and 0.761% was returned, so no buyback happened on any definition. What was it for, why through a fresh wallet, and why was it never announced?","zw":"手续费钱包在 9 月 1 日至 7 日花 3.065 ETH 买入 6,051,760 枚，随后把全部代币转入一个从未持有过任何代币的钱包，11 分钟后以 1.884 ETH 全部卖出，亏损 1.181 ETH。买入 0.761% 的供应量、又原样还回 0.761%，按任何定义都不构成回购。这笔操作的目的是什么？为什么要经过一个全新钱包？为什么从未公告？","ev":"buys 2026-09-01 05:51 → 09-07 23:28 · exit 2026-09-09 21:44 → 21:56 · 0x28e35d8c… → 0x78655106…","panel":"flows"},{"id":"q4","q":"What happened to the 68 unissued entitlements?","zq":"68 笔从未发放的额度是怎么回事？","w":"Roughly 56M BRODIE of migration credits (about 7.8%) have not been claimed yet. Claims still mint on demand until 2026-12-21 16:47 UTC; after renounceMinter() they are gone. Who is chasing the depositors who have not claimed, and is there a plan for the deadline?","zw":"约 5,600 万枚（约 7.8%）迁移额度还没有被领取。截止 2026-12-21 16:47 UTC 之前 claim() 仍会按需铸造，renounceMinter() 之后就作废。谁在负责提醒还没领的存入者？截止日有没有安排？","ev":"largest: 0x5083727d… 13,922,794.23 · 0x194d98d1… 8,000,000 · 0x54f60863… 5,804,678","panel":"migration"},{"id":"q5","q":"Is the initial liquidity locked?","zq":"初始流动性锁了吗？","w":"132,045,778 BRODIE (16.6% of supply) went from the launchpad through two contracts into the pool as liquidity. Nothing on chain says whether that LP position is locked, for how long, or who can withdraw it. A lock proof is the single most load-bearing fact for anyone sizing a position.","zw":"132,045,778 枚（占供应 16.6%）从 launchpad 经两层合约注入池子做流动性。链上没有任何信息表明这个 LP 头寸是否被锁、锁多久、谁能撤。对任何要决定仓位大小的人来说，锁仓证明是最关键的一条事实。","ev":"0x9310bc8b… → 0x22e95047… → 0xc47d6542… → PoolManager","panel":"holders"},{"id":"q6","q":"Is there a burn mechanism planned?","zq":"有没有销毁机制的计划？","w":"Zero burns to date: totalMinted() and totalSupply() agree exactly and 0x…dEaD holds nothing, checked live every 30 seconds. buybackEnabled() on the migrator is false and the buyback vault is empty. $PONS is priced partly on continuous protocol burn. If $BRODIE plans one, saying so — with the contract — is the clearest structural comparison available.","zw":"至今销毁为零：totalMinted() 与 totalSupply() 精确相等，黑洞地址为空，每 30 秒实时核验。迁移合约的 buybackEnabled() 为 false，回购金库是空的。$PONS 的估值有一部分建立在持续的协议销毁上。如果 $BRODIE 计划做销毁，把机制和合约讲出来，是与之对比最有力的一条。","ev":"totalMinted == totalSupply · burned 0.00 · dead balance 0.00 · buybackEnabled false","panel":"fees"},{"id":"q7","q":"Any commitment on what fees are for?","zq":"手续费的用途有没有承诺？","w":"Every ETH of fees collected so far has been swapped out of BRODIE and credited to the four addresses (live total in §05). A published policy — what share goes to buyback, liquidity, development — would make the fee stream readable as a budget instead of a distribution.","zw":"至今收取的手续费全部被换成 ETH 记给了四个地址（实时总额见 §05）。如果公开一个用途政策——多少比例用于回购、流动性、开发——这条手续费流就能被当作预算来读，而不只是一笔分配。","ev":"escrow Credited events, live · 100% distributed · one beneficiary bought and sold it all","panel":"fees"}];
-window.QSTATUS={};
 
 /* sell-side attribution: where every token sold into the pool came from.
    Rebuild with tools/sell_attrib.py. */
@@ -986,7 +935,7 @@ window.SA={"generated":"2026-09-23T07:37:42Z","block":70339901,"totalSold":14688
 
 /* fee timeline: daily payouts per beneficiary, sweep counts and every team buy.
    Rebuild with tools/timeline.py. */
-window.TL={"generated":"2026-09-23T07:36:54Z","block":70338470,"parties":[["0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","creator",70.0],["0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd","protocol",30.0]],"daily":[["2026-08-30",[2.2352,0.9579],41,1087254],["2026-08-31",[0.7478,0.3205],191,726921],["2026-09-01",[0.3827,0.164],9,312103],["2026-09-02",[0.3983,0.1707],4,544964],["2026-09-03",[0.5715,0.2449],6,879985],["2026-09-04",[0.4082,0.175],6,491082],["2026-09-05",[0.3505,0.1502],5,571889],["2026-09-06",[0.3536,0.1515],5,477159],["2026-09-07",[0.2015,0.0864],3,307650],["2026-09-08",[0.1998,0.0856],3,513525],["2026-09-09",[0.0746,0.032],1,76234],["2026-09-10",[0.1386,0.0594],2,92993],["2026-09-11",[0.1973,0.0846],3,829786],["2026-09-12",[0.0665,0.0285],1,48831],["2026-09-13",[0.1348,0.0578],2,528209],["2026-09-14",[0.1338,0.0574],32,532442],["2026-09-15",[0.1019,0.0437],42,436195],["2026-09-16",[0.0409,0.0175],9,142294],["2026-09-17",[0.0473,0.0203],23,200081],["2026-09-18",[0.0281,0.012],12,65490],["2026-09-19",[0.0515,0.0221],15,211627],["2026-09-20",[0.055,0.0236],20,219031],["2026-09-21",[0.0413,0.0177],21,173281],["2026-09-22",[0.0189,0.0081],15,100576],["2026-09-23",[0.0023,0.001],1,3027]],"buys":[{"t":1788244404,"blk":51508543,"who":"0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","tokens":581895.72,"tx":"0xf5b01b58d8bee6a3b6f6ba2c9301cc7aa291f08d6f44047a436bd7c77d0bd380"}],"firstSweep":1788111248,"lastSweep":1790142162,"sweeps":472,"firstPayout":1788111248,"lastPayout":1790142162,"payouts":1832};
+window.TL={"generated":"2026-09-24T02:03:03Z","block":70994245,"parties":[["0xc0f342a8936755697c535f1e8e0d712a8da672f8","burn vault",70.0],["0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","creator \u2192 24 Sep",70.0],["0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd","protocol",30.0]],"daily":[["2026-08-30",[0.0,2.2352,0.9579],41,1087254],["2026-08-31",[0.0,0.7478,0.3205],191,726921],["2026-09-01",[0.0,0.3827,0.164],9,312103],["2026-09-02",[0.0,0.3983,0.1707],4,544964],["2026-09-03",[0.0,0.5715,0.2449],6,879985],["2026-09-04",[0.0,0.4082,0.175],6,491082],["2026-09-05",[0.0,0.3505,0.1502],5,571889],["2026-09-06",[0.0,0.3536,0.1515],5,477159],["2026-09-07",[0.0,0.2015,0.0864],3,307650],["2026-09-08",[0.0,0.1998,0.0856],3,513525],["2026-09-09",[0.0,0.0746,0.032],1,76234],["2026-09-10",[0.0,0.1386,0.0594],2,92993],["2026-09-11",[0.0,0.1973,0.0846],3,829786],["2026-09-12",[0.0,0.0665,0.0285],1,48831],["2026-09-13",[0.0,0.1348,0.0578],2,528209],["2026-09-14",[0.0,0.1338,0.0574],32,532442],["2026-09-15",[0.0,0.1019,0.0437],42,436195],["2026-09-16",[0.0,0.0409,0.0175],9,142294],["2026-09-17",[0.0,0.0473,0.0203],23,200081],["2026-09-18",[0.0,0.0281,0.012],12,65490],["2026-09-19",[0.0,0.0515,0.0221],15,211627],["2026-09-20",[0.0,0.055,0.0236],20,219031],["2026-09-21",[0.0,0.0413,0.0177],21,173281],["2026-09-22",[0.0,0.0189,0.0081],15,100576],["2026-09-23",[0.0,0.0443,0.019],6,133210],["2026-09-24",[0.0005,0.0,0.0002],1,4238]],"buys":[{"t":1788244404,"blk":51508543,"who":"0x28e35d8c909df0d084945e4d80b17dbd36b0e02c","tokens":581895.72,"tx":"0xf5b01b58d8bee6a3b6f6ba2c9301cc7aa291f08d6f44047a436bd7c77d0bd380"}],"firstSweep":1788111248,"lastSweep":1790214626,"sweeps":478,"firstPayout":1788111248,"lastPayout":1790214626,"payouts":1884};
 
 /* holder ledger snapshot: every non-zero balance and the pool-flow totals that
    the buyback board reads. The page catches up from this block and then streams
@@ -1025,6 +974,11 @@ const CONFIG = {
   vault:      '0xC0f342a8936755697C535F1e8E0D712a8da672f8',
   vaultBlock: 69411335,
   vaultTx:    '0xc2b08555587b9605982106c01ed2fe4d34541bb378de9dd631060b6766d4e32e',
+  /* the creator fee recipient moved to the vault on 2026-09-24 01:32 UTC. Every address that ever
+     held the role is BRODIE's creator side; dropping the old one erased all pre-handover fees */
+  handoverTx:  '0x0015b6b7f5503e440f60a983969fe0461cade9481be99e05341eb1726075f1d0',
+  handoverBlock: 70980628,
+  formerCreators: ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c'],
   deployBlock:    48381897,        /* V2 token + migrator created, 2026-08-28 14:47:54 UTC */
   firstMintBlock: 49296036,        /* epoch-1 settle: first mint, 100,008,380 to the pool seed */
   seedToPool: 132045777.975,       /* V2 minted to the migrator itself and pushed into the v4 pool (5 epoch settles) */
@@ -1049,28 +1003,28 @@ const SEL = {
   emaWad: '0x4fb6fcb3', lastRunAt: '0x1767e5cc'
 };
 
-/* ── baked snapshot: verified 2026-09-09 13:30 UTC, block 58,583,451 ─────── */
+/* ── baked fallback, shown only while live reads load or fail: 2026-09-24 02:40 UTC, block 71,018,415 ── */
 const SNAP = {
-  at: '2026-09-09T13:30:00Z',
-  block: 58583451,
-  price: 0.0008155, priceNative: 0.0000003255,
+  at: '2026-09-24T02:40:00Z',
+  block: 71018415,
+  price: 0.0003359, priceNative: 0.0000001252,
   ch: { h1: 0.24, h6: -1.58, h24: 9.14 },
-  liq: { usd: 400109.47, base: 245312541, quote: 79.8395 },
+  liq: { usd: 265754.65, base: 395514787, quote: 49.5164 },
   vol: { m5: 0, h1: 815.12, h6: 3923.06, h24: 32459.1 },
   txns: { m5: [0,0], h1: [3,1], h6: [12,17], h24: [65,64] },
-  mcap: 648435,
+  mcap: 273935,
   createdAt: 1788020813000,
-  supplyV2: 795068399.4833, supplyV1: 1000000000,
+  supplyV2: 815339556.10, supplyV1: 1000000000,
   deadV2: 0, deadV1: 300.8019,
-  mintedV2: 795068399.4833, burnedV2: 0,
+  mintedV2: 815339556.10, burnedV2: 0,
   transfersV2: 32156, firstBlockV2: 49296036, firstTsV2: '2026-08-29T16:26:53Z',
-  holdersV2: 779,
+  holdersV2: 639,
   candles: [], trades: [],
   gt: { ch: {}, vol: {}, txns: {}, reserve: 0 },
   v1InPoolManager: 7422977.87,
   /* real migration ran through the launchpad's deposit(uint256), not the v4 pool */
-  migration: { depositors: 629, deposits: 920, v1In: 1040866321.72, v2Entitled: 760866321.72,
-               ratio: 0.730993, minted: 704521403.74, unminted: 56344917.99, unmintedAddrs: 68 },
+  migration: { depositors: 629, deposits: 920, v1In: 1000000000, v2Entitled: 720000000,
+               ratio: 0.72, minted: 683293778.13, unminted: 36706221.87, unmintedAddrs: 59 },
   poolManager: '0x8366a39cc670b4001a1121b8f6a443a643e40951',
   /* genesis was not one mint to a deployer: 562 addresses were minted into directly */
   mintRecipients: 562, mintTop1Pct: 16.61, mintTop10Pct: 35.58, mintMedian: 294963,
@@ -1085,7 +1039,7 @@ const SNAP = {
     splitter:  '0xbc39b6502e1a6ab36e4a5c5026a35f08342a0a9c',
     operator:  '0x84b8affbd7728217f97c8eb47fe4bda07d97b8c1',
     launchpad: '0x9310bc8bf95fa35608a9f08f76b55b4fdddc1ef0',
-    totalEth: 8.3561, sweeps: 273, accruals: 1200,
+    totalEth: 10.035, sweeps: 478, accruals: 1884,
     pendingHookTokens: 43120.40, pendingSplitterEth: 8.4132,
     boughtBack: 6051759.63, boughtBackSold: 6051759.63,
     hookAccrued: 5955651.48, hookSoldBack: 5912531.08,
@@ -1108,8 +1062,9 @@ const SNAP = {
     /* Two recipients, 70/30 on every single payout. The escrow and the hook are
        shared by every Pons token, so this list used to carry two strangers. */
     parties: [
-      ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c', 70.0, 5.8493, 'wallet',  0.2176, 6051759.63, 0, 'bought then sold it all'],
-      ['0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd', 30.0, 2.5068, 'safe 2/3', 23.7765, 0, 0, 'Pons protocol, shared across every token — the ETH it holds is not all ours']
+      ['0xc0f342a8936755697c535f1e8e0d712a8da672f8', 70.0, 0, 'burn vault', 0, 0, 0, 'every claim is burned'],
+      ['0x28e35d8c909df0d084945e4d80b17dbd36b0e02c', 70.0, 7.024, 'wallet',  0.2176, 6051759.63, 0, 'creator fee recipient until 24 Sep'],
+      ['0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd', 30.0, 3.0105, 'safe 2/3', 23.7765, 0, 0, 'Pons protocol, shared across every token']
     ]
   },
   buyback: { rows: [
@@ -1237,6 +1192,9 @@ async function blockTime(b) {
   if (blockTimes.has(b)) return blockTimes.get(b);
   const r = await rpc('eth_getBlockByNumber', ['0x' + b.toString(16), false]);
   const t = hexNum(r && r.timestamp);
+  /* never cache a failed read: one cached 0 turned every interpolated date into 1970–2026
+     and filled the daily fee table with hundreds of phantom days */
+  if (!(t > 1.6e9)) throw new Error('no timestamp for block ' + b);
   blockTimes.set(b, t);
   return t;
 }
@@ -1246,8 +1204,10 @@ async function anchorTimes(from, to, n) {
   n = n || 8;
   const pts = [];
   for (let i = 0; i <= n; i++) pts.push(Math.round(from + (to - from) * i / n));
-  const ts = await Promise.all(pts.map(blockTime));
-  return pts.map((b, i) => [b, ts[i]]);
+  const ts = await Promise.all(pts.map(b => blockTime(b).catch(() => null)));
+  const ok = pts.map((b, i) => [b, ts[i]]).filter(p => p[1]);
+  if (ok.length < 2) throw new Error('block timestamps unavailable');
+  return ok;
 }
 function interp(anchors, b) {
   if (b <= anchors[0][0]) return anchors[0][1];
@@ -1383,8 +1343,8 @@ async function pullMints() {
   const sorted = [...byAddr.values()].sort((a, b) => b - a);
   const top1 = sorted.length ? sorted[0] / toM * 100 : 0;
   const top10 = sorted.slice(0, 10).reduce((a, v) => a + v, 0) / (toM || 1) * 100;
-  if (first) first.time = await blockTime(first.blk);
-  if (last) last.time = await blockTime(last.blk);
+  if (first) first.time = await blockTime(first.blk).catch(() => 0);
+  if (last) last.time = await blockTime(last.blk).catch(() => 0);
   D.mints = { count: logs.length, seed, toMigrators: toM, recipients: byAddr.size, first, last, top1, top10, scannedTo: head };
   D.mintRecipients = byAddr.size; D.mintTop1Pct = top1; D.mintTop10Pct = top10;
   feed.mints = 'live';
@@ -1413,12 +1373,13 @@ async function pullFees() {
   } catch (e) {}
   if (!creator) { try { creator = addrOf(await call(CONFIG.migrator, SEL.creatorFeeRecipient)); } catch (e) {} }
   if (!creator) creator = parties[0];
-  if (creator !== parties[0]) {            /* the recipient moved — the ledger follows it */
-    parties[0] = creator; D.fees.parties[0][0] = creator;
-    if (creator === CONFIG.vault.toLowerCase()) { D.fees.parties[0][3] = 'burn vault'; D.fees.parties[0][7] = 'every claim is burned'; }
+  if (!parties.includes(creator)) {        /* a recipient this page has never seen: give it its own row */
+    parties.unshift(creator);
+    D.fees.parties.unshift([creator, 70.0, 0, 'wallet', 0, 0, 0, 'current fee recipient']);
   }
+  const creators = new Set([creator, ...CONFIG.formerCreators.map(a => a.toLowerCase())]);
   const ourTx = new Set();
-  cr.forEach(l => { if (addrOf(l.topics[1]) === creator) ourTx.add(l.transactionHash); });
+  cr.forEach(l => { if (creators.has(addrOf(l.topics[1]))) ourTx.add(l.transactionHash); });
   const credited = {}, claimed = {}, events = {};
   let total = 0, other = 0, lastBlk = 0, firstBlk = Infinity;
   cr.forEach(l => {
@@ -1444,10 +1405,10 @@ async function pullFees() {
     const d = daily[k] || (daily[k] = { eth: zero(), sw: 0, sold: 0 });
     d.sw += 1; d.sold += dec(l.data);
   });
-  const lastTime = lastBlk ? await blockTime(lastBlk) : 0;
-  const firstTime = isFinite(firstBlk) ? await blockTime(firstBlk) : 0;
+  const lastTime = lastBlk ? await blockTime(lastBlk).catch(() => 0) : 0;
+  const firstTime = isFinite(firstBlk) ? await blockTime(firstBlk).catch(() => 0) : 0;
   const lastSweepBlk = sw.length ? Math.max(...sw.map(l => hexNum(l.blockNumber))) : 0;
-  const lastSweep = lastSweepBlk ? await blockTime(lastSweepBlk) : 0;
+  const lastSweep = lastSweepBlk ? await blockTime(lastSweepBlk).catch(() => 0) : 0;
   const ourCount = Object.values(events).reduce((a, n) => a + n, 0);
   D.feesLive = { credited, claimed, events, total, other, count: ourCount, foreign: cr.length - ourCount, lastBlk, lastTime, firstBlk, firstTime,
                  sweeps: sw.length, sweepTok, lastSweep, daily, scannedTo: head, at: new Date().toISOString() };
@@ -1526,25 +1487,19 @@ async function pullBoard() {
                p.pairCreatedAt ? new Date(p.pairCreatedAt).toISOString().slice(0, 10) : '—',
                (p.labels || ['—'])[0], p.quoteToken.symbol]);
 
-  const addrs = ['0x39dBED3a2bd333467115dE45665cC57F813C4571',
-                 '0x020bfC650A365f8BB26819deAAbF3E21291018b4',
-                 '0x5Cb6F181081301b44905F3ae15419112ecaBd8A6', CONFIG.v2];
-  const k = await getJSON(CONFIG.dex + '/tokens/' + addrs.join(','));
-  const bestTok = new Map();
-  (k.pairs || []).forEach(p => {
-    if (p.chainId !== 'robinhood' || !p.baseToken) return;
-    const key = p.baseToken.address.toLowerCase();
-    const liq = (p.liquidity || {}).usd || 0;
-    if (!bestTok.has(key) || liq > bestTok.get(key)._liq) bestTok.set(key, Object.assign({ _liq: liq }, p));
-  });
-  const rows = addrs.map(a => bestTok.get(a.toLowerCase())).filter(Boolean)
-    .map(p => [p.baseToken.address, p.baseToken.symbol, p.marketCap || 0, p._liq, (p.volume || {}).h24 || 0]);
-  if (rows.length) D.peers = rows.sort((a, b) => b[2] - a[2]);
   feed.board = 'live';
 }
 
 /* ── svg helpers ────────────────────────────────────────────────────────── */
 const SVG = (vb, inner) => '<svg viewBox="' + vb + '" role="img">' + inner + '</svg>';
+/* Charts are laid out in real pixels: the viewBox is as wide as the box the
+   chart sits in, so labels stay 9–11 px on a phone and on a wide screen alike
+   instead of scaling with the box. A hidden tab measures 0; tabs redraw on open. */
+function boxW(id, inset) {
+  const n = document.getElementById(id);
+  const w = n ? n.clientWidth - (inset || 0) : 0;
+  return Math.max(280, Math.round(w > 0 ? w : 720));
+}
 function capBar(x, y, w, h, r) {           /* bar with rounded data-end only */
   r = Math.min(r, Math.max(0, w));
   if (w <= 0.5) return '<path d="M' + x + ',' + y + ' Z"';
@@ -1564,19 +1519,19 @@ const txt = (x, y, s, o) => {
 function chartFlow() {
   const w = [['5m', D.txns.m5], ['1h', D.txns.h1], ['6h', D.txns.h6], ['24h', D.txns.h24]];
   const max = Math.max(...w.flatMap(r => r[1]), 1);
-  const x0 = 42, xw = 196;
+  const W = boxW('chartFlow'), x0 = 42, xw = Math.max(120, W - x0 - 46);
   let s = '';
   w.forEach((r, i) => {
     const g = 10 + i * 30;
-    s += txt(x0 - 8, g + 13, r[0], { anchor: 'end', size: 10, fill: 'var(--ink-2)' });
+    s += txt(x0 - 8, g + 13, r[0], { anchor: 'end', size: 11, fill: 'var(--ink-2)' });
     [[r[1][0], 'var(--buy)', 'buy', g], [r[1][1], 'var(--sell)', 'sell', g + 11]].forEach(b => {
       const bw = (b[0] / max) * xw;
       s += '<rect x="' + x0 + '" y="' + b[3] + '" width="' + xw + '" height="9" style="fill:var(--surface-3)"/>';
       s += capBar(x0, b[3], bw, 9, 3) + ' style="fill:' + b[1] + '"><title>' + r[0] + ' · ' + b[0] + ' ' + b[2] + '</title></path>';
-      s += txt(x0 + Math.max(bw, 2) + 6, b[3] + 7.5, String(b[0]), { size: 9, fill: 'var(--ink-2)' });
+      s += txt(x0 + Math.max(bw, 2) + 6, b[3] + 8, String(b[0]), { size: 10.5, fill: 'var(--ink-2)' });
     });
   });
-  return SVG('0 0 340 128', s) +
+  return SVG('0 0 ' + W + ' 128', s) +
     '<div class="legend"><span><i style="background:var(--buy)"></i>' + T('buys (upper bar)', '买入（上条）') +
     '</span><span><i style="background:var(--sell)"></i>' + T('sells (lower bar)', '卖出（下条）') + '</span></div>';
 }
@@ -1588,24 +1543,28 @@ function chartSupply() {
   const unclaimed = m ? m.unclaimed : D.migration.unminted;
   const minted = seed + toM;
   const never = Math.max(0, max - minted - unclaimed);
-  const x0 = 8, xw = 324, y = 22, h = 26;
-  const W = v => v / max * xw;
+  const W = boxW('chartSupply'), narrow = W < 560;
+  const x0 = 0, xw = W, y = 24, h = 30;
+  const Wd = v => v / max * xw;
   let s = '';
-  s += '<rect x="' + x0 + '" y="' + y + '" width="' + xw + '" height="' + h + '" fill="none" stroke="var(--line-2)" stroke-width="1" stroke-dasharray="3 3"/>';
-  s += '<rect x="' + x0 + '" y="' + y + '" width="' + W(seed).toFixed(1) + '" height="' + h + '" style="fill:var(--ink-3)"><title>' + T('pool seed minted to the migrator · ', '铸给迁移合约、注入池子的种子 · ') + nf(Math.round(seed)) + '</title></rect>';
-  s += capBar(x0 + W(seed), y, W(toM), h, 4) + ' style="fill:var(--gold)"><title>' + T('minted to migrators on claim · ', '迁移者领取时铸出 · ') + nf(Math.round(toM)) + '</title></path>';
-  s += '<rect x="' + (x0 + W(minted)).toFixed(1) + '" y="' + y + '" width="' + W(unclaimed).toFixed(1) + '" height="' + h + '" style="fill:var(--gold); opacity:.28"><title>' + T('credits not yet claimed · ', '尚未领取的额度 · ') + nf(Math.round(unclaimed)) + '</title></rect>';
-  s += txt(x0 + 8, y + 17, nf(Math.round(minted)), { size: 12, fill: 'var(--bg)', w: 500 });
-  s += txt(x0, y - 8, T('minted on demand · ', '按需已铸 · ') + (minted / max * 100).toFixed(2) + T('% of max', '% 的上限'), { size: 8.5 });
-  s += txt(x0 + xw, y - 8, T('max ', '上限 ') + nf(max), { size: 8.5, anchor: 'end' });
-  s += '<line x1="' + (x0 + W(minted)).toFixed(1) + '" y1="' + (y - 4) + '" x2="' + (x0 + W(minted)).toFixed(1) + '" y2="' + (y + h + 6) + '" stroke="var(--ink-3)" stroke-width="0.8"/>';
-  s += txt(x0, y + h + 18, T('claimable ', '可领 ') + tok(unclaimed) + ' · ' + (m ? utc(m.deadline).slice(0, 10) : '2026-12-21'), { size: 8.5 });
-  s += txt(x0 + xw, y + h + 18, T('never mintable ', '铸不出 ') + tok(never) + ' · ' + (never / max * 100).toFixed(1) + '%', { size: 8.5, anchor: 'end' });
-  s += '<rect x="' + x0 + '" y="' + (y + h + 26) + '" width="8" height="6" style="fill:var(--ink-3)"/>' + txt(x0 + 12, y + h + 31.5, T('pool seed', '池子种子'), { size: 7.5 });
-  s += '<rect x="' + (x0 + 70) + '" y="' + (y + h + 26) + '" width="8" height="6" style="fill:var(--gold)"/>' + txt(x0 + 82, y + h + 31.5, T('minted to migrators', '已铸给迁移者'), { size: 7.5 });
-  s += '<rect x="' + (x0 + 170) + '" y="' + (y + h + 26) + '" width="8" height="6" style="fill:var(--gold); opacity:.28"/>' + txt(x0 + 182, y + h + 31.5, T('claimable', '待领'), { size: 7.5 });
-  s += '<rect x="' + (x0 + 232) + '" y="' + (y + h + 26) + '" width="8" height="6" fill="none" stroke="var(--line-2)" stroke-dasharray="2 2"/>' + txt(x0 + 244, y + h + 31.5, T('never mintable', '永远铸不出'), { size: 7.5 });
-  return SVG('0 0 340 96', s);
+  s += '<rect x="' + x0 + '" y="' + y + '" width="' + xw + '" height="' + h + '" rx="4" fill="none" stroke="var(--line-2)" stroke-width="1" stroke-dasharray="3 3"/>';
+  s += '<rect x="' + x0 + '" y="' + y + '" width="' + Wd(seed).toFixed(1) + '" height="' + h + '" style="fill:var(--ink-3)"><title>' + T('pool seed minted to the migrator · ', '铸给迁移合约、注入池子的种子 · ') + nf(Math.round(seed)) + '</title></rect>';
+  s += capBar(x0 + Wd(seed), y, Wd(toM), h, 4) + ' style="fill:var(--gold)"><title>' + T('minted to migrators on claim · ', '迁移者领取时铸出 · ') + nf(Math.round(toM)) + '</title></path>';
+  s += '<rect x="' + (x0 + Wd(minted)).toFixed(1) + '" y="' + y + '" width="' + Wd(unclaimed).toFixed(1) + '" height="' + h + '" style="fill:var(--gold); opacity:.28"><title>' + T('credits not yet claimed · ', '尚未领取的额度 · ') + nf(Math.round(unclaimed)) + '</title></rect>';
+  if (Wd(minted) > 120) s += txt(x0 + 10, y + 20, nf(Math.round(minted)), { size: 13, fill: 'var(--bg)', w: 600 });
+  s += txt(x0, y - 9, (narrow ? '' : T('minted on demand · ', '按需已铸 · ')) + (minted / max * 100).toFixed(2) + T('% of max', '% 的上限'), { size: 11 });
+  s += txt(x0 + xw, y - 9, T('max ', '上限 ') + (narrow ? tok(max) : nf(max)), { size: 11, anchor: 'end' });
+  s += '<line x1="' + (x0 + Wd(minted)).toFixed(1) + '" y1="' + (y - 4) + '" x2="' + (x0 + Wd(minted)).toFixed(1) + '" y2="' + (y + h + 5) + '" stroke="var(--ink-3)" stroke-width="1"/>';
+  const b1 = T('claimable ', '可领 ') + tok(unclaimed) + ' · ' + T('until ', '截止 ') + (m ? utc(m.deadline).slice(0, 10) : '2026-12-21');
+  const b2 = T('never mintable ', '铸不出 ') + tok(never) + ' · ' + (never / max * 100).toFixed(1) + '%';
+  let H;
+  if (narrow) { s += txt(x0, y + h + 20, b1, { size: 11 }) + txt(x0, y + h + 37, b2, { size: 11 }); H = y + h + 44; }
+  else { s += txt(x0, y + h + 20, b1, { size: 11 }) + txt(x0 + xw, y + h + 20, b2, { size: 11, anchor: 'end' }); H = y + h + 28; }
+  return SVG('0 0 ' + W + ' ' + H, s) +
+    '<div class="legend"><span><i style="background:var(--ink-3)"></i>' + T('pool seed', '池子种子') + '</span>' +
+    '<span><i style="background:var(--gold)"></i>' + T('minted to migrators', '已铸给迁移者') + '</span>' +
+    '<span><i style="background:var(--gold); opacity:.28"></i>' + T('claimable', '待领') + '</span>' +
+    '<span><i style="border:1px dashed var(--line-2)"></i>' + T('never mintable', '永远铸不出') + '</span></div>';
 }
 
 function chartCandles() {
@@ -1613,7 +1572,7 @@ function chartCandles() {
   if (!cs.length) return blocked('candles')
     ? offlineNote('api.geckoterminal.com')
     : '<p class="cap" style="padding:24px 0">' + T('loading candles…', '正在载入 K 线…') + '</p>';
-  const W = 720, H = 250, L = 6, R = 62, T0 = 10, PB = 172, VT = 186, VB = 232;
+  const W = boxW('candleBox', 32), H = 250, L = 6, R = 70, T0 = 10, PB = 172, VT = 186, VB = 232;
   const lo = Math.min(...cs.map(c => c.l)), hi = Math.max(...cs.map(c => c.h));
   const pad = (hi - lo) * 0.06 || hi * 0.01;
   const y0 = lo - pad, y1 = hi + pad;
@@ -1627,7 +1586,7 @@ function chartCandles() {
   for (let k = 0; k <= 3; k++) {
     const yy = T0 + (PB - T0) * k / 3, pv = y1 - (y1 - y0) * k / 3;
     g += '<line x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + yy.toFixed(1) + '" stroke="var(--line)" stroke-width="0.6"/>';
-    g += txt(W - R + 6, yy + 3, price(pv), { size: 9 });
+    if (Math.abs(yy - Y(cs[cs.length - 1].c)) > 12) g += txt(W - R + 6, yy + 3, price(pv), { size: 9.5 });
   }
   cs.forEach((c, i) => {
     const up = c.c >= c.o, col = up ? 'var(--up)' : 'var(--down)';
@@ -1646,14 +1605,14 @@ function chartCandles() {
   g += txt(W - R + 6, ly + 3, price(last.c), { size: 10.5, fill: lcol, w: 500 });
   g += '<line x1="' + L + '" y1="' + VB + '" x2="' + (W - R) + '" y2="' + VB + '" stroke="var(--line)" stroke-width="0.6"/>';
   g += txt(L, VT - 4, T('volume', '成交量'), { size: 8.5 });
-  const nT = Math.min(5, cs.length);
+  const nT = Math.min(W < 480 ? 3 : W > 1000 ? 7 : 5, cs.length);
   for (let k = 0; k < nT; k++) {
     const i = Math.round(k * (cs.length - 1) / (nT - 1 || 1));
     const d = new Date(cs[i].t * 1000);
     const lab = range === '7d' || range === 'all'
       ? d.toISOString().slice(5, 10)
       : d.toISOString().slice(11, 16);
-    g += txt(X(i), VB + 14, lab, { size: 8.5, anchor: k === 0 ? 'start' : k === nT - 1 ? 'end' : 'middle' });
+    g += txt(X(i), VB + 14, lab, { size: 9.5, anchor: k === 0 ? 'start' : k === nT - 1 ? 'end' : 'middle' });
   }
   return SVG('0 0 ' + W + ' ' + (VB + 20), g);
 }
@@ -1714,13 +1673,14 @@ const FLAGS = {
   '0xbc39b6502e1a6ab36e4a5c5026a35f08342a0a9c': ['fee splitter', '手续费分账合约'],
   '0x84b8affbd7728217f97c8eb47fe4bda07d97b8c1': ['sweep operator / pool creator', '归集执行地址 / 建池地址'],
   '0x9310bc8bf95fa35608a9f08f76b55b4fdddc1ef0': ['launchpad — migration deposits went here', 'launchpad —— 迁移存入的接收方'],
-  '0x28e35d8c909df0d084945e4d80b17dbd36b0e02c': ['creator fee recipient, 70% of every BRODIE fee — the only confirmed team buying', 'creator 手续费收款人，每笔 BRODIE 手续费的 70% —— 唯一已证实的团队买入方'],
+  '0xc0f342a8936755697c535f1e8e0d712a8da672f8': ['the burn vault — creator fee recipient since 24 Sep, burns everything it claims', '销毁金库 —— 9 月 24 日起的 creator 收款人，领到的全部销毁'],
+  '0x28e35d8c909df0d084945e4d80b17dbd36b0e02c': ['creator fee recipient until 24 Sep', '9 月 24 日前的 creator 手续费收款人'],
   '0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd': ['Pons protocol fee recipient, 30% — Gnosis Safe 2-of-3, shared by every Pons token', 'Pons 协议手续费收款人，30% —— Gnosis Safe 2/3 多签，全部 Pons 代币共用'],
   '0xd64503dd73eb2a6f11856455e52bff8564172ef7': ['creator fee recipient of a different token on the same hook — not BRODIE', '同一 hook 上另一个代币的 creator 收款人 —— 与 BRODIE 无关'],
   '0x2cf505f3cbb36e06d4bd4758d10716b5416baad0': ['creator fee recipient of a different token on the same hook — not BRODIE', '同一 hook 上另一个代币的 creator 收款人 —— 与 BRODIE 无关']
 };
-async function lookup(addr) {
-  const out = document.getElementById('lookupOut');
+async function lookup(addr, outId) {
+  const out = document.getElementById(outId || 'lookupOut');
   addr = (addr || '').trim();
   if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
     out.innerHTML = '<div class="verdict"><span class="k">' + T('input', '输入') + '</span><span class="v mut">' +
@@ -1758,19 +1718,20 @@ async function lookup(addr) {
     const dep = ent[0], owed = ent[1], minted = ent[2] === 1;
     row(T('migration deposit', '迁移存入'), '<b>' + nf(Math.round(dep)) + '</b> V1 → ' + T('entitled to ', '应得 ') +
         '<b>' + nf(Math.round(owed)) + '</b> V2 <span class="mut">(' + (owed / dep).toFixed(3) + '×)</span>');
-    row(T('was it issued?', '有没有发放？'), minted
-      ? '<span class="chip ok"><span class="dot"></span>' + T('ISSUED at genesis', '创世已发放') + '</span>'
-      : '<span class="chip bad"><span class="dot"></span>' + T('NEVER ISSUED', '从未发放') + '</span> ' +
-        '<span class="mut">' + T('this address is one of ', '该地址属于那 ') + nf((D.migration || {}).unmintedAddrs || 68) +
-        T(' with a logged entitlement that was never minted', ' 个「有额度记录但从未铸造」的地址之一') + '</span>');
+    const waiting = Object.values(window.ENT || {}).filter(e => e[2] !== 1).length;
+    row(T('claimed?', '领了吗？'), minted
+      ? '<span class="chip ok"><span class="dot"></span>' + T('CLAIMED', '已领取') + '</span>'
+      : '<span class="chip warn"><span class="dot"></span>' + T('NOT CLAIMED YET', '尚未领取') + '</span> ' +
+        '<span class="mut">' + T('one of ', '共 ') + nf(waiting) + T(' depositors still waiting · ', ' 个存入地址还没领 · ') + '</span>' +
+        '<a href="https://www.ponsfamily.com/migrate" rel="noopener" target="_blank">' + T('claim on ponsfamily.com before Dec 21', '12 月 21 日前到 ponsfamily.com 领取') + '</a>');
   } else {
     row(T('migration deposit', '迁移存入'), '<span class="mut">' + T('no deposit recorded for this address', '没有该地址的存入记录') + '</span>');
   }
-  if (flag) row(T('role', '身份'), '<span class="chip warn">' + T('known contract / team address', '已知合约 / 团队地址') + '</span> ' + T(flag[0], flag[1]));
+  if (flag) row(T('role', '身份'), '<span class="chip">' + T('known address', '已知地址') + '</span> ' + T(flag[0], flag[1]));
   if (holder) row(T('holder rank', '持仓排名'), '#' + ((D.top || []).indexOf(holder) + 1) + T(' by balance in the snapshot', '（快照口径）') +
       ' · ' + (holder[1] / D.supplyV2 * 100).toFixed(2) + T('% of supply', '% 的供应量'));
   if (buyer) row(T('net bought', '净买入'), nf(Math.round(buyer[1])) + ' BRODIE · ' + (buyer[1] / D.supplyV2 * 100).toFixed(3) +
-      T('% of supply', '% 的供应量') + (buyer[7] === 'team' ? ' · <span class="chip ok">' + T('confirmed team', '已证实团队') + '</span>' : ''));
+      T('% of supply', '% 的供应量'));
   if (!ent && !flag && !holder && !buyer && v2 !== null && v2 === 0)
     row(T('summary', '小结'), '<span class="mut">' + T('nothing on record: no balance, no migration deposit, no flagged role.', '无任何记录：没有余额、没有迁移存入、不是已标记地址。') + '</span>');
   out.innerHTML = rows.join('');
@@ -1805,6 +1766,8 @@ function slideTabInk() {
   if (!on) { ink.style.width = '0'; return; }
   ink.style.width = on.offsetWidth + 'px';
   ink.style.transform = 'translateX(' + (on.offsetLeft - bar.scrollLeft) + 'px)';
+  bar.classList.toggle('more-l', bar.scrollLeft > 2);
+  bar.classList.toggle('more-r', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 2);
 }
 function renderRail() {
   const r = [
@@ -1820,9 +1783,9 @@ function renderTape() {
   const b24 = D.txns.h24[0], s24 = D.txns.h24[1];
   $('#tapeGrid').innerHTML =
     cell(T('price', '价格'), price(D.price), '<span class="' + cls(D.ch.h24) + '">' + pct(D.ch.h24) + '</span> ' + T('24h', '24 小时'), 'hero') +
-    cell(T('market cap', '市值'), usd(D.mcap), T('fully diluted — supply is flat', '全流通 — 总量固定'), '',
-         T('Price × total supply. Circulating equals total here: nothing is vested, locked or burned, so FDV and market cap are the same number.',
-           '价格 × 总供应量。此处流通量等于总量：没有锁仓、没有线性释放、没有销毁，所以 FDV 与市值是同一个数。')) +
+    cell(T('market cap', '市值'), usd(D.mcap), T('fully diluted', '全流通'), '',
+         T('Price × total supply. Nothing is vested or locked, so FDV and market cap are the same number; every burn lowers both.',
+           '价格 × 总供应量。没有锁仓、没有线性释放，所以 FDV 与市值是同一个数；每次销毁都会同时降低两者。')) +
     cell(T('liquidity', '流动性'), usd(D.liq.usd), T('single Uniswap v4 pool', '单一 Uniswap v4 池')) +
     cell(T('volume 24h', '24 小时成交'), usd(D.vol.h24), (b24 + s24) + T(' fills', ' 笔')) +
     cell(T('liq / mcap', '流动性 / 市值'), liqRatio.toFixed(1) + '%', T('depth vs size', '深度对市值'), '',
@@ -1833,7 +1796,7 @@ function renderTape() {
   $('#tapeGrid2').innerHTML =
     cell(T('total supply', '总量'), tok(D.supplyV2), nf(Math.round(D.supplyV2)) + ' BRODIE') +
     cell(T('burned to date', '累计销毁'), nf(D.burnedV2 + D.deadV2, 0), (D.burnedV2 + D.deadV2) < 1 ? T('zero so far — verified on-chain', '暂为零 — 链上已验证') : T('totalMinted − totalSupply, live', 'totalMinted − totalSupply，实时')) +
-    cell(T('holders', '持仓地址'), nf(D.holdersV2), T('replay snapshot', '重放快照') + ' · ' + ago(SNAP.at)) +
+    cell(T('holders', '持仓地址'), nf(ledgerReady() ? ledgerHolders() : D.holdersV2), ledgerReady() ? T('live · block ', '实时 · 区块 ') + nf(LEDGER.block) : T('replay snapshot', '重放快照') + ' · ' + ago(SNAP.at)) +
     cell(T('pool age', '开盘天数'), age.toFixed(1) + 'd', new Date(D.createdAt).toISOString().slice(0, 10)) +
     cell(T('implied ETH', '隐含 ETH'), usdExact(D.priceNative > 0 ? D.price / D.priceNative : 0), T('from pool quote', '由池内报价推算')) +
     cell(T('chain block', '区块高度'), nf(D.block), 'chainId 4663');
@@ -1851,7 +1814,7 @@ function renderMarket() {
          T('BRODIE / ETH by value — 50/50 is balanced', 'BRODIE / ETH 价值比 —— 50/50 为均衡')) +
     cell(T('volume trend', '成交趋势'), (D.vol.h1 && D.vol.h24 ? (D.vol.h1 / (D.vol.h24 / 24)) : 0).toFixed(2) + '×',
          T('last hour vs the 24h hourly average', '最近 1 小时 vs 24 小时均值')) +
-    cell(T('implied ETH', '隐含 ETH'), usdExact(D.priceNative > 0 ? D.price / D.priceNative : 0), T('from the pool quote', '由池内报价推算')) +
+    cell(T('ETH in the pool', '池内 ETH'), (D.liq.quote || 0).toFixed(2) + ' ETH', T('the side every burn buys against', '每次销毁买入的对手盘')) +
     cell(T('depth to move 1%', '推动 1% 所需'), usdExact(D.liq.usd * 0.005), T('rough half-of-liquidity rule of thumb', '流动性一半的粗略经验值'));
   $('#chartFlow').innerHTML = chartFlow();
 }
@@ -1874,10 +1837,10 @@ function renderSupply() {
 
   let verdict, vcls, vtxt;
   if (burnedTotal < 1) {
-    vcls = 'bad'; verdict = T('NO BURN FOUND', '未发现销毁');
+    vcls = ''; verdict = T('no burn yet', '尚无销毁');
     vtxt = m
-      ? T('totalMinted() and totalSupply() agree to the wei at block ' + nf(D.block) + ' (' + nf(minted, 2) + ' each) and 0x…dEaD holds ' + nf(D.deadV2, 2) + '. This is read live from the contracts every 30 seconds, not replayed from a snapshot: a buy-back-and-burn would show here within a minute as totalSupply falling below totalMinted.',
-          '区块 ' + nf(D.block) + ' 时 totalMinted() 与 totalSupply() 精确相等（均为 ' + nf(minted, 2) + '），黑洞地址持有 ' + nf(D.deadV2, 2) + '。这是每 30 秒直接从合约读取的，不是快照回放：一旦有回购销毁，一分钟内就会在这里表现为 totalSupply 低于 totalMinted。')
+      ? T('totalMinted() and totalSupply() agree to the wei at block ' + nf(D.block) + ' (' + nf(minted, 2) + ' each) and 0x…dEaD holds ' + nf(D.deadV2, 2) + '. Both are read live every 30 seconds, so the vault’s first burn will show here within a minute as totalSupply falling below totalMinted.',
+          '区块 ' + nf(D.block) + ' 时 totalMinted() 与 totalSupply() 精确相等（均为 ' + nf(minted, 2) + '），黑洞地址持有 ' + nf(D.deadV2, 2) + '。两者每 30 秒实时读取，金库第一次销毁后一分钟内，这里就会显示 totalSupply 低于 totalMinted。')
       : T('The last replay of every V2 Transfer event found zero transfers to 0x0 or 0x…dEaD. Live verification needs the RPC, which this preview cannot reach.',
           '最近一次对全部 V2 Transfer 事件的回放没有发现任何转入 0x0 或 0x…dEaD 的记录。实时核验需要 RPC，当前预览无法访问。');
   } else {
@@ -1890,7 +1853,7 @@ function renderSupply() {
   const toM = m ? m.toMigrators : Math.max(0, minted - CONFIG.seedToPool);
   const credits = m ? m.credits : D.migration.v2Entitled;
   $('#burnBox').innerHTML =
-    '<div class="note risk"><b>' + T('Verdict: ', '结论：') + verdict + '</b> ' + vtxt + '</div>' +
+    '<div class="note"><b>' + T('Verdict: ', '结论：') + verdict + '.</b> ' + vtxt + '</div>' +
     '<div class="tw"><table><thead><tr>' +
       '<th>' + T('ledger line', '账本科目') + '</th><th class="r">' + T('amount', '数量') + '</th>' +
       '<th>' + T('evidence', '证据') + '</th><th>' + T('status', '状态') + '</th></tr></thead><tbody>' +
@@ -1903,7 +1866,7 @@ function renderSupply() {
         '<td class="mono">' + (mi ? nf(mi.recipients) + T(' addresses · ', ' 个地址 · ') : '') + (toM / (credits || 1) * 100).toFixed(1) + T('% of ', '% 的 ') + nf(Math.round(credits)) + T(' credits', ' 额度') + '</td>' +
         '<td><span class="chip ok">' + (m ? T('live', '实时') : T('baked', '快照')) + '</span></td></tr>' +
       '<tr><td>' + T('Last mint', '最近一次铸造') + '</td><td class="r">' + (mi && mi.last ? nf(mi.last.amt, 2) : '—') + '</td>' +
-        '<td class="mono">' + (mi && mi.last ? T('block ', '区块 ') + nf(mi.last.blk) + ' · ' + utc(mi.last.time) + ' · ' + txl(mi.last.tx) : T('scanning…', '扫描中…')) + '</td>' +
+        '<td class="mono">' + (mi && mi.last ? T('block ', '区块 ') + nf(mi.last.blk) + (mi.last.time ? ' · ' + utc(mi.last.time) : '') + ' · ' + txl(mi.last.tx) : T('scanning…', '扫描中…')) + '</td>' +
         '<td><span class="chip ' + (mi ? 'ok' : '') + '">' + (mi ? T('live', '实时') : '…') + '</span></td></tr>' +
       '<tr><td>' + T('Burned (totalMinted − totalSupply)', '已销毁（totalMinted − totalSupply）') + '</td><td class="r">' + nf(burned0, 2) + '</td><td class="mono">' + T('two eth_call reads, block ', '两次 eth_call，区块 ') + nf(D.block) + '</td><td><span class="chip ' + vcls + '">' + (burned0 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
       '<tr><td>' + T('Held at 0x…dEaD', '黑洞地址余额') + '</td><td class="r">' + nf(D.deadV2, 2) + '</td><td class="mono">balanceOf(0x…dEaD)</td><td><span class="chip ' + vcls + '">' + (D.deadV2 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
@@ -1912,393 +1875,20 @@ function renderSupply() {
     '</tbody></table></div>';
   renderFees();
 }
-function chartTimeline() {
-  const tl = window.TL; if (!tl) return '';
-  const rows = tl.daily, n = rows.length;
-  const W = 720, L = 54, R = 14, T0 = 16, PB = 150, SB = 198;
-  const totals = rows.map(r => r[1].reduce((a, b) => a + b, 0));
-  const max = Math.max(...totals, 0.001);
-  const smax = Math.max(...rows.map(r => r[3]), 1);
-  const pw = (W - L - R) / n, bw = Math.min(pw * 0.62, 34);
-  const X = i => L + pw * (i + 0.5);
-  const Y = v => PB - (v / max) * (PB - T0);
-  let g = '';
-  for (let k = 0; k <= 2; k++) {
-    const yy = T0 + (PB - T0) * k / 2, pv = max - max * k / 2;
-    g += '<line x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + (W - R) + '" y2="' + yy.toFixed(1) + '" stroke="var(--line)" stroke-width="0.6"/>';
-    g += txt(L - 6, yy + 3, pv.toFixed(1) + ' ETH', { anchor: 'end', size: 8.5 });
-  }
-  rows.forEach((r, i) => {
-    let acc = 0;
-    r[1].forEach((v, j) => {
-      if (v <= 0) return;
-      const y0 = Y(acc + v), y1 = Y(acc), h = Math.max(0.8, y1 - y0 - 2);
-      g += '<rect x="' + (X(i) - bw / 2).toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + bw.toFixed(1) +
-           '" height="' + h.toFixed(1) + '" style="fill:var(--s' + (j + 1) + ')"><title>' + r[0] + ' · ' +
-           tl.parties[j][1] + ' (' + tl.parties[j][2] + '%) · ' + v.toFixed(4) + ' ETH</title></rect>';
-      acc += v;
-    });
-    g += txt(X(i), PB + 13, r[0].slice(5), { size: 8.5, anchor: 'middle' });
-  });
-  g += txt(L - 6, SB - 14, T('sold', '卖出'), { anchor: 'end', size: 8 });
-  rows.forEach((r, i) => {
-    const h = (r[3] / smax) * 32;
-    g += '<rect x="' + (X(i) - bw / 2).toFixed(1) + '" y="' + (SB - h).toFixed(1) + '" width="' + bw.toFixed(1) +
-         '" height="' + Math.max(0.8, h).toFixed(1) + '" style="fill:var(--down); opacity:.55"><title>' + r[0] + ' · ' +
-         r[2] + T(' sweeps · ', ' 次归集 · ') + nf(r[3]) + T(' BRODIE sold into the pool', ' 枚卖入池子') + '</title></rect>';
-  });
-  g += '<line x1="' + L + '" y1="' + SB + '" x2="' + (W - R) + '" y2="' + SB + '" stroke="var(--line)" stroke-width="0.6"/>';
-  (tl.buys || []).forEach(b => {
-    const d = new Date(b.t * 1000).toISOString().slice(0, 10);
-    const i = rows.findIndex(r => r[0] === d);
-    if (i < 0) return;
-    const x = X(i);
-    g += '<line x1="' + x + '" y1="' + T0 + '" x2="' + x + '" y2="' + SB + '" style="stroke:var(--verified)" stroke-width="1.2" stroke-dasharray="4 3"/>';
-    g += '<circle cx="' + x + '" cy="' + (T0 - 5) + '" r="4" style="fill:var(--verified)"><title>' +
-         T('the only buyback: ', '唯一一次回购：') + nf(Math.round(b.tokens)) + ' BRODIE</title></circle>';
-    g += txt(Math.min(x + 9, W - R - 140), T0 - 2, T('only buyback · ', '唯一一次回购 · ') + tok(b.tokens), { size: 9, fill: 'var(--verified)', w: 500 });
-  });
-  return SVG('0 0 ' + W + ' ' + (SB + 22), g);
-}
-const QKEY = 'brodie-questions';
-function qState() {
-  let local = {};
-  try { local = JSON.parse(localStorage.getItem(QKEY) || '{}'); } catch (e) {}
-  return Object.assign({}, window.QSTATUS || {}, local);
-}
-function qAnswered(panel) {
-  const st = qState();
-  const rel = (window.QA || []).filter(q => q.panel === panel);
-  return rel.length > 0 && rel.every(q => st[q.id]);
-}
-function provBadge(panel) {
-  return qAnswered(panel)
-    ? '<span class="prov chain">' + T('on-chain + confirmed', '链上 + 已确认') + '</span>'
-    : '<span class="prov infer">' + T('inferred', '推断') + '</span>';
-}
-function renderQA() {
-  const box = document.getElementById('qaBox');
-  if (!box || !window.QA) return;
-  const st = qState();
-  const done = window.QA.filter(q => st[q.id]).length;
-  box.innerHTML = window.QA.map((q, i) =>
-    '<div class="qa-row' + (st[q.id] ? ' done' : '') + '">' +
-    '<input type="checkbox" data-q="' + q.id + '"' + (st[q.id] ? ' checked' : '') + ' aria-label="mark answered">' +
-    '<div><div class="q"><span class="n">' + String(i + 1).padStart(2, '0') + '</span>' + T(q.q, q.zq) +
-      (st[q.id] ? ' <span class="chip ok">' + T('answered', '已回答') + '</span>' : '') + '</div>' +
-    '<div class="why">' + T(q.w, q.zw) + '</div><div class="ev">' + esc(q.ev) + '</div></div></div>').join('');
-  const chip = document.querySelector('#questions .chip.warn');
-  if (chip) chip.textContent = done + ' / ' + window.QA.length + T(' answered', ' 已回答');
-  const pub = document.getElementById('qaPublish');
-  if (pub) {
-    if (done > 0) {
-      const snip = 'window.QSTATUS=' + JSON.stringify(Object.fromEntries(window.QA.filter(q => st[q.id]).map(q => [q.id, 1]))) + ';';
-      pub.hidden = false;
-      pub.innerHTML = '<b>' + T('These ticks are yours alone. ', '这些勾选只存在你自己的浏览器里。') + '</b>' +
-        T('They live in this browser, not in the page, so visitors still see every question as open. To publish them, replace the window.QSTATUS line in index.html with:',
-          '它们保存在本机浏览器，不在页面里，所以访客看到的仍然是全部未回答。要公开，请把 index.html 里的 window.QSTATUS 那一行替换成：') +
-        '<div class="ev" style="margin-top:7px"><code>' + esc(snip) + '</code></div>' +
-        '<button class="btn" type="button" data-copy="' + esc(snip) + '" style="margin-top:8px">' + T('Copy', '复制') + '</button>';
-    } else { pub.hidden = true; pub.innerHTML = ''; }
-  }
-  document.querySelectorAll('[data-prov]').forEach(el => { el.innerHTML = provBadge(el.dataset.prov); });
-}
-function renderSellers() {
-  const sa = window.SA; const host = document.getElementById('sellBox');
-  if (!sa || !host) return;
-  /* tolerate either literal shape: cats[[name,value]] or categories{name:value} */
-  if (!sa.cats && sa.categories) sa.cats = Object.entries(sa.categories).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]);
-  if (!sa.topDumpers && sa.topClaimDumpers) sa.topDumpers = sa.topClaimDumpers;
-  if (!Array.isArray(sa.cats)) return;
-  const LAB = {
-    round_trip: ['bought on the market, then sold', '在市场买入后卖出'],
-    received_then_sold: ['received by transfer, then sold', '通过转账收到后卖出'],
-    liquidity: ['liquidity provision, not a sale', '注入流动性，并非抛售'],
-    claim_dump: ['migration tokens, sold', '迁移领到的币，卖出'],
-    fee_hook: ['the fee hook selling for the team', 'hook 替团队卖出手续费']
-  };
-  const FILL = { round_trip: 'var(--s4)', received_then_sold: 'var(--s3)', liquidity: 'var(--s2)',
-                 claim_dump: 'var(--s1)', fee_hook: 'var(--down)' };
-  const tot = sa.totalSold || 1;
-  const W = 720, H = 46, X0 = 6, XW = W - 12;
-  let x = X0, g = '';
-  sa.cats.forEach(([k, v]) => {
-    const w = Math.max(0, (v / tot) * XW - 2);
-    g += '<rect x="' + x.toFixed(1) + '" y="10" width="' + w.toFixed(1) + '" height="' + H +
-         '" style="fill:' + FILL[k] + '"><title>' + T(LAB[k][0], LAB[k][1]) + ' · ' + nf(v) + ' BRODIE · ' +
-         (v / tot * 100).toFixed(2) + '%</title></rect>';
-    if (w > 46) g += txt(x + 7, 34, (v / tot * 100).toFixed(1) + '%', { size: 11, w: 500, fill: k === 'fee_hook' ? 'var(--bg)' : 'var(--bg)' });
-    x += w + 2;
-  });
-  const legend = sa.cats.map(([k, v]) =>
-    '<span><i style="background:' + FILL[k] + '"></i>' + T(LAB[k][0], LAB[k][1]) + ' · <b>' + (v / tot * 100).toFixed(2) + '%</b></span>').join('');
-  const rows = sa.cats.map(([k, v]) =>
-    '<tr' + (k === 'fee_hook' ? ' class="flag"' : '') + '><td>' + T(LAB[k][0], LAB[k][1]) + '</td>' +
-    '<td class="r">' + nf(v) + '</td><td class="r"><b>' + (v / tot * 100).toFixed(2) + '%</b></td>' +
-    '<td class="r">' + usdExact(v * D.price) + '</td></tr>').join('');
-  const dump = sa.topDumpers.map(r =>
-    '<tr><td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + r[0] + '" rel="noopener" target="_blank">' + short(r[0]) + '</a></td>' +
-    '<td class="r">' + nf(r[2]) + '</td><td class="r">' + nf(r[1]) + '</td>' +
-    '<td class="r"><b>' + (r[1] / r[2] * 100).toFixed(1) + '%</b></td></tr>').join('');
-  const catVal = k => { const e = sa.cats.find(c => c[0] === k); return e ? e[1] : 0; };
-  const hook = catVal('fee_hook'), claim = catVal('claim_dump');
-  host.innerHTML =
-    '<div class="grid g4">' +
-      cell(T('sold into the pool', '卖入池子总量'), tok(tot), nf(sa.sellers) + T(' selling addresses, all time', ' 个卖出地址，全历史')) +
-      cell(T('sold by the fee hook', 'hook 卖出'), tok(hook), (hook / tot * 100).toFixed(2) + T('% of all selling', '% 的总卖压'), 'hero',
-           T('Transfers where the sender is the pool hook. This is the only selling that acts on the team\u2019s behalf. Holders selling their own migration allocation is counted separately and is not team selling.',
-             '发送方为池子 hook 的转账。这是唯一代表团队的卖出。持有者卖掉自己的迁移额度是单独统计的，不算团队卖出。')) +
-      cell(T('migration tokens dumped', '迁移币砸盘'), tok(claim), (claim / tot * 100).toFixed(2) + T('% of all selling', '% 的总卖压')) +
-      cell(T('everything else', '其余'), tok(tot - hook - claim), T('traders and liquidity', '交易者与流动性')) +
-    '</div>' +
-    /* this panel is a replayed snapshot, not a live read — say so, and say how old */
-    '<p class="cap" style="margin:-4px 0 12px">' +
-      T('Full-history replay, refreshed on a schedule rather than read live. As of block ', '全历史重放，按计划刷新而非实时读取。数据截止区块 ') +
-      nf(sa.block) + (sa.generated ? ' \u00b7 ' + sa.generated.replace('T',' ').replace('Z',' UTC') : '') +
-      (D.block && sa.block ? T(' \u00b7 ', ' \u00b7 ') + nf(D.block - sa.block) + T(' blocks behind head', ' 个区块之前') : '') +
-    '</p>' +
-    '<figure class="fig" style="border:1px solid var(--line); padding:14px; margin:0 0 14px">' +
-      '<h4 style="margin:0">' + T('Every token ever sold into the pool, by where the seller got it', '所有卖入池子的币，按卖方的来源拆分') + '</h4>' +
-      '<p class="cap">' + T('A sale is attributed to the token source that wallet actually held — minted first, then bought, then received. Totals exceed supply because tokens are bought and sold repeatedly.',
-        '每笔卖出按该钱包实际持有的来源归属：先算创世铸造的，再算买入的，再算收到的。合计超过总供应量，是因为同一批币被反复买卖。') + '</p>' +
-      SVG('0 0 720 68', g) +
-      '<div class="legend">' + legend + '</div>' +
-    '</figure>' +
-    '<div class="tw"><table><thead><tr><th>' + T('source of the sold tokens', '卖出代币的来源') + '</th>' +
-      '<th class="r">BRODIE</th><th class="r">' + T('share', '占比') + '</th><th class="r">' + T('value now', '折合现价') + '</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<div class="note"><b>' + T('Reading this correctly. ', '正确的读法。') + '</b>' +
-      T('The hook is the only seller that acts for the team, and it accounts for ' + (hook / tot * 100).toFixed(2) +
-        '% of all selling. The much larger ' + (claim / tot * 100).toFixed(2) + '% marked "migration tokens" is ordinary holders selling what they claimed — it is not team selling, and it was never counted as such anywhere on this page. Both are worth knowing, for different reasons.',
-        'hook 是唯一代表团队卖出的地址，占总卖压的 ' + (hook / tot * 100).toFixed(2) +
-        '%。而占比大得多的 ' + (claim / tot * 100).toFixed(2) + '%「迁移币」是普通持有者卖掉自己领到的额度——那不是团队砸盘，本页任何地方也从未把它算作团队卖出。两个数字都值得知道，但意义不同。') +
-    '</div>' +
-    '<h4 style="font-family:var(--f-disp); font-size:16px; margin:22px 0 3px">' + T('Largest migration dumps', '砸盘最多的迁移地址') + '</h4>' +
-    '<p class="sec-note" style="margin-bottom:10px">' + T('Wallets that sold the tokens they were minted at genesis. A 100% row means the whole allocation went straight to market.',
-      '把创世铸造给自己的币卖掉的钱包。100% 意味着整笔额度直接进了市场。') + '</p>' +
-    '<div class="tw"><table><thead><tr><th>' + T('address', '地址') + '</th><th class="r">' + T('minted', '创世获得') + '</th>' +
-      '<th class="r">' + T('sold', '已卖出') + '</th><th class="r">' + T('of allocation', '占其额度') + '</th></tr></thead><tbody>' + dump + '</tbody></table></div>';
-}
-function renderTimeline() {
-  let tl = window.TL; const host = document.getElementById('tlBox');
-  if (!tl || !host) return;
-  const L = D.feesLive;
-  if (L && Object.keys(L.daily).length) {   /* rebuild the daily table from live events; keep the baked buys */
-    tl = Object.assign({}, tl, {
-      block: L.scannedTo, generated: L.at,
-      daily: Object.keys(L.daily).sort().map(d => [d, L.daily[d].eth.map(v => +v.toFixed(4)), L.daily[d].sw, Math.round(L.daily[d].sold)]),
-      sweeps: L.sweeps, payouts: L.count, lastPayout: L.lastTime || tl.lastPayout, lastSweep: L.lastSweep || tl.lastSweep,
-      firstSweep: tl.firstSweep
-    });
-  }
-  const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
-  const b = (tl.buys || [])[0];
-  const fmt = t => new Date(t * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
-  const legend = tl.parties.map((p, j) =>
-    '<span><i style="background:var(--s' + (j + 1) + ')"></i>' + p[1] + ' · ' + p[2] + '% · ' + short(p[0]) + '</span>').join('');
-  const rows = tl.daily.slice().reverse().map(r => {
-    const tot = r[1].reduce((a, x) => a + x, 0);
-    const isBuyDay = b && new Date(b.t * 1000).toISOString().slice(0, 10) === r[0];
-    return '<tr' + (isBuyDay ? ' class="flag"' : '') + '><td>' + r[0] + '</td>' +
-      r[1].map(v => '<td class="r">' + (v > 0 ? v.toFixed(3) : '<span class="mut">—</span>') + '</td>').join('') +
-      '<td class="r"><b>' + tot.toFixed(3) + '</b></td><td class="r">' + usdExact(tot * eth) + '</td>' +
-      '<td class="r">' + r[2] + '</td><td class="r">' + nf(r[3]) + '</td>' +
-      '<td>' + (isBuyDay ? '<span class="chip ok">' + T('the one buyback', '唯一一次回购') + '</span>' : '') + '</td></tr>';
-  }).join('');
-  host.innerHTML =
-    '<div class="grid g4">' +
-      cell(T('fee selling began', '开始卖出手续费'), fmt(tl.firstSweep).slice(0, 10), fmt(tl.firstSweep).slice(11) + T(' · one day after launch', ' · 上线次日')) +
-      cell(T('last fee sale', '最后一次卖出'), fmt(tl.lastSweep).slice(0, 10), nf(tl.sweeps) + T(' sweeps in total', ' 次归集卖出')) +
-      cell(T('the only buyback', '唯一一次回购'), b ? fmt(b.t).slice(0, 10) : '—',
-           b ? fmt(b.t).slice(11) + ' · ' + nf(Math.round(b.tokens)) + ' BRODIE' : '', 'hero') +
-      cell(T('payouts still running', '分账仍在进行'), fmt(tl.lastPayout).slice(0, 10), nf(tl.payouts) + T(' payments, 70 / 30 every time', ' 笔分账，每笔都是 70 / 30')) +
-    '</div>' +
-    '<figure class="fig" style="border:1px solid var(--line); padding:14px; margin:0 0 14px">' +
-      '<h4 style="margin:0">' + T('Where the money went, by day', '每天的钱去了哪') + '</h4>' +
-      '<p class="cap">' + T('Upper bars: ETH paid to each beneficiary, lighter = larger share. Lower red strip: BRODIE sold into the pool that day to fund those payments. The dashed line marks the single buyback.',
-        '上方柱：当天付给各受益人的 ETH，颜色越浅份额越大。下方红条：当天为凑这笔钱卖进池子的 BRODIE。虚线标出那唯一一次回购。') + '</p>' +
-      chartTimeline() +
-      '<div class="legend">' + legend + '<span><i style="background:var(--down); opacity:.55"></i>' + T('BRODIE sold', '卖出的 BRODIE') + '</span></div>' +
-    '</figure>' +
-    '<div class="tw"><table><thead><tr><th>' + T('day (UTC)', '日期 UTC') + '</th>' +
-      tl.parties.map(p => '<th class="r">' + p[1] + '</th>').join('') +
-      '<th class="r">' + T('total ETH', '合计 ETH') + '</th><th class="r">' + T('value', '折合') + '</th>' +
-      '<th class="r">' + T('sweeps', '归集次数') + '</th><th class="r">' + T('BRODIE sold', '卖出 BRODIE') + '</th><th></th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    (b ? '<div class="note"><b>' + T('The one buyback, in full: ', '那唯一一次回购的全部信息：') + '</b>' +
-      fmt(b.t) + ' · ' + T('block ', '区块 ') + nf(b.blk) + ' · ' + nf(Math.round(b.tokens)) + ' BRODIE · ' +
-      usdExact(b.tokens * D.price) + ' · <a href="https://robinhoodchain.blockscout.com/tx/' + b.tx + '" rel="noopener" target="_blank">' + short(b.tx) + '</a>. ' +
-      T('Nothing has been bought since.', '此后再没有买过。') + '</div>' : '');
-}
-function renderFeeDestination() {
-  const f = D.fees, tl = window.TL, host = document.getElementById('destBox');
-  if (!f || !host) return;
-  const L = D.feesLive;
-  const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
-  const parties = f.parties;
-  const earned = parties.map((p, j) => L ? (L.credited[p[0].toLowerCase()] || 0) : (tl ? tl.daily.reduce((a, d) => a + d[1][j], 0) : p[2]));
-  const claimed = parties.map(p => L ? (L.claimed[p[0].toLowerCase()] || 0) : null);
-  const inEscrow = f.escrowBalances || parties.map(() => null);
-  const bals = f.balances;
-  const SAFE = '0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd';
-  const rows = parties.map((p, j) => {
-    const a = p[0].toLowerCase();
-    const e = earned[j], c = claimed[j], esc = inEscrow[j], b = bals ? bals[j] : null;
-    const isSafe = a === SAFE;
-    const left = (c === null || b === null) ? null : Math.max(0, c - b);
-    const state = b === null ? '' :
-      (c !== null && c < 0.001 && e > 0.01) ? T('never claimed', '一次未领') :
-      isSafe ? T('shared Safe', '共用多签') :
-      b < 0.05 ? T('emptied', '已清空') :
-      (left !== null && left > 0.5) ? T('partly withdrawn', '部分提走') : T('untouched', '原封未动');
-    return '<tr><td><b>' + p[1].toFixed(1) + '%</b></td>' +
-      '<td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + p[0] + '" rel="noopener" target="_blank">' + short(p[0]) + '</a></td>' +
-      '<td class="r">' + e.toFixed(3) + '</td>' +
-      '<td class="r">' + (c === null ? '<span class="mut">—</span>' : c.toFixed(3)) + '</td>' +
-      '<td class="r">' + (esc === null ? '<span class="mut">—</span>' : esc.toFixed(3)) + '</td>' +
-      '<td class="r">' + (b === null ? '<span class="mut">—</span>' : b.toFixed(3)) + (isSafe ? ' <span class="mut">*</span>' : '') + '</td>' +
-      '<td class="r">' + (left === null ? '<span class="mut">—</span>' : isSafe ? '<span class="mut">n/a</span>' : '<b class="' + (left > 0.05 ? 'down' : 'mut') + '">' + left.toFixed(3) + '</b>') + '</td>' +
-      '<td class="r">' + (left === null || isSafe ? '' : usdExact(left * eth)) + '</td>' +
-      '<td class="mut">' + state + '</td></tr>';
-  }).join('');
-  const tot = earned.reduce((a, b) => a + b, 0);
-  const totClaimed = claimed.every(c => c !== null) ? claimed.reduce((a, b) => a + b, 0) : null;
-  const totEscrow = inEscrow.every(c => c !== null) ? inEscrow.reduce((a, b) => a + b, 0) : null;
-  const held = bals && bals.every(b => b !== null) ? bals.reduce((a, b) => a + b, 0) : null;
-  const stamp = L ? T('live · ', '实时 · ') + nf(L.count) + T(' credits · last ', ' 笔记账 · 最近 ') + utc(L.lastTime) : tl ? T('snapshot · block ', '快照 · 区块 ') + nf(tl.block) : '';
-  host.innerHTML =
-    '<div class="grid g4">' +
-      cell(T('paid out to date', '累计记账'), tot.toFixed(2) + ' ETH', usdExact(tot * eth) + T(' in fees · ', ' 手续费 · ') + stamp, 'hero',
-           T('Sum of the Credited events on the fee escrow that belong to BRODIE, read from the chain every 90 seconds. A credit counts as ours only when our own creator is paid in the same transaction.', '托管合约上归属 BRODIE 的 Credited 事件之和，每 90 秒从链上重读。只有当我们自己的 creator 出现在同一笔交易里时，该笔记账才算我们的。')) +
-      cell(T('claimed', '已领取'), totClaimed === null ? '—' : totClaimed.toFixed(2) + ' ETH', totClaimed === null ? '' : (totClaimed / (tot || 1) * 100).toFixed(0) + T('% of what was credited', '% 的记账额')) +
-      cell(T('still in escrow', '仍在托管'), totEscrow === null ? '—' : totEscrow.toFixed(2) + ' ETH', T('balanceOf(recipient) on the escrow, live', '托管合约 balanceOf，实时')) +
-      cell(T('in the wallets now', '钱包当前余额'), held === null ? '—' : held.toFixed(2) + ' ETH', T('eth_getBalance every 30s · the Safe is not BRODIE-only', '每 30 秒 eth_getBalance · 多签余额非 BRODIE 专属')) +
-    '</div>' +
-    '<div class="tw"><table><thead><tr><th>' + T('share', '分成') + '</th><th>' + T('wallet', '钱包') + '</th>' +
-      '<th class="r">' + T('credited ETH', '记账 ETH') + '</th><th class="r">' + T('claimed', '已领') + '</th>' +
-      '<th class="r">' + T('in escrow', '托管中') + '</th><th class="r">' + T('holds now', '当前余额') + '</th>' +
-      '<th class="r">' + T('left the wallet', '已从钱包转出') + '</th><th class="r">' + T('value', '折合') + '</th>' +
-      '<th>' + T('state', '状态') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<div class="note"><b>' + T('How far this can be traced. ', '能追到哪一步。') + '</b>' +
-      T('Credits and claims are the escrow’s own events; escrow and wallet balances are live reads. "Left the wallet" is claimed minus what the wallet holds now, floored at zero. Where that ETH went is not public — native transfers leave no logs, and trace_transaction is gated behind a paid key on every RPC this chain publishes.',
-        '记账与领取来自托管合约自身的事件，托管余额与钱包余额是实时读取。「已从钱包转出」= 已领 − 当前余额，最低为零。转出的 ETH 去了哪无法从公开数据得知——原生转账不留日志，而这条链公开的每个 RPC 都把 trace_transaction 设在付费门槛后。') +
-    '</div>' +
-    '<div class="note risk"><b>' + T('* One wallet is not what it looks like. ', '* 有一个钱包不能按字面读。') + '</b>' +
-      T('The 30% address is a 2-of-3 Gnosis Safe used across the Pons ecosystem. Its BRODIE share is exact and it has never claimed it — that ETH is still sitting in the escrow — so its wallet balance comes from other income and is not a BRODIE figure.',
-        '拿 30% 的那个地址是 Pons 生态共用的 2/3 多签。它的 BRODIE 分成是精确的，而且一次都没领——那笔 ETH 还在托管合约里——所以它的钱包余额来自其它收入，不是 BRODIE 的数字。') +
-    '</div>';
-}
-function renderTeamExit() {
-  const x = window.TEAMEXIT; const host = document.getElementById('exitBox');
-  if (!x || !host) return;
-  const fmt = t => new Date(t * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
-  const hm  = t => new Date(t * 1000).toISOString().slice(11, 19) + ' UTC';
-  const day = t => new Date(t * 1000).toISOString().slice(0, 10);
-  const link = (h, txt) => '<a href="https://robinhoodchain.blockscout.com/tx/' + h + '" rel="noopener" target="_blank">' + txt + '</a>';
-  const addr = a => '<a href="https://robinhoodchain.blockscout.com/address/' + a + '" rel="noopener" target="_blank">' + short(a) + '</a>';
-  const steps = [
-    '<div class="trail-step"><span class="when">' + day(x.firstBuy) + ' → ' + day(x.lastBuy) + '</span>' +
-    '<span class="what"><b>' + nf(Math.round(x.bought)) + '</b> BRODIE ' + T('bought across ', ' 分 ') + x.buyCount + T(' fills', ' 笔买入') +
-    '<br><span class="mut">' + T('by the fee wallet ', '买方是手续费钱包 ') + addr(x.feeWallet) +
-    T(' — 16 of them routed through ', ' —— 其中 16 笔经路由 ') + addr(x.router) +
-    T(', which is why a transfer-level count saw only one.', ' 中转，这正是按转账口径统计只看到 1 笔的原因。') + '</span></span></div>'
-  ].concat(x.exit.map(e =>
-    '<div class="trail-step' + (e.kind === 'sell' ? ' sell' : '') + '"><span class="when">' + fmt(e.t) + '</span>' +
-    '<span class="what"><b>' + nf(Math.round(e.amt)) + '</b> BRODIE ' +
-    (e.kind === 'to_sub'
-      ? T('moved to a fresh wallet ', '转入一个全新钱包 ') + addr(x.subWallet) +
-        '<br><span class="mut">' + T('that wallet had never held a token before, and this was its only inbound.', '该钱包此前从未持有过任何代币，这是它唯一的一笔入账。') + '</span>'
-      : '<span class="chip bad">' + T('SOLD', '卖出') + '</span> ' + T('into the pool', ' 卖入池子') +
-        '<br><span class="mut">' + hm(e.t) + ' · ' + T('block ', '区块 ') + nf(e.blk) + ' · ' + link(e.tx, short(e.tx)) + '</span>') +
-    '</span></div>'));
-  const gap = Math.round((x.exit[x.exit.length - 1].t - x.exit[0].t) / 60);
-  host.innerHTML =
-    '<details class="correction"><summary><b>' + T('Correction log', '更正记录') + '</b>' +
-    T('this panel was wrong until 12 September — two errors, both fixed below', '本栏在 9 月 12 日之前是错的 —— 两处错误，均已在下方更正') + '</summary>' +
-    '<p>' + T('This panel previously reported the fee wallet as having bought 581,896 BRODIE and never sold. Both halves were wrong, for two separate reasons, and both are fixed above.',
-              '本栏此前报告手续费钱包买入 581,896 枚且从未卖出。两半都是错的，各有原因，现已全部更正。') + '</p>' +
-    '<p><b>' + T('1. A blind spot in the method. ', '一、口径盲区。') + '</b>' +
-    T('Buys were counted as transfers coming straight from the pool. Sixteen of the seventeen fills went pool → router → wallet, so only the single direct one was seen. Attribution now nets every address inside each transaction, which makes routers cancel out and reveals who actually took the position.',
-      '原先把「直接来自池子的转账」当作买入。17 笔里有 16 笔走的是 池子 → 路由 → 钱包，因此只看到了唯一那笔直连的。现在改为在每一笔交易内部对各地址净额结算，路由自然抵消，真正建仓的地址才会显现。') + '</p>' +
-    '<p><b>' + T('2. A stale snapshot. ', '二、快照过期。') + '</b>' +
-    T('The sale happened at 21:44 UTC on 9 September. The ledger baked into this page was built at 16:26 that day — five hours earlier — and the scheduled job meant to refresh it had failed on every run since launch, on a bug in one of my own scripts. That is fixed too.',
-      '卖出发生在 9 月 9 日 21:44 UTC。本页内嵌的账本生成于当天 16:26，早了五个小时；而本应自动刷新它的定时任务，自上线起每一次都因为我自己脚本里的一个 bug 而失败。这个也已修复。') + '</p>' +
-    '<p><b>' + T('3. And it was never a buyback. ', '三、而且它从来就不是回购。') + '</b>' +
-    T('A buyback removes tokens from circulation and keeps them out. These were bought for ' + x.spentEth.toFixed(3) +
-      ' ETH and sold nine days later for ' + x.recvEth.toFixed(3) + ' ETH \u2014 a ' + Math.abs(x.netEth).toFixed(3) +
-      ' ETH loss \u2014 with every token returned to the market. Whatever this was, the word does not fit, and the page no longer uses it here.',
-      '回购的定义是把代币买离市场并让它留在市场之外。这批代币花 ' + x.spentEth.toFixed(3) +
-      ' ETH 买入，九天后以 ' + x.recvEth.toFixed(3) + ' ETH 全部卖出，亏损 ' + Math.abs(x.netEth).toFixed(3) +
-      ' ETH，一枚不剩地回到市场。不管这是什么，都不该叫回购，本页已不再在此处使用这个词。') + '</p>' +
-    '<p>' + T('Credit for spotting it goes to the reader who traced the sub-wallet by hand.', '这个问题是读者手工追踪子钱包发现的。') + '</p></details>' +
-    '<div class="grid g4">' +
-      cell(T('bought', '买入'), x.spentEth.toFixed(3) + ' ETH', tok(x.bought) + T(' BRODIE · 17 fills', ' 枚 · 17 笔')) +
-      cell(T('sold', '卖出'), x.recvEth.toFixed(3) + ' ETH', tok(x.sold) + T(' BRODIE · 2 fills', ' 枚 · 2 笔')) +
-      cell(T('result', '结果'), (x.netEth >= 0 ? '+' : '') + x.netEth.toFixed(3) + ' ETH',
-           ((x.avgSellGwei / x.avgBuyGwei - 1) * 100).toFixed(1) + T('% against the average entry', '% 相对买入均价'), 'hero',
-           T('Every ETH leg is read from the pool\u2019s own Swap events \u2014 what was actually paid and received, not an estimate from a price feed.',
-             '每一笔 ETH 都是从池子自身的 Swap 事件读出的实付实收，不是用行情价估算的。')) +
-      cell(T('removed from circulation', '实际退出流通'), '0',
-           T('which is the whole test', '这正是判定的全部标准'), '',
-           T('A buyback takes tokens off the market and keeps them off \u2014 burned, or held. Every one of these came back within nine days.',
-             '回购的定义是把代币买离市场并让它留在市场之外——销毁，或长期持有。这批代币九天内全部回到了市场。')) +
-    '</div>' +
-    '<div class="trail">' + steps.join('') + '</div>';
-}
-function renderBuyers() {
-  const f = D.fees;
-  const claimTok = D.supplyV2 * 0.006;
-  const rows = f.buyers.map(r0 => {
-    const r = r0.slice();
-    if (ledgerReady()) { const fl = LEDGER.flows[r[0].toLowerCase()]; if (fl) r[1] = Math.max(0, fl[0] - fl[1]); }
-    const team = r[7] === 'team';
-    const sig = [];
-    if (r[4]) sig.push(nf(Math.round(r[4])) + ' PONS');
-    if (r[5]) sig.push(nf(Math.round(r[5])) + ' V1');
-    if (r[6]) sig.push(T('genesis ', '创世 ') + tok(r[6]));
-    if (r[7] === 'router') sig.push(T('router / aggregator', '路由聚合器'));
-    if (r[7] === 'bot') sig.push(T('vanity address, bot-shaped', '靓号地址，疑似 bot'));
-    if (r[7] === 'team') sig.push(T('17 fills 1–7 Sep, all moved out 9 Sep', '9/1–9/7 分 17 笔买入，9/9 全部转出'));
-    if (r[7] === 'teamsub') sig.push(T('funded only by the fee wallet; sold everything in 11 minutes', '唯一入账来自手续费钱包，11 分钟内清仓'));
-    const badge = r[7] === 'teamsub' ? '<span class="chip bad"><span class="dot"></span>' + T('TEAM SUB-WALLET', '团队子钱包') + '</span>'
-      : team ? '<span class="chip ok"><span class="dot"></span>' + T('CONFIRMED TEAM', '已证实团队') + '</span>'
-      : r[7] === 'ecosystem' ? '<span class="chip warn">' + T('ecosystem-linked', '生态关联') + '</span>'
-      : '<span class="chip">' + T('unlinked', '无关联') + '</span>';
-    return '<tr' + (team ? ' class="flag"' : '') + '><td>' + badge + '</td>' +
-      '<td class="mono"><a href="https://robinhoodchain.blockscout.com/address/' + r[0] + '" rel="noopener" target="_blank">' + short(r[0]) + '</a></td>' +
-      '<td class="r">' + nf(Math.round(r[1])) + '</td>' +
-      '<td class="r"><b>' + (r[1] / D.supplyV2 * 100).toFixed(3) + '%</b></td>' +
-      '<td class="r">' + usdExact(r[1] * D.price) + '</td>' +
-      '<td>' + r[2] + '</td><td class="r">' + nf(r[3]) + '</td>' +
-      '<td class="mut">' + (sig.join(' \u00b7 ') || '\u2014') + '</td></tr>';
-  }).join('');
-  document.getElementById('buyBox').innerHTML =
-    '<div class="grid g4">' +
-      cell(T('the claim: 0.6%', '声称回购 0.6%'), nf(Math.round(claimTok)), T('BRODIE that would have to be bought', '需要买入的 BRODIE 数量')) +
-      cell(T('confirmed team buying', '已证实的团队买入'), nf(Math.round(f.boughtBack)), (f.boughtBack / D.supplyV2 * 100).toFixed(3) + T('% of supply', '% 的供应量'), 'hero') +
-      cell(T('shortfall', '缺口'), (claimTok / f.boughtBack).toFixed(1) + '\u00d7', T('the claim is this many times the measured figure', '声称值是实测值的倍数')) +
-      cell(T('fee tokens sold', '手续费代币已卖出'), tok(f.hookSoldBack), (f.hookSoldBack / D.supplyV2 * 100).toFixed(3) + T('% of supply — the hook sells, never buys', '% 的供应量 — hook 只卖不买')) +
-    '</div>' +
-    '<div class="tw"><table><thead><tr><th>' + T('link to the team', '与团队的关联') + '</th><th>' + T('address', '地址') + '</th>' +
-      '<th class="r">' + T('net bought', '净买入') + '</th><th class="r">' + T('% supply', '占供应') + '</th>' +
-      '<th class="r">' + T('value', '折合') + '</th><th>' + T('kind', '类型') + '</th><th class="r">' + T('txs', '交易数') + '</th>' +
-      '<th>' + T('signals', '特征') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<div class="note"><b>' + T('Two numbers that look like buybacks and are not. ', '两个看起来像回购、其实不是的数字。') + '</b>' +
-      T('The hook received ' + nf(Math.round(f.hookAccrued)) + ' BRODIE out of the pool — ' + (f.hookAccrued / D.supplyV2 * 100).toFixed(3) + '% of supply — but that is fee accrual, and it sold ' + nf(Math.round(f.hookSoldBack)) + ' of it straight back. The LP deployer sent ' + tok(f.lpFromGenesis) + ' into the pool, which is liquidity provision, not a sale. Read either as a buyback and the order of magnitude looks right while the direction is backwards.',
-        'hook 从池子里收到 ' + nf(Math.round(f.hookAccrued)) + ' 枚（占供应 ' + (f.hookAccrued / D.supplyV2 * 100).toFixed(3) + '%），那是手续费入账，而且随后把其中 ' + nf(Math.round(f.hookSoldBack)) + ' 枚直接卖回了池子。LP 部署地址向池子转入 ' + tok(f.lpFromGenesis) + ' 枚，那是注入流动性不是抛售。把这两个数字当回购，量级看着对，方向正好反了。') +
-    '</div>' +
-    '<div class="note risk"><b>' + T('How to settle it: ask for the address. ', '如何验证：直接要地址。') + '</b>' +
-      T('A real buyback programme can name the wallet it buys from, and the amount has to match this table. Only one address here takes a share of the fee stream, and it accounts for ' + (f.boughtBack / D.supplyV2 * 100).toFixed(3) + '%. Several unlinked wallets did buy more than 0.6% — but none has ever been paid by the fee splitter, so even if one belonged to the team it was funded privately, not out of fees.',
-        '真做过回购的团队能直接报出买入地址，金额也要和这张表对得上。表里只有一个地址在领手续费分成，它对应 ' + (f.boughtBack / D.supplyV2 * 100).toFixed(3) + '%。确实有几个无关联钱包买超过了 0.6%，但它们从未从分账合约收到过任何款项——即便其中某个属于团队，那也是自有资金买的，不是用手续费回购。') +
-    '</div>';
-}
 function renderFees() {
   const f = D.fees, L = D.feesLive;
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
-  const bbUsd = f.boughtBack * D.price;
   if (L) {                                   /* every payout figure comes from the escrow's own events, live */
     f.totalEth = L.total; f.sweeps = L.sweeps; f.accruals = L.count;
     f.parties.forEach(r => { const a = r[0].toLowerCase(); if (L.credited[a] != null) r[2] = L.credited[a]; r[1] = L.total ? (L.credited[a] || 0) / L.total * 100 : r[1]; });
+  } else if (window.TL) {                    /* until the live scan lands, the baked timeline (refreshed every 30 min) beats the 9 September snapshot */
+    const tl = window.TL;
+    f.parties.forEach(r => {
+      const j = tl.parties.findIndex(p => p[0].toLowerCase() === r[0].toLowerCase());
+      if (j >= 0) r[2] = tl.daily.reduce((a, d) => a + (d[1][j] || 0), 0);
+    });
+    f.totalEth = f.parties.reduce((a, r) => a + r[2], 0);
+    f.sweeps = tl.daily.reduce((a, d) => a + d[2], 0);
   }
   if (f.balances) f.parties.forEach((r, j) => { if (f.balances[j] != null) r[4] = f.balances[j]; });
   const feeUsd = f.totalEth * eth;
@@ -2308,36 +1898,15 @@ function renderFees() {
     '<td><span class="chip">' + r[3] + '</span></td>' +
     '<td class="r">' + r[2].toFixed(4) + '</td>' +
     '<td class="r">' + usdExact(r[2] * eth) + '</td>' +
-    '<td class="r">' + r[4].toFixed(4) + '</td>' +
-    '<td class="r">' + (r[5] ? nf(Math.round(r[5])) : '<span class="mut">0</span>') + '</td>' +
-    '<td class="mut">' + T(r[7], r[7] === 'only party that ever bought' ? '唯一买过的一方'
-        : r[7].startsWith('Pons protocol') ? 'Pons 协议方，全部代币共用 —— 它持有的 ETH 并非全部属于我们'
-      : r[7] === 'bought then sold it all' ? '买入后于 9-9 全部卖出' : '已提空') + '</td></tr>').join('');
+    '<td class="mut">' + T(r[7], { 'every claim is burned': '领到的每一笔都拿去销毁', 'creator fee recipient until 24 Sep': '9 月 24 日前的 creator 收款人' }[r[7]] || (r[7].startsWith('Pons protocol') ? 'Pons 协议方，全部代币共用' : r[7])) + '</td></tr>').join('');
   document.getElementById('feeBox').innerHTML =
-    '<details class="correction"><summary><b>' + T('Correction log', '更正记录') + '</b>' +
-    T('this panel overstated total fees by about 2x until 20 September', '本栏在 9 月 20 日之前把累计手续费虚报了约一倍') + '</summary>' +
-    '<p>' + T('This panel used to show four fee beneficiaries splitting 35 / 30 / 21.6 / 13.4, and a lifetime fee total of 18.9 ETH. Two of those four were never ours, and the total counted their revenue as BRODIE’s.',
-              '本栏此前显示四个手续费受益人，按 35 / 30 / 21.6 / 13.4 分成，累计手续费 18.9 ETH。其中两个受益人从来就不属于 BRODIE，而那个总额把他们的收入算成了我们的。') + '</p>' +
-    '<p><b>' + T('What went wrong. ', '错在哪。') + '</b>' +
-    T('The v4 hook and the fee escrow are shared infrastructure: every Pons token credits the same two contracts. The ledger filtered credits by that hook and assumed what came back was ours. It was not — two other tokens on the same hook were folded into our numbers.',
-      'v4 hook 与手续费托管合约是全生态共用的：每一个 Pons 代币都往这两个合约记账。原先的账本只按这个 hook 过滤，就默认取回来的都是我们的。并不是 —— 同一个 hook 上另外两个代币被算进了我们的数字。') + '</p>' +
-    '<p><b>' + T('What is actually true. ', '真实情况。') + '</b>' +
-    T('BRODIE pays exactly two recipients and always in the same proportion: 70% to the creator fee recipient and 30% to the Pons protocol Safe. Across all 652 payout transactions the split is 70.00 / 30.00 with not one exception. Lifetime fees are 9.42 ETH, not 18.9.',
-      'BRODIE 只付给两个收款人，且比例恒定：creator 收款人 70%，Pons 协议多签 30%。全部 652 笔分账交易里，比例都是 70.00 / 30.00，无一例外。累计手续费是 9.42 ETH，不是 18.9。') + '</p>' +
-    '<p><b>' + T('How it is decided now. ', '现在怎么判定。') + '</b>' +
-    T('One payout transaction settles one token’s fee, so a transaction counts as ours only when our own creator is paid inside it. That creator address is read from the migrator on every load rather than hard-coded, so this panel stays correct through a future handover of the fee recipient.',
-      '一笔分账交易只结算一个代币的手续费，所以只有当我们自己的 creator 出现在该笔交易里时，它才算我们的。creator 地址每次加载都从迁移合约实时读取，而非写死，因此将来更换手续费收款人后本栏依然正确。') + '</p>' +
-    '<p>' + T('The creator’s own ETH figure was never wrong — only the share percentage and the total were. Everything above is recomputed from the escrow’s own events.',
-              'creator 自己那一栏的 ETH 金额从来没错过 —— 错的只是份额百分比和总额。上方所有数字均由托管合约自身的事件重算得出。') + '</p></details>' +
     '<div class="grid g4">' +
       cell(T('pool fee', '池子费率'), (f.poolFeeBps / 10000).toFixed(0) + '%', T('charged on every swap', '每笔兑换收取')) +
       cell(T('fees to date', '累计手续费'), f.totalEth.toFixed(2) + ' ETH', usdExact(feeUsd) + ' · ' + nf(f.sweeps) + T(' sweeps', ' 次归集') + (L ? ' · ' + T('live to block ', '实时至区块 ') + nf(L.scannedTo) : ''), 'hero',
            T('Sum of every Credited event the hook has written to the fee escrow on BRODIE’s behalf, re-read from the chain every 90 seconds and converted at the current ETH price. Not an estimate — each credit is an on-chain event. The hook and the escrow are shared with other Pons tokens, so only transactions that pay our own creator are counted.',
              'hook 代表 BRODIE 写入手续费托管合约的每一笔 Credited 事件之和，每 90 秒从链上重读，按当前 ETH 价折算。不是估算——每一笔都是链上事件。该 hook 与托管合约与其他 Pons 代币共用，因此只统计付给我们自己 creator 的那些交易。')) +
-      cell(T('round trip, not a buyback', '一次往返，不是回购'), usdExact(bbUsd),
-           T('bought and sold again — nothing removed', '买入后又卖出 —— 没有代币退出流通'), '',
-           T('The fee wallet bought 6,051,760 BRODIE across 17 fills between 1 and 7 September, moved the lot to a fresh wallet on 9 September at 21:44 UTC, and sold it in two transactions eleven minutes later. Nothing was retained.',
-             '手续费钱包在 9 月 1 日至 7 日分 17 笔买入 6,051,760 枚，9 月 9 日 21:44 UTC 全部转入一个新钱包，11 分钟后分两笔卖出。一枚未留。')) +
+      cell(T('to the burn vault', '进入销毁金库'), (L && L.credited[CONFIG.vault.toLowerCase()] ? L.credited[CONFIG.vault.toLowerCase()].toFixed(4) : '0') + ' ETH',
+           T('credited since the handover on 24 Sep', '9 月 24 日交接以来的入账')) +
       /* the escrow's own ETH balance is shared with every other Pons token, so the
          only unclaimed figure that is ours is the creator's own credit line */
       cell(T('pending sweep', '待归集'),
@@ -2346,7 +1915,6 @@ function renderFees() {
     '</div>' +
     '<div class="tw"><table><thead><tr><th>' + T('share', '分成') + '</th><th>' + T('beneficiary', '受益地址') + '</th>' +
       '<th>' + T('kind', '类型') + '</th><th class="r">' + T('ETH earned', '已赚 ETH') + '</th><th class="r">' + T('value', '折合') + '</th>' +
-      '<th class="r">' + T('ETH still held', '尚未动用') + '</th><th class="r">' + T('BRODIE bought', '回购买入') + '</th>' +
       '<th>' + T('note', '备注') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
     '<div class="srcs" style="grid-template-columns:repeat(3,minmax(0,1fr))">' +
       '<div class="src"><div class="lbl">' + T('v4 hook — fee sink', 'v4 hook — 手续费归集') + '</div><div class="u">' + f.hook + '</div>' +
@@ -2355,16 +1923,7 @@ function renderFees() {
         '<div class="m">' + T('Splits swept ETH 70 / 30. Serves 14 hooks: ours carries 98% of its flow, but only 40% of that is BRODIE — two other tokens share the same hook.', '把归集到的 ETH 按 70 / 30 切分。它服务 14 个 hook：我们这个占其 98% 流量，但其中只有 40% 是 BRODIE —— 另有两个代币共用同一个 hook。') + '</div></div>' +
       '<div class="src"><div class="lbl">' + T('sweep operator', '归集执行地址') + '</div><div class="u">' + f.operator + '</div>' +
         '<div class="m">' + T('Bot EOA that also created the pool. Calls the hook to swap accrued BRODIE into ETH, then pays the splitter.', '同时也是建池地址的机器人 EOA。调用 hook 把累积的 BRODIE 换成 ETH，再打给分账合约。') + '</div></div>' +
-    '</div>' +
-    '<div class="note risk"><b>' + T('What this means: ', '这说明什么：') + '</b>' +
-      T('fees are not accumulated for buybacks — they are swapped out of BRODIE into ETH and paid out. Of ' + usdExact(feeUsd) + ' collected, ' + usdExact(bbUsd) + ' (' + (bbUsd / feeUsd * 100).toFixed(1) + '%) has come back as buying, all of it from the creator side, and it was sold again nine days later. The creator has withdrawn its share almost to zero.',
-        '手续费并没有被留作回购——它们被换成 ETH 分掉了。累计收取 ' + usdExact(feeUsd) + '，其中只有 ' + usdExact(bbUsd) + '（' + (bbUsd / feeUsd * 100).toFixed(1) + '%）以买入的形式回到盘口，且全部来自 creator 一侧，九天后又被全部卖出。creator 已经把自己的分成几乎提空。') +
     '</div>';
-  renderFeeDestination();
-  renderTeamExit();
-  renderBuyers();
-  renderTimeline();
-  renderSellers();
 }
 function renderHolders() {
   const top = ledgerReady()
@@ -2411,6 +1970,13 @@ function renderMigrate() {
          T('totalCredits() minus what has been minted to migrators. These credits are not lost: the migrator mints the V2 when the depositor calls claim(), and minting stays open until the deadline. After that renounceMinter() can be called by anyone and unclaimed credits are gone for good.',
            'totalCredits() 减去已铸给迁移者的数量。这些额度没有丢：存入者调用 claim() 时迁移合约才铸出 V2，铸造在截止日前一直开放。截止之后任何人都可以调用 renounceMinter()，未领的额度就永久作废。')) +
     cell(T('minting', '铸造窗口'), mt ? (mt.open ? T('OPEN', '开放') : T('CLOSED', '已关')) : '—', T('closes ', '关闭于 ') + deadline + (mt ? ' · ' + T('epoch ', '第 ') + mt.epoch + '/' + mt.epochs + T(' settled', ' 轮已结算') : ''));
+  const days = Math.max(0, ((mt ? mt.deadline : MINT_CLOSE) * 1000 - Date.now()) / 86400000);
+  $('#claimDays').textContent = T(Math.ceil(days) + ' days left · minting closes ' + deadline, '还剩 ' + Math.ceil(days) + ' 天 · 铸造关闭于 ' + deadline);
+  const cn = document.getElementById('claimNote');
+  cn.hidden = false;
+  cn.innerHTML = '<b>' + T(pct.toFixed(1) + '% of credits have not been claimed yet.', pct.toFixed(1) + '% 的额度还没有被领取。') + '</b> ' +
+    T('The migration contract records each deposit as a credit; the V2 is only minted when the depositor calls claim(). ' + tok(m.unminted) + ' of credits are still unclaimed. That is not a missing reserve — minting is on demand, within MAX_SUPPLY — but the mint window closes for good on ' + deadline + ', after which anyone can call renounceMinter() and unclaimed credits are lost. If you deposited, claim before then.',
+      '迁移合约把每笔存入记为额度，V2 在存入者调用 claim() 时才按额度铸出。目前仍有 ' + tok(m.unminted) + ' 额度未领。这不是「没有储备」——铸造按需进行，上限之内随领随铸——但铸造窗口会在 ' + deadline + ' 永久关闭，之后任何人都能调用 renounceMinter()，没领的就作废。存入过的人请在截止前领取。');
 }
 function renderImpostors() {
   const rows = (D.impostors || []).map(r => {
@@ -2428,18 +1994,6 @@ function renderImpostors() {
   $('#impTable').innerHTML = '<div class="tw"><table><thead><tr><th>' + T('status', '状态') + '</th><th>' + T('contract', '合约') + '</th>' +
     '<th>' + T('symbol', '符号') + '</th><th class="r">' + T('mcap', '市值') + '</th><th class="r">' + T('liquidity', '流动性') + '</th>' +
     '<th class="r">' + T('vol 24h', '24h 成交') + '</th><th>' + T('pool opened', '开盘日') + '</th><th>' + T('venue', '池型') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
-}
-function renderPeers() {
-  const rows = (D.peers || []).map(r => {
-    const me = r[0].toLowerCase() === CONFIG.v2.toLowerCase();
-    return '<tr' + (me ? ' class="flag"' : '') + '><td>' + esc(r[1]) + (me ? ' <span class="chip ok">' + T('this page', '本页') + '</span>' : '') + '</td>' +
-      '<td class="r">' + usd(r[2]) + '</td><td class="r">' + usd(r[3]) + '</td><td class="r">' + usd(r[4]) + '</td>' +
-      '<td class="r">' + (r[2] ? (r[3] / r[2] * 100).toFixed(2) : '0') + '%</td>' +
-      '<td class="r">' + (r[2] ? (r[4] / r[2] * 100).toFixed(2) : '0') + '%</td></tr>';
-  }).join('');
-  $('#peerTable').innerHTML = '<div class="tw"><table><thead><tr><th>' + T('token', '代币') + '</th><th class="r">' + T('mcap', '市值') + '</th>' +
-    '<th class="r">' + T('liquidity', '流动性') + '</th><th class="r">' + T('vol 24h', '24h 成交') + '</th>' +
-    '<th class="r">' + T('liq / mcap', '流动性/市值') + '</th><th class="r">' + T('vol / mcap', '换手率') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 /* ── burn vault · the fee recipient that only knows how to burn ───────────
    Everything here is read from the vault contract and its Burned events.
@@ -2467,7 +2021,7 @@ async function pullVault() {
   if (burns.length) {
     const anchors = await anchorTimes(burns[0].blk, head, 6);
     burns.forEach(b => { b.t = interp(anchors, b.blk); });
-    for (const b of burns.slice(-20)) b.t = await blockTime(b.blk);   /* exact for the rows the reader sees */
+    for (const b of burns.slice(-20)) b.t = await blockTime(b.blk).catch(() => b.t);   /* exact for the rows the reader sees */
   }
   D.vault = {
     earliestAt: hexNum(word(ws, 0)), guaranteedAt: hexNum(word(ws, 1)), openNow: hexNum(word(ws, 2)) === 1,
@@ -2489,13 +2043,17 @@ function renderHero() {
   const unclaimed = m ? m.unclaimed : D.migration.unminted;
   const days = Math.max(0, ((m ? m.deadline : MINT_CLOSE) * 1000 - Date.now()) / 86400000);
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
-  const fees = D.feesLive ? D.feesLive.total : D.fees.totalEth;
+  /* before the live scan lands, fall back to the baked timeline (refreshed every
+     30 min by the ledger job), not the 9 September snapshot */
+  const tlFees = window.TL ? window.TL.daily.reduce((a, d) => a + d[1].reduce((x, y) => x + y, 0), 0) : 0;
+  const fees = D.feesLive ? D.feesLive.total : (tlFees || D.fees.totalEth);
+  const wait = '<span class="skeleton" style="display:block; width:3.6em; height:.78em; margin:.12em 0"></span>';
   const hs = (k, lbl, val, sub) => '<div class="hs ' + k + '"><span class="lbl">' + lbl + '</span><span class="val">' + val + '</span><span class="sub">' + sub + '</span></div>';
   $('#heroStats').innerHTML =
     hs('fire', T('burned so far', '已销毁'), nf(Math.round(burned)),
        burned > 0 ? (burned / minted * 100).toFixed(3) + T('% of supply · ', '% 的供应 · ') + nf(v ? v.count : 0) + T(' burns', ' 次销毁')
-                  : T('vault armed · first burn after handover', '金库已就位 · 交接后开始')) +
-    hs('', T('still waiting to be claimed', '还在等人来领'), tok(unclaimed),
+                  : v && v.isRecipient ? T('vault is collecting · first burn at 0.005 ETH', '金库正在归集 · 攒够 0.005 ETH 首烧') : T('vault armed · first burn after handover', '金库已就位 · 交接后开始')) +
+    hs('', T('still waiting to be claimed', '还在等人来领'), m || blocked('chain') ? tok(unclaimed) : wait,
        Math.ceil(days) + T(' days until minting closes · Dec 21', ' 天后铸造关闭 · 12 月 21 日')) +
     hs('gold', T('fees earned to date', '累计手续费'), fees.toFixed(2) + ' ETH',
        usdExact(fees * eth) + ' · ' + (v && v.isRecipient ? T('70% now flows to the burn vault', '70% 已流向销毁金库') : T('70% → creator wallet until handover', '交接前 70% 归 creator 钱包')));
@@ -2514,6 +2072,7 @@ function renderBurn() {
   const now = Date.now() / 1000;
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
   const ammo = live ? v.balance + v.escrowCredit : 0;
+  const ethf = x => x > 0 ? x.toFixed(4) : '0';
 
   const chip = $('#burnChip');
   chip.className = 'chip ' + (count ? 'fire live' : isRec ? 'ok live' : live ? 'warn' : '');
@@ -2524,10 +2083,10 @@ function renderBurn() {
   const ph = (st, n, t, d) => '<div class="ph ' + st + '"><span class="n">' + (st === 'done' ? '✓' : n) + '</span><div><div class="t">' + t + '</div><div class="d">' + d + '</div></div></div>';
   const first = count ? v.burns[0] : null;
   $('#burnPhase').innerHTML =
-    ph('done', 1, T('Vault deployed', '金库已部署'), '2026-09-22 · ' + txl(CONFIG.vaultTx) + ' · ' + T('bytecode matches the published source', '字节码与公开源码一致')) +
-    ph(isRec ? 'done' : 'now', 2, T('Pons verifies claim()', 'Pons 核验 claim()'), isRec ? T('confirmed by the handover itself', '交接完成即为证明') : T('address submitted · in review', '地址已提交 · 审核中')) +
-    ph(isRec ? 'done' : '', 3, T('Fee recipient → vault', '收款人 → 金库'), isRec ? T('hook pool record, word 4 = vault', 'hook 池记录第 4 字 = 金库') : T('current recipient ', '当前收款人 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
-    ph(count ? 'done' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
+    ph('done', 1, T('Vault deployed', '金库已部署'), '2026-09-22 · ' + txl(CONFIG.vaultTx) + ' · ' + T('no owner, no admin functions', '无 owner、无管理函数')) +
+    ph('done', 2, T('Pons checked claim()', 'Pons 核对 claim()'), T('2026-09-23 · the vault can claim the creator share', '2026-09-23 · 金库可以领取 creator 份额')) +
+    ph(isRec ? 'done' : 'now', 3, T('Fee recipient → vault', '收款人 → 金库'), isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
+    ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
 
   /* the furnace ring: share of everything ever minted that no longer exists */
   const burnedTot = live ? v.totalBurned : 0;
@@ -2563,23 +2122,28 @@ function renderBurn() {
     cell(T('next burn window', '下次销毁窗口'), win, winSub, 'hero',
          T('The vault never burns on a schedule. 21 h after the last burn it starts drawing a lottery every ~38 minutes, weighted so the median gap is about 24 h; at 33 h it must fire. The seed is a block hash nobody knows in advance.',
            '金库没有固定时刻。上次销毁 21 小时后开始每约 38 分钟抽一次签，权重让中位间隔约 24 小时；33 小时必开。种子是事先没人知道的区块哈希。')) +
-    cell(T('ETH ready to burn', '待烧 ETH'), (live ? ammo : 0).toFixed(4) + ' ETH', usdExact(ammo * eth) + ' · ' + T('vault balance + unclaimed credit', '金库余额 + 未领取额度')) +
+    cell(T('ETH ready to burn', '待烧 ETH'), ethf(live ? ammo : 0) + ' ETH', usdExact(ammo * eth) + ' · ' + (isRec && !count ? Math.min(100, ammo / 0.005 * 100).toFixed(0) + T('% of the 0.005 ETH needed for burn #1', '% · 首烧需要 0.005 ETH') : T('vault balance + unclaimed credit', '金库余额 + 未领取额度'))) +
     cell(T('spend this round', '本轮花费比例'), frac.toFixed(0) + '%', last ? T('EMA / spot = ', 'EMA / 现货 = ') + (last.ema / last.spot).toFixed(3) + (last.capped ? T(' · depth-capped', ' · 被深度封顶') : '') : T('first burn seeds the EMA', '首次销毁建立均线'),
          '', T('50% × (EMA ÷ spot), clamped to 15–100%. The cheaper the token is against its own average, the larger the slice of the balance that gets spent.', '50% × (EMA ÷ 现货)，限制在 15–100%。价格越低于自身均线，花掉的余额比例越大。')) +
-    cell(T('ETH burned through', '累计投入 ETH'), (live ? v.totalEth : 0).toFixed(4), usdExact((live ? v.totalEth : 0) * eth) + ' · ' + nf(count) + T(' burns', ' 次')) +
+    (count ? cell(T('ETH burned through', '累计投入 ETH'), (live ? v.totalEth : 0).toFixed(4), usdExact((live ? v.totalEth : 0) * eth) + ' · ' + nf(count) + T(' burns', ' 次')) +
     cell(T('BRODIE burned', '累计销毁 BRODIE'), nf(Math.round(burnedTot)), last ? T('last ', '最近 ') + nf(Math.round(last.tokens)) + ' · ' + ago(new Date(last.t * 1000).toISOString()) + T(' ago', '前') : T('none yet', '尚无')) +
-    cell(T('avg fill', '平均成交价'), last ? price(v.totalEth / v.totalBurned * eth) : '—', last ? T('ETH spent ÷ tokens burned, in USD', '投入 ETH ÷ 销毁数量，按美元') : T('appears after the first burn', '首次销毁后显示'));
+    cell(T('avg fill', '平均成交价'), last ? price(v.totalEth / v.totalBurned * eth) : '—', last ? T('ETH spent ÷ tokens burned, in USD', '投入 ETH ÷ 销毁数量，按美元') : T('appears after the first burn', '首次销毁后显示')) : '') +
+    (count ? '' : '<div class="burn-empty" style="grid-column:1/-1; margin:0"><span class="flame">🔥</span><div><b>' + T('The ledger starts at burn #1.', '账本从第 1 次销毁开始。') + '</b> ' +
+      (isRec ? T('The vault has been the fee recipient since 24 September. Fees accrue at the hook and the vault sweeps and claims them itself; the first burn can fire as soon as 0.005 ETH has built up, and anyone can call burnNow().', '金库自 9 月 24 日起就是收款人。手续费先在 hook 累积，由金库自己归集并领取；攒够 0.005 ETH 就可以进行第一次销毁，任何人都可以调用 burnNow()。')
+             : T('The vault is deployed and Pons has checked that it can claim, but the creator fee still points at the previous wallet. Once it is transferred — one click, no timelock — the creator’s 70% of every fee lands here and gets burned.', '金库已部署，Pons 也核对过它可以领取，但 creator 手续费仍指向前任钱包。一旦转移（一次点击，无时间锁），每笔手续费里 creator 的 70% 都会落到这里并被销毁。')) +
+      '</div></div>');
 
   /* rates */
   const win_ = (s, k) => (live ? v.burns : []).filter(b => now - b.t <= s).reduce((a, b) => a + b[k], 0);
   const rate = (lbl, s) => cell(lbl, nf(Math.round(s ? win_(s, 'tokens') : burnedTot)), (s ? win_(s, 'eth') : (live ? v.totalEth : 0)).toFixed(4) + ' ETH · ' + nf(s ? (live ? v.burns : []).filter(b => now - b.t <= s).length : count) + T(' burns', ' 次'));
+  $('#burnRates').hidden = !count;
   $('#burnRates').innerHTML = rate(T('burned · 24h', '销毁 · 24 小时'), 86400) + rate(T('burned · 7d', '销毁 · 7 天'), 7 * 86400) + rate(T('burned · 30d', '销毁 · 30 天'), 30 * 86400) + rate(T('burned · all time', '销毁 · 累计'), 0);
 
   /* daily chart, last 30 days */
   const days = [], today = Math.floor(now / 86400);
   for (let i = 29; i >= 0; i--) days.push({ d: (today - i) * 86400, tok: 0, eth: 0, n: 0 });
   (live ? v.burns : []).forEach(b => { const i = 29 - (today - Math.floor(b.t / 86400)); if (i >= 0 && i < 30) { days[i].tok += b.tokens; days[i].eth += b.eth; days[i].n++; } });
-  const W = 720, L = 54, R = 14, T0 = 16, PB = 150;
+  const W = boxW('burnChartBox', 32), L = 54, R = 14, T0 = 16, PB = count ? 150 : 58;
   const max = Math.max(...days.map(d => d.tok), 1);
   const pw = (W - L - R) / 30, bw = Math.min(pw * 0.62, 30);
   let g = '';
@@ -2594,10 +2158,10 @@ function renderBurn() {
     const x = L + pw * (i + 0.5), h = d.tok / max * (PB - T0);
     if (d.tok > 0) g += '<rect x="' + (x - bw / 2).toFixed(1) + '" y="' + (PB - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0.8, h).toFixed(1) + '" rx="3" style="fill:var(--fire)"><title>' + new Date(d.d * 1000).toISOString().slice(0, 10) + ' · ' + nf(Math.round(d.tok)) + ' BRODIE · ' + d.eth.toFixed(4) + ' ETH · ' + d.n + T(' burns', ' 次') + '</title></rect>';
     cum += d.tok; pts.push(x.toFixed(1) + ',' + (PB - cum / cumMax * (PB - T0)).toFixed(1));
-    if (i % 5 === 0) g += txt(x, PB + 13, new Date(d.d * 1000).toISOString().slice(5, 10), { size: 8.5, anchor: 'middle' });
+    if (i % 5 === 0) g += txt(x, PB + 14, new Date(d.d * 1000).toISOString().slice(5, 10), { size: 9.5, anchor: 'middle' });
   });
   if (cum > 0) g += '<polyline points="' + pts.join(' ') + '" fill="none" style="stroke:var(--lime)" stroke-width="1.6" stroke-linejoin="round"/>';
-  else g += txt(L + (W - L - R) / 2, (T0 + PB) / 2, T('No burns yet — bars appear the moment the first Burned event lands.', '还没有销毁——第一条 Burned 事件落地时这里会出现柱子。'), { size: 10.5, anchor: 'middle', fill: 'var(--ink-3)' });
+  else g += txt(L + (W - L - R) / 2, (T0 + PB) / 2 + 4, W < 520 ? T('No burns yet.', '还没有销毁。') : T('No burns yet — bars appear the moment the first Burned event lands.', '还没有销毁——第一条 Burned 事件落地时这里会出现柱子。'), { size: 11, anchor: 'middle', fill: 'var(--ink-3)' });
   $('#burnChartBox').innerHTML =
     '<h4>' + T('Burns per day · last 30 days', '每日销毁 · 最近 30 天') + '</h4>' +
     '<p class="cap">' + T('Bars are BRODIE burned each UTC day; the line is the 30-day cumulative. Both come from the vault’s Burned events, not from balances.', '柱子是每个 UTC 日销毁的 BRODIE；折线是 30 天累计。都来自金库的 Burned 事件，不是余额推算。') + '</p>' +
@@ -2614,10 +2178,7 @@ function renderBurn() {
     '<td class="mono">' + adl(b.caller) + '</td><td class="mono">' + txl(b.tx) + '</td></tr>').join('');
   $('#burnTable').innerHTML = rows
     ? '<div class="tw"><table><thead><tr><th>#</th><th>' + T('when (UTC)', '时间 (UTC)') + '</th><th class="r">ETH</th><th class="r">BRODIE</th><th class="r">' + T('fill', '成交价') + '</th><th class="r">' + T('vs spot', '对现货') + '</th><th class="r">' + T('spent', '比例') + '</th><th>' + T('caller', '触发者') + '</th><th>tx</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-    : '<div class="burn-empty"><span class="flame">🔥</span><div><b>' + T('The ledger starts at burn #1.', '账本从第 1 次销毁开始。') + '</b> ' +
-      (isRec ? T('The vault is the fee recipient now. Fees accrue at the hook, the vault sweeps and claims them, and the first burn fires inside its first 33-hour window.', '金库已是收款人。手续费先在 hook 累积，金库归集并领取后，第一次销毁会在首个 33 小时窗口内触发。')
-             : T('The vault is deployed and verified but the creator fee still points at the previous wallet. The moment ', '金库已部署并验证，但 creator 手续费仍指向前任钱包。一旦 ') + '<code>transferCreatorFeeRecipient</code>' + T(' is called, every fee this pool earns lands here and gets burned.', ' 被调用，这个池子赚的每一笔手续费都会落到这里并被销毁。')) +
-      '</div></div>';
+    : '';
 
   /* rules · immutable, no owner can change them */
   const rule = (k, vv) => '<div class="rule"><span class="k">' + k + '</span><span class="v">' + vv + '</span></div>';
@@ -2665,7 +2226,7 @@ function renderStatus() {
   }
   $('#asofChip').textContent = live
     ? T('updated ', '更新于 ') + ago(D.at) + T(' ago · block ', ' 前 · 区块 ') + nf(D.block) + (D.headTime ? ' · ' + utc(D.headTime).slice(11) : '')
-    : T('snapshot 2026-09-09 13:30 UTC · block ', '快照 2026-09-09 13:30 UTC · 区块 ') + nf(SNAP.block);
+    : T('snapshot ', '快照 ') + SNAP.at.slice(0, 16).replace('T', ' ') + ' UTC · ' + T('block ', '区块 ') + nf(SNAP.block);
   $('#caV2Mc').textContent = T('mcap ', '市值 ') + usd(D.mcap) + ' · ' + T('liq ', '流动性 ') + usd(D.liq.usd);
   const v1 = (D.impostors || []).find(r => r[0].toLowerCase() === CONFIG.v1.toLowerCase());
   $('#caV1Mc').textContent = v1 ? T('mcap ', '市值 ') + usd(v1[2]) + ' · ' + T('liq ', '流动性 ') + usd(v1[3]) : '';
@@ -2677,73 +2238,17 @@ function renderStatus() {
   $('#footStamp').textContent = T('compiled ', '编译于 ') + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC · ' +
     T('feed: ', '数据源：') + (live ? 'live' : 'snapshot');
 }
-/* Every panel is isolated. A bad baked literal once threw inside renderSellers,
+/* Every panel is isolated. A bad baked literal once threw inside one panel's renderer,
    which killed boot() and left the whole page showing a stale snapshot with the
    status chip stuck on BOOT. One panel failing must never take the rest down. */
 function renderAll() {
   [renderRail, renderHero, renderBurn, renderTape, renderMarket, renderCandles, renderTrades, renderSupply,
-   renderHolders, renderMigrate, renderImpostors, renderPeers, renderStatus, renderQA,
-   markChanges, addExportButtons].forEach(fn => {
+   renderHolders, renderMigrate, renderImpostors, renderStatus,
+   markChanges].forEach(fn => {
     try { fn(); } catch (e) { console.error('panel failed:', fn.name, e); }
   });
 }
 
-/* ── export a chart as a PNG · resolves CSS variables first, since a detached
-      SVG has no access to the document's custom properties ───────────────── */
-function exportPNG(fig, name) {
-  const svg = fig.querySelector('svg');
-  if (!svg) return;
-  const cs = getComputedStyle(document.documentElement);
-  const resolve = v => v.replace(/var\((--[a-z0-9-]+)\)/g, (_, k) => (cs.getPropertyValue(k) || '#888').trim());
-  const clone = svg.cloneNode(true);
-  clone.querySelectorAll('*').forEach(el => {
-    ['style', 'fill', 'stroke'].forEach(a => {
-      const v = el.getAttribute(a);
-      if (v && v.indexOf('var(') > -1) el.setAttribute(a, resolve(v));
-    });
-    if (el.tagName === 'text' && !el.getAttribute('font-family'))
-      el.setAttribute('font-family', 'ui-monospace, Menlo, monospace');
-  });
-  const vb = (svg.getAttribute('viewBox') || '0 0 720 300').split(/\s+/).map(Number);
-  const W = vb[2] || 720, H = vb[3] || 300, S = 2;
-  clone.setAttribute('width', W); clone.setAttribute('height', H);
-  const bg = (cs.getPropertyValue('--surface') || '#0D1912').trim();
-  const xml = new XMLSerializer().serializeToString(clone);
-  const img = new Image();
-  img.onload = () => {
-    const c = document.createElement('canvas');
-    c.width = W * S; c.height = (H + 26) * S;
-    const x = c.getContext('2d');
-    x.fillStyle = bg; x.fillRect(0, 0, c.width, c.height);
-    x.drawImage(img, 0, 0, W * S, H * S);
-    x.fillStyle = (cs.getPropertyValue('--ink-3') || '#6A8375').trim();
-    x.font = (10 * S) + 'px ui-monospace, Menlo, monospace';
-    x.fillText('$BRODIE V2 Terminal · ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC · block ' + nf(D.block), 8 * S, (H + 17) * S);
-    c.toBlob(b => {
-      if (!b) return;
-      const u = URL.createObjectURL(b), a = document.createElement('a');
-      a.href = u; a.download = name + '.png'; document.body.appendChild(a); a.click();
-      a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
-    }, 'image/png');
-  };
-  img.onerror = () => {};
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
-}
-function addExportButtons() {
-  document.querySelectorAll('figure.fig').forEach((fig, i) => {
-    if (!fig.querySelector('svg') || fig.querySelector('[data-export]')) return;
-    const h = fig.querySelector('h4');
-    const label = (h ? h.textContent : 'chart').replace(/[^A-Za-z0-9]+/g, '-').toLowerCase().slice(0, 40) || ('chart-' + i);
-    const b = document.createElement('button');
-    b.className = 'btn png'; b.type = 'button'; b.dataset.export = label;
-    b.textContent = 'PNG';
-    b.title = T('Save this chart as a PNG. Browser downloads are disabled inside the artifact preview; this works on the deployed site.',
-                '把这张图存成 PNG。Artifact 预览里浏览器禁止下载，部署到自己的站点后可用。');
-    b.addEventListener('click', () => exportPNG(fig, label));
-    const bar = fig.querySelector('.figbar .rngs') || fig.querySelector('.figbar');
-    if (bar) bar.appendChild(b); else fig.appendChild(b);
-  });
-}
 
 /* ── live ledger: baked snapshot + chain deltas over a websocket ───────── */
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
@@ -2821,6 +2326,40 @@ function openSocket() {
   sock.onerror = () => { try { sock.close(); } catch (e) {} };
 }
 
+/* ── memes rotate on every visit. To add one: drop a square webp into
+      assets/memes/s (hero sticker, ~360px) or assets/memes/g (story gallery,
+      ~720px) and add its name below. ───────────────────────────────────── */
+const STICKERS = ['neon-glow', 'meme-010', 'meme-015', 'meme-019', 'meme-021', 'meme-024', 'meme-025', 'meme-026',
+  'meme-028', 'meme-029', 'sparkle-eyes', 'meme-037', 'trading-desk', 'meme-046', 'meme-047', 'meme-048',
+  'saturn-rings', 'meme-055', 'meme-057', 'meme-064', 'meme-065', 'meme-071', 'coin-bed', 'meme-083'];
+const GALLERY = [
+  ['2016-askrobinhood-reply', 'Where it started: @AskRobinhood, August 2016.', '一切的起点：@AskRobinhood，2016 年 8 月。'],
+  ['meme-081', 'Just because it’s taking time doesn’t mean it’s not happening.', '慢一点，不代表没在发生。'],
+  ['meme-071', 'The dog in the hourglass.', '沙漏里的狗。'],
+  ['meme-040', 'fading brodie / HOLDING BRODIE', 'fading brodie ／ HOLDING BRODIE'],
+  ['meme-082', '0 days without Brodie memes.', '0 天没有 Brodie 梗图。'],
+  ['meme-061', 'Let’s win, Brodies.', '一起赢，Brodies。'],
+  ['meme-055', 'After the storm.', '风雨之后。'],
+  ['meme-025', 'A new day.', '新的一天。'],
+  ['meme-064', 'Patience is a position.', '耐心也是一种仓位。'],
+  ['meme-047', 'Sleeping well. Still holding.', '睡得很好，还拿着。'],
+  ['meme-083', 'Sunset, coffee, same dog.', '日落，咖啡，还是那只狗。'],
+  ['meme-056', 'Watching over the chain.', '在云上看着这条链。'],
+  ['meme-021', 'Brodie, in orbit.', 'Brodie，入轨。'],
+  ['sparkle-eyes', 'Eyes on the next chapter.', '眼睛盯着下一章。'],
+  ['meme-046', 'Not every hero wears a cape. This one does.', '不是每个英雄都披斗篷，这个披了。'],
+  ['meme-065', 'Suited up for the long haul.', '为长跑穿好装备。']
+];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const MEMES = { stickers: shuffle(STICKERS).slice(0, 3), gallery: shuffle(GALLERY).slice(0, 4) };
+function renderMemes() {
+  document.querySelectorAll('.mast-media .sticker').forEach((img, i) => {
+    const src = 'assets/memes/s/' + MEMES.stickers[i] + '.webp';
+    if (img.getAttribute('src') !== src) img.src = src;
+  });
+  const g = document.getElementById('gallery');
+  if (g) g.innerHTML = MEMES.gallery.map(m => '<figure><img src="assets/memes/g/' + m[0] + '.webp" alt="" loading="lazy"><figcaption>' + T(m[1], m[2]) + '</figcaption></figure>').join('');
+}
 /* ── interaction ────────────────────────────────────────────────────────── */
 function applyLang() {
   document.querySelectorAll('[data-zh]').forEach(n => {
@@ -2830,6 +2369,7 @@ function applyLang() {
   $('#langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
   if (document.getElementById('tabbar')) renderTabs();
   document.documentElement.lang = lang === 'zh' ? 'zh' : 'en';
+  renderMemes();
   renderAll();
 }
 function initTheme() {
@@ -2863,10 +2403,8 @@ const TABS = [
   ['fees',      'Fees',         '手续费'],
   ['migration', 'Claim',        '领取'],
   ['tape',      'Market',       '行情'],
-  ['flows',     'Buys & sells', '买卖流向'],
   ['holders',   'Holders',      '持仓'],
   ['contracts', 'Contracts',    '合约'],
-  ['chain',     'Chain',        '同链'],
   ['story',     'Story',        '故事'],
   ['about',     'About',        '关于']
 ];
@@ -2883,7 +2421,7 @@ function initTabs() {
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-tabkey]');
     if (!b) return;
-    tab = b.dataset.tabkey; renderTabs(); slideTabInk();
+    tab = b.dataset.tabkey; renderTabs(); slideTabInk(); renderAll(); renderCandles();
     try { history.replaceState(null, '', '#' + tab); } catch (err) {}
     /* land on the tab bar, whether the click came from the hero above it or from the bar itself */
     const bar = document.getElementById('tabbar');
@@ -2932,6 +2470,15 @@ function boot() {
   initTheme(); initCopy(); initSpy(); initTabs();
   $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; applyLang(); });
   document.getElementById('lookupIn').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(e.target.value); });
+  document.getElementById('claimIn').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(e.target.value, 'claimOut'); });
+  /* the sticky tab bar sits under the top bar, whose height changes when it wraps on phones */
+  const tb = document.querySelector('.topbar');
+  const syncTb = () => document.documentElement.style.setProperty('--tb-h', tb.offsetHeight + 'px');
+  syncTb();
+  if (window.ResizeObserver) new ResizeObserver(syncTb).observe(tb);
+  /* charts are drawn at their pixel width, so redraw when the width changes (not on mobile URL-bar height jitter) */
+  let lastW = innerWidth, rz;
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (innerWidth === lastW) return; lastW = innerWidth; renderAll(); renderCandles(); }, 160); });
 
   tick(pullMarket, 'market');
   tick(pullVault, 'vault');
@@ -2952,15 +2499,7 @@ function boot() {
     const ex = e.target.closest('[data-lookup]');
     if (ex) { document.getElementById('lookupIn').value = ex.dataset.lookup; lookup(ex.dataset.lookup); return; }
     if (e.target.closest('#lookupBtn')) lookup(document.getElementById('lookupIn').value);
-  });
-  document.addEventListener('change', e => {
-    const cb = e.target.closest('[data-q]');
-    if (!cb) return;
-    let local = {};
-    try { local = JSON.parse(localStorage.getItem(QKEY) || '{}'); } catch (err) {}
-    if (cb.checked) local[cb.dataset.q] = 1; else delete local[cb.dataset.q];
-    try { localStorage.setItem(QKEY, JSON.stringify(local)); } catch (err) {}
-    renderQA();
+    if (e.target.closest('#claimBtn')) lookup(document.getElementById('claimIn').value, 'claimOut');
   });
   setInterval(() => tick(pullCandles, 'candles').then(renderCandles), CONFIG.ms.candles);
   setInterval(() => tick(pullTrades, 'trades').then(renderTrades), CONFIG.ms.trades);

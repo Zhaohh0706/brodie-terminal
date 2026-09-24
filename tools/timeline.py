@@ -44,8 +44,14 @@ def word_addr(to,data,i):
 # hand-over; word 5 here is the immutable creator. Verified 2026-09-22 by simulation.
 CREATOR=word_addr(HOOK,"0xad091230"+POOL_ID,4)   # BRODIE's 70% side, follows transferCreatorFeeRecipient
 PROTOCOL=addr_call(HOOK,"0x64df049e")         # protocolFeeRecipient() — Pons' 30%, shared
-print(f"creator {CREATOR} · protocol {PROTOCOL}",flush=True)
-TEAM=[CREATOR,PROTOCOL]
+VAULT="0xc0f342a8936755697c535f1e8e0d712a8da672f8"
+# Every address that has ever held the creator recipient role is BRODIE's creator
+# side. The role moved to the burn vault on 2026-09-24 (tx 0x0015b6b7…); reading
+# only the live recipient dropped every pre-handover payout from the ledger.
+FORMER=["0x28e35d8c909df0d084945e4d80b17dbd36b0e02c"]
+CREATORS=[CREATOR]+[a for a in FORMER if a!=CREATOR]
+print(f"creators {CREATORS} · protocol {PROTOCOL}",flush=True)
+TEAM=[a for a in CREATORS if a!=VAULT]+[PROTOCOL]   # vault purchases are burns; the Burn tab tracks those
 def scan(addr,topics,start,step=1_000_000):
     out=[];b=start
     while b<=latest:
@@ -62,7 +68,7 @@ acc_all=scan(SPLIT,[ACC],49_000_000)
 # One payout transaction = one token's fee split. Keep a transaction only when
 # BRODIE's own creator is paid inside it; the 30% protocol leg then belongs to
 # us too. Everything else on this shared escrow is another token's revenue.
-ours={l["transactionHash"] for l in acc_all if "0x"+l["topics"][1][26:]==CREATOR}
+ours={l["transactionHash"] for l in acc_all if "0x"+l["topics"][1][26:] in CREATORS}
 acc=[l for l in acc_all if l["transactionHash"] in ours]
 dropped=len(acc_all)-len(acc)
 print(f"  accruals {len(acc_all)} → {len(acc)} BRODIE ({dropped} belong to other tokens)",flush=True)
@@ -98,7 +104,7 @@ for t in TEAM:
         ev.append({"t":T(b),"blk":b,"kind":"buy","to":t,"tokens":int(l["data"],16)/1e18,"tx":l["transactionHash"]})
 ev.sort(key=lambda e:(e["t"],e["blk"]))
 json.dump({"generated":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"block":latest,
-           "creator":CREATOR,"protocol":PROTOCOL,
+           "creator":CREATOR,"creators":CREATORS,"protocol":PROTOCOL,
            "droppedForeignAccruals":dropped,"events":ev},
           open("timeline.json","w"))
 print("events:",len(ev),"| payouts",sum(1 for e in ev if e['kind']=='payout'),
