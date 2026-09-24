@@ -52,6 +52,28 @@ Then paste the results into the `SNAP` object in `index.html`.
 These findings are stated on the page in §04 and §06. If you republish with
 different claims, re-run the audit first.
 
+## Burn tab (added 2026-09-22)
+
+The landing view is the story hero plus the **Burn** tab. Everything in it is
+read live from the burn vault at `0xC0f342a8936755697C535F1e8E0D712a8da672f8`:
+
+| Panel | Source |
+|---|---|
+| Phase strip (deployed → verified → recipient → first burn) | hook pool record word 4 == vault, `burnCount()` |
+| Ring, totals, rates, daily chart, last 20 burns | `Burned` events from the vault's deploy block 69,411,335 |
+| Next window | `windowState()`; `lastRunAt() == 0` means the first run is still pending |
+| ETH ready to burn | `eth_getBalance(vault)` + escrow `balanceOf(vault)` |
+
+`CONFIG.vault*`, `SEL.windowState…` and `CONFIG.topics.burned` hold the
+addresses and selectors; `pullVault()` / `renderBurn()` / `renderHero()` are the
+only new functions. Until the fee recipient is handed over, the tab shows the
+"armed · awaiting handover" state and the current recipient it read from the
+hook.
+
+`assets/` is no longer in `.vercelignore`: the hero video
+(`brodie-walk.mp4`, 580 KB) and the four story images ship with the page.
+Dark is the default theme; the toggle persists a light preference.
+
 ## Splitting into routes
 
 The page is one document with anchor sections (`#contract`, `#supply`,
