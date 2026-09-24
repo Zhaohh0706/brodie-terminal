@@ -26,7 +26,7 @@
   --buy:#6CB6FF; --sell:#FF6B5E;
   --seq:#7FA98D;
   --shadow:0 1px 0 rgba(0,0,0,.4); --lift:rgba(255,255,255,.05); --drop:rgba(0,0,0,.45);
-  --r:14px; --r-sm:9px;
+  --r:16px; --r-sm:10px;
   --f-disp:"Fraunces", Georgia, "Times New Roman", serif;
   --f-ui:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -123,11 +123,11 @@ button.btn{
 button.btn:hover{color:var(--ink); border-color:var(--line-2)}
 button.btn:active{transform:translateY(1px)}
 button.btn.primary{background:var(--lime); color:var(--lime-ink); border-color:var(--lime); font-weight:700}
-button.btn.primary:hover{filter:brightness(1.06)}
-a.btn{display:inline-flex; align-items:center; gap:6px; font-family:var(--f-mono); font-size:11px; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--line); padding:5px 11px; letter-spacing:.06em; border-radius:999px}
+button.btn.primary:hover{filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 10px 22px -12px var(--lime)}
+a.btn{display:inline-flex; align-items:center; gap:6px; transition:color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease; font-family:var(--f-mono); font-size:11px; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--line); padding:5px 11px; letter-spacing:.06em; border-radius:999px}
 a.btn:hover{color:var(--ink); border-color:var(--line-2)}
 a.btn.primary{background:var(--lime); color:var(--lime-ink); border-color:var(--lime); font-weight:700}
-a.btn.primary:hover{color:var(--lime-ink); filter:brightness(1.06)}
+a.btn.primary:hover{color:var(--lime-ink); filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 10px 22px -12px var(--lime)}
 
 /* ── shell ──────────────────────────────────────────────────────────────── */
 .shell{max-width:1360px; margin:0 auto; display:flex; gap:0; align-items:flex-start}
@@ -142,6 +142,9 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 
 /* ── hero ───────────────────────────────────────────────────────────────── */
 .mast{padding:44px 0 34px; position:relative; overflow-x:clip}
+/* a faint paw-print texture behind the hero, fading out toward the tabs */
+.mast::before{content:""; position:absolute; inset:0 -18px; z-index:-1; pointer-events:none; opacity:.045; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Cg fill='%23fff' transform='rotate(-18 70 70)'%3E%3Cellipse cx='52' cy='42' rx='6' ry='8'/%3E%3Cellipse cx='68' cy='34' rx='6' ry='8'/%3E%3Cellipse cx='84' cy='42' rx='6' ry='8'/%3E%3Cellipse cx='43' cy='58' rx='5' ry='7'/%3E%3Cellipse cx='93' cy='58' rx='5' ry='7'/%3E%3Cpath d='M68 52c-11 0-20 9-22 18-1 7 4 12 10 12h24c6 0 11-5 10-12-2-9-11-18-22-18z'/%3E%3C/g%3E%3C/svg%3E") 0 0/150px 150px; -webkit-mask-image:linear-gradient(180deg,#000 35%,transparent); mask-image:linear-gradient(180deg,#000 35%,transparent)}
+:root[data-theme="light"] .mast::before{filter:invert(1); opacity:.07}
 .mast-in{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,.9fr); gap:36px; align-items:center}
 @media (max-width:900px){ .mast-in{grid-template-columns:minmax(0,1fr); gap:28px} }
 .mast-copy{min-width:0}
@@ -149,7 +152,7 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
   margin:0; font-family:var(--f-disp); font-weight:800; letter-spacing:-.03em;
   font-size:clamp(46px, 8.4vw, 96px); line-height:.92; text-wrap:balance;
 }
-.mast h1 em{font-style:italic; font-weight:400; color:var(--lime)}
+.mast h1 em{font-style:italic; font-weight:400; color:var(--lime); text-decoration:underline wavy; text-decoration-color:color-mix(in srgb, var(--lime) 38%, transparent); text-decoration-thickness:.05em; text-underline-offset:.1em}
 .kicker{
   font-family:var(--f-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3);
   margin:0 0 16px; display:flex; align-items:baseline; gap:10px; line-height:1.6;
@@ -162,7 +165,8 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .thesis strong{color:var(--ink); font-weight:600}
 .hero-stats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:26px 0 0}
 @media (max-width:640px){ .hero-stats{grid-template-columns:1fr 1fr} .hero-stats .hs:first-child{grid-column:1/-1} }
-.hs{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px 13px; min-width:0; position:relative; overflow:hidden}
+.hs{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px 13px; min-width:0; position:relative; overflow:hidden; transition:transform .18s ease, border-color .18s ease}
+.hs:hover{transform:translateY(-2px); border-color:var(--line-2)}
 .hs::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--lime); opacity:.85}
 .hs.fire::before{background:var(--fire)}
 .hs.gold::before{background:var(--gold)}
@@ -180,6 +184,9 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
   animation:float 7s ease-in-out infinite;
 }
 .mast-media video, .mast-media .frame img{width:100%; height:100%; object-fit:cover; display:block}
+.mast-media:hover video{animation:wag .7s ease-in-out 1}
+@keyframes wag{0%,100%{rotate:0deg; scale:1}30%{rotate:-2.5deg; scale:1.06}70%{rotate:2.5deg; scale:1.06}}
+.mast-media:hover .sticker{scale:1.06}
 .mast-media::before{
   content:""; position:absolute; inset:-10%; border-radius:50%; z-index:-1;
   background:radial-gradient(circle, var(--glow) 0%, transparent 62%); pointer-events:none;
@@ -187,7 +194,7 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 .sticker{
   position:absolute; width:26%; aspect-ratio:1; object-fit:cover; border-radius:18px;
   border:2px solid var(--surface); box-shadow:0 14px 30px -12px var(--drop);
-  transition:transform .35s cubic-bezier(.22,.61,.36,1);
+  transition:transform .35s cubic-bezier(.22,.61,.36,1), scale .35s cubic-bezier(.22,.61,.36,1);
 }
 .sticker.s1{left:-4%; top:2%; transform:rotate(-9deg); animation:float 9s ease-in-out infinite reverse}
 .sticker.s2{right:-5%; top:18%; transform:rotate(7deg); animation:float 8s ease-in-out 1s infinite}
@@ -272,7 +279,8 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
 }
 .ring svg{width:180px; height:180px; display:block}
 .ring .track{fill:none; stroke:var(--surface-3); stroke-width:10}
-.ring .arc{fill:none; stroke:url(#burnGrad); stroke-width:10; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dashoffset 1.2s cubic-bezier(.22,.61,.36,1)}
+.ring .arc{fill:none; stroke:url(#burnGrad); stroke-width:10; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dashoffset 1.2s cubic-bezier(.22,.61,.36,1); filter:drop-shadow(0 0 5px var(--fire-soft))}
+.ring .flame{font-size:14px}
 .ring .big{font-family:var(--f-disp); font-weight:800; font-size:34px; letter-spacing:-.02em; fill:var(--ink)}
 .ring .small{font-family:var(--f-mono); font-size:8.5px; letter-spacing:.14em; fill:var(--ink-3); text-transform:uppercase}
 .ring .cap{font-size:12px; color:var(--ink-3); margin:0}
@@ -404,6 +412,8 @@ button.btn.rng.on{color:var(--lime-ink); border-color:var(--lime); background:va
   padding:7px 14px; cursor:pointer; white-space:nowrap; position:relative; z-index:1; transition:color .18s ease;
 }
 .tabs button:hover{color:var(--ink)}
+.tabs button .ico{font-size:12px; margin-right:5px; opacity:.75; font-style:normal}
+.tabs button.on .ico{opacity:1}
 .tabs button.on{color:var(--lime-ink)}
 .tabs .ink{
   position:absolute; top:4px; bottom:4px; left:0; width:0; border-radius:999px; background:var(--lime);
@@ -444,6 +454,14 @@ blockquote.tweet cite{display:block; margin-top:8px; font-family:var(--f-mono); 
 .src .lbl{font-family:var(--f-mono); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3); margin-bottom:4px}
 .src .u{font-family:var(--f-mono); font-size:11.5px; word-break:break-all; color:var(--ink-2)}
 .src .m{font-size:12px; color:var(--ink-3); margin-top:4px; line-height:1.5}
+/* a burn landed while the page was open: a toast at the bottom, and a few paws fly */
+.toast{position:fixed; left:50%; bottom:26px; translate:-50% 0; z-index:60; background:var(--surface-2); border:1px solid var(--fire); color:var(--ink); padding:10px 16px; border-radius:999px; font-family:var(--f-mono); font-size:12px; letter-spacing:.04em; box-shadow:0 24px 60px -24px var(--drop); white-space:nowrap; max-width:calc(100vw - 32px); overflow:hidden; text-overflow:ellipsis; animation:toastin .4s cubic-bezier(.22,.61,.36,1), toastout .5s ease-in 7s forwards}
+@keyframes toastin{from{opacity:0; translate:-50% 14px}to{opacity:1; translate:-50% 0}}
+@keyframes toastout{to{opacity:0; translate:-50% 14px}}
+.paw{position:fixed; left:50%; bottom:40px; z-index:59; pointer-events:none; font-size:22px; animation:pawfly 1.5s cubic-bezier(.16,.8,.3,1) forwards}
+@keyframes pawfly{from{translate:0 0; rotate:0deg; opacity:1}to{translate:var(--dx) var(--dy); rotate:var(--rot); opacity:0}}
+.woof{display:flex; align-items:center; gap:9px; margin-top:8px; font-family:var(--f-disp); font-style:italic; font-size:14px; color:var(--ink-2)}
+.woof img{width:26px; height:26px; border-radius:8px; border:1px solid var(--line-2); object-fit:cover; display:block}
 .skeleton{
   background:linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
   background-size:400% 100%; animation:shimmer 1.4s ease-in-out infinite; height:11px; border-radius:4px;
@@ -461,7 +479,8 @@ footer .links a{border-bottom:0}
 .seal svg{transition:transform 1.4s cubic-bezier(.22,.61,.36,1)}
 .brand:hover .seal svg{transform:rotate(24deg)}
 @media (prefers-reduced-motion: reduce){
-  .cell.changed, .sec[data-tab].show, .skeleton, .mast-media .frame, .sticker, .kicker .dot{animation:none}
+  .cell.changed, .sec[data-tab].show, .skeleton, .mast-media .frame, .sticker, .kicker .dot, .toast, .mast-media video{animation:none}
+  .paw{display:none}
   .tabs .ink, .seal svg, .ring .arc{transition:none}
 }
 </style>
@@ -516,7 +535,7 @@ footer .links a{border-bottom:0}
     <section class="mast" id="hero">
       <div class="mast-in">
         <div class="mast-copy">
-          <p class="kicker"><span class="dot"></span><span data-zh="Robinhood 的办公室狗 · Robinhood Chain · creator 手续费 100% 用于销毁">Robinhood's office dog · Robinhood Chain · 100% of creator fees burned</span></p>
+          <p class="kicker"><span class="dot"></span><span data-zh="Robinhood 的办公室狗 · Robinhood Chain · 手续费 70% 用于销毁">Robinhood's office dog · Robinhood Chain · 70% of fees burned</span></p>
           <h1 data-zh="他<em>还在</em>这儿。">Still <em>here.</em></h1>
           <p class="thesis" data-zh="2016 年 Robinhood 在推特上晒过他，之后十年没人再提。2026 年他成了一个币，这一路折腾了不少。<strong>他还在。</strong>现在交易手续费里属于 creator 的那 70%，会自动拿去买回 BRODIE 然后烧掉。没有人握着钥匙，也不用谁每天去点按钮。">Robinhood showed him off in 2016, then forgot about him for ten years. He became a coin in 2026 and has been through a lot since. <strong>He’s still here.</strong> Now the creator’s 70% of trading fees goes to a contract that buys BRODIE back and burns it. Nobody holds the keys, and nobody has to press a button.</p>
           <div class="hero-stats" id="heroStats"></div>
@@ -688,7 +707,7 @@ footer .links a{border-bottom:0}
       <div class="sec-head">
         <h2 data-zh="供应账本">Supply ledger</h2>
       </div>
-      <p class="sec-note" data-zh="V2 的总量只有两种变化：有人领取时迁移合约铸造，调用 burn() 时销毁。已铸量、总供应、额度和截止时间都是实时读取的，销毁量 = totalMinted − totalSupply。每一次销毁的明细在「销毁」页。">V2 supply changes in two ways: the migration contract mints when someone claims, and burn() destroys. Minted, supply, credits and the deadline are read live, and burned = totalMinted − totalSupply. Each burn is listed on the Burn tab.</p>
+      <p class="sec-note" data-zh="V2 的总量只有两种变化：有人领取时迁移合约铸造，调用 burn() 时销毁。已铸量、总供应、额度和截止时间都是实时读取的，销毁量按代币自身的销毁事件统计。每一次销毁的明细在「销毁」页。">V2 supply changes in two ways: the migration contract mints when someone claims, and burn() destroys. Minted, supply, credits and the deadline are read live, and burned is counted from the token’s own burn events. Each burn is listed on the Burn tab.</p>
 
       <div class="grid g4" id="supGrid"></div>
 
@@ -809,8 +828,12 @@ footer .links a{border-bottom:0}
           <span class="what" data-zh="<b>交接。</b>creator 手续费收款人改成了金库。从此手续费里 creator 的 70% 都用于销毁。"><b>Handover.</b> The creator fee recipient is switched to the vault. From now on the creator’s 70% of fees is burned.</span>
         </div>
         <div class="tl-row">
-          <span class="when" data-zh="下一步">Next</span>
-          <span class="what" data-zh="<b>第一次销毁。</b>金库攒够 0.005 ETH 就会完成第一次回购销毁，之后大约每天一次。"><b>Burn #1.</b> Once the vault has 0.005 ETH it makes its first buyback and burn, then about once a day after that.</span>
+          <span class="when" data-zh="9 月 24 日">24 Sep</span>
+          <span class="what" data-zh="<b>第一次销毁。</b>金库用 0.006 ETH 买回 48,683 枚 BRODIE 并销毁，全程没有人签名。"><b>Burn #1.</b> The vault buys 48,683 BRODIE with 0.006 ETH and burns it. Nobody signed anything.</span>
+        </div>
+        <div class="tl-row">
+          <span class="when" data-zh="之后">Next</span>
+          <span class="what" data-zh="<b>大约每天一次。</b>时间随机，只要还有手续费进来，就一直烧下去。"><b>About once a day.</b> At a random time, for as long as fees keep coming in.</span>
         </div>
       </div>
       <div class="prose">
@@ -869,12 +892,14 @@ footer .links a{border-bottom:0}
   <div>
     <div class="stamp" data-zh="$BRODIE 终端 · 社区制作 · 与 Robinhood 无关">$BRODIE Terminal · community-built · not affiliated with Robinhood</div>
     <div class="mut" id="footStamp">—</div>
+    <div class="woof"><img id="footPaw" alt="" width="26" height="26"><span id="woofTxt"></span></div>
   </div>
   <div class="links">
     <a href="https://dexscreener.com/robinhood/0xb6eae9d1f1838c4302d500e80d7aa854e45a6455f502215c7b970745b62d4b76" rel="noopener" target="_blank">DexScreener</a>
     <a href="https://robinhoodchain.blockscout.com/token/0x737054bd706cba68eaF4661411FeDE5F6C2952e5" rel="noopener" target="_blank">Blockscout</a>
     <a href="https://x.com/Brodieonhood" rel="noopener" target="_blank">@Brodieonhood</a>
     <a href="https://www.ponsfamily.com/migrate" rel="noopener" target="_blank">Migrate</a>
+    <a href="https://github.com/Zhaohh0706/brodie-terminal" rel="noopener" target="_blank" data-zh="源码">Source</a>
     <a href="https://robinhoodchain.blockscout.com/address/0xC0f342a8936755697C535F1e8E0D712a8da672f8" rel="noopener" target="_blank" data-zh="销毁金库">Burn vault</a>
   </div>
 </footer>
@@ -1797,7 +1822,7 @@ function renderSupply() {
       '<tr><td>' + T('Last mint', '最近一次铸造') + '</td><td class="r">' + (mi && mi.last ? nf(mi.last.amt, 2) : '—') + '</td>' +
         '<td class="mono">' + (mi && mi.last ? T('block ', '区块 ') + nf(mi.last.blk) + (mi.last.time ? ' · ' + utc(mi.last.time) : '') + ' · ' + txl(mi.last.tx) : T('scanning…', '扫描中…')) + '</td>' +
         '<td><span class="chip ' + (mi ? 'ok' : '') + '">' + (mi ? T('live', '实时') : '…') + '</span></td></tr>' +
-      '<tr><td>' + T('Burned (totalMinted − totalSupply)', '已销毁（totalMinted − totalSupply）') + '</td><td class="r">' + nf(burned0, 2) + '</td><td class="mono">' + T('two eth_call reads, block ', '两次 eth_call，区块 ') + nf(D.block) + '</td><td><span class="chip ' + vcls + '">' + (burned0 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
+      '<tr><td>' + T('Burned (Transfer → 0x0 events)', '已销毁（Transfer → 0x0 事件）') + '</td><td class="r">' + nf(burned0, 2) + '</td><td class="mono">' + (D.burnEvents ? nf(D.burnEvents.count) + T(' burn events, block ', ' 条销毁事件，区块 ') : T('burn events, block ', '销毁事件，区块 ')) + nf(D.block) + '</td><td><span class="chip ' + vcls + '">' + (burned0 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
       '<tr><td>' + T('Held at 0x…dEaD', '黑洞地址余额') + '</td><td class="r">' + nf(D.deadV2, 2) + '</td><td class="mono">balanceOf(0x…dEaD)</td><td><span class="chip ' + vcls + '">' + (D.deadV2 < 1 ? T('none', '无') : T('yes', '有')) + '</span></td></tr>' +
       '<tr><td>' + T('Still claimable', '尚可领取') + '</td><td class="r">' + nf(unclaimed, 2) + '</td><td class="mono">totalCredits − ' + T('minted to migrators · until ', '已铸给迁移者 · 截止 ') + deadline + '</td><td><span class="chip warn">' + (m && m.open ? T('minting open', '铸造开放') : T('closed', '已关闭')) + '</span></td></tr>' +
       '<tr><td>' + T('Never mintable', '永远铸不出') + '</td><td class="r">' + nf(m ? m.neverMintable : 1e9 - CONFIG.seedToPool - credits, 2) + '</td><td class="mono">MAX_SUPPLY − ' + T('seed − credits', '种子 − 额度') + '</td><td><span class="chip">' + T('by design', '设计如此') + '</span></td></tr>' +
@@ -1987,6 +2012,49 @@ async function pullVault() {
   feed.vault = 'live';
 }
 
+/* ── small delights ─────────────────────────────────────────────────────── */
+const REDUCED = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CU_DONE = new Set();
+const CU_FMT = { int: x => nf(Math.round(x)), tok: x => tok(x), eth: x => x.toFixed(2) + ' ETH' };
+const cuTxt = (k, val, f, txt) => '<span class="cu" data-k="' + k + '" data-v="' + val + '" data-f="' + f + '">' + txt + '</span>';
+/* a number counts up the first time it appears, then simply updates */
+function countUps(root) {
+  if (!root) return;
+  root.querySelectorAll('.cu').forEach(el => {
+    const k = el.dataset.k;
+    if (CU_DONE.has(k)) return;
+    CU_DONE.add(k);
+    const v = +el.dataset.v, f = CU_FMT[el.dataset.f] || CU_FMT.int, t0 = performance.now(), dur = 900;
+    if (REDUCED() || !(v > 0)) return;
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = f(v * e);
+      if (p < 1 && el.isConnected) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+let SEEN_BURNS = null;
+/* a burn landed while the page was open: say so, and let a few paws fly */
+function celebrate(n, b) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = '🔥 ' + T('Burn #' + n + ' just happened', '第 ' + n + ' 次销毁刚刚完成') + (b ? ' · ' + nf(Math.round(b.tokens)) + ' BRODIE' : '');
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 8000);
+  if (REDUCED()) return;
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('span');
+    p.className = 'paw'; p.textContent = i % 3 ? '🐾' : '🔥';
+    p.style.setProperty('--dx', ((Math.random() - .5) * 520).toFixed(0) + 'px');
+    p.style.setProperty('--dy', (-(160 + Math.random() * 360)).toFixed(0) + 'px');
+    p.style.setProperty('--rot', ((Math.random() - .5) * 240).toFixed(0) + 'deg');
+    p.style.animationDelay = (Math.random() * .25).toFixed(2) + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 2000);
+  }
+}
+
 /* ── hero · three numbers that tell the story ───────────────────────────── */
 const MINT_CLOSE = Date.UTC(2026, 11, 21, 16, 47, 47) / 1000;   /* mintDeadline(), overridden by the live read */
 function renderHero() {
@@ -2003,13 +2071,15 @@ function renderHero() {
   const wait = '<span class="skeleton" style="display:block; width:3.6em; height:.78em; margin:.12em 0"></span>';
   const hs = (k, lbl, val, sub) => '<div class="hs ' + k + '"><span class="lbl">' + lbl + '</span><span class="val">' + val + '</span><span class="sub">' + sub + '</span></div>';
   $('#heroStats').innerHTML =
-    hs('fire', T('burned so far', '已销毁'), nf(Math.round(burned)),
-       burned > 0 ? (burned / minted * 100).toFixed(3) + T('% of supply · ', '% 的供应 · ') + nf(v ? v.count : 0) + T(' burns', ' 次销毁')
-                  : v && v.isRecipient ? T('vault is collecting · first burn at 0.005 ETH', '金库正在归集 · 攒够 0.005 ETH 首烧') : T('vault armed · first burn after handover', '金库已就位 · 交接后开始')) +
-    hs('', T('still unclaimed', '尚未领取'), m || blocked('chain') ? tok(unclaimed) : wait,
+    hs('fire', T('burned so far', '已销毁'), cuTxt('burned', burned, 'int', nf(Math.round(burned))),
+       !v ? T('reading the vault…', '读取金库中…')
+          : burned > 0 ? (burned / minted * 100).toFixed(3) + T('% of supply · ', '% 的供应 · ') + nf(v.count) + T(' burns', ' 次销毁')
+          : v.isRecipient ? T('vault is collecting · first burn at 0.005 ETH', '金库正在归集 · 攒够 0.005 ETH 首烧') : T('vault armed · first burn after handover', '金库已就位 · 交接后开始')) +
+    hs('', T('still unclaimed', '尚未领取'), m || blocked('chain') ? cuTxt('unclaimed', unclaimed, 'tok', tok(unclaimed)) : wait,
        Math.ceil(days) + T(' days until minting closes · Dec 21', ' 天后铸造关闭 · 12 月 21 日')) +
-    hs('gold', T('fees earned to date', '累计手续费'), fees.toFixed(2) + ' ETH',
-       usdExact(fees * eth) + ' · ' + (v && v.isRecipient ? T('70% now flows to the burn vault', '70% 已流向销毁金库') : T('70% → creator wallet until handover', '交接前 70% 归 creator 钱包')));
+    hs('gold', T('fees earned to date', '累计手续费'), cuTxt('fees', fees, 'eth', fees.toFixed(2) + ' ETH'),
+       usdExact(fees * eth) + ' · ' + (!v ? T('reading the vault…', '读取金库中…') : v.isRecipient ? T('70% now flows to the burn vault', '70% 已流向销毁金库') : T('70% → creator wallet until handover', '交接前 70% 归 creator 钱包')));
+  countUps($('#heroStats'));
 }
 
 /* ── burn engine panel ──────────────────────────────────────────────────── */
@@ -2022,6 +2092,9 @@ function renderBurn() {
   const v = D.vault, m = D.mint;
   const minted = m ? m.minted : D.mintedV2;
   const live = !!v, isRec = live && v.isRecipient, count = live ? v.count : 0;
+  if (live && SEEN_BURNS !== null && count > SEEN_BURNS) celebrate(count, v.burns[count - 1]);
+  if (live) SEEN_BURNS = count;
+  const wait = '<span class="skeleton" style="display:inline-block; width:5em; height:.75em; vertical-align:middle"></span>';
   const now = Date.now() / 1000;
   const eth = D.priceNative > 0 ? D.price / D.priceNative : 0;
   const ammo = live ? v.balance + v.escrowCredit : 0;
@@ -2030,7 +2103,7 @@ function renderBurn() {
   const chip = $('#burnChip');
   chip.className = 'chip ' + (count ? 'fire live' : isRec ? 'ok live' : live ? 'warn' : '');
   chip.innerHTML = (count || isRec ? '<span class="dot"></span>' : '') +
-    (count ? T('BURNING', '销毁中') : isRec ? T('COLLECTING FEES', '归集手续费中') : live ? T('ARMED · AWAITING HANDOVER', '已就位 · 等待交接') : T('READING…', '读取中…'));
+    (count ? T('BURNING · #', '销毁中 · 第 ') + count + T('', ' 次') : isRec ? T('COLLECTING FEES', '归集手续费中') : live ? T('ARMED · AWAITING HANDOVER', '已就位 · 等待交接') : '🐕 ' + T('SNIFFING THE CHAIN…', '嗅探链上数据中…'));
 
   /* phases: the only four things that have to happen, and which of them have */
   const ph = (st, n, t, d) => '<div class="ph ' + st + '"><span class="n">' + (st === 'done' ? '✓' : n) + '</span><div><div class="t">' + t + '</div><div class="d">' + d + '</div></div></div>';
@@ -2038,21 +2111,23 @@ function renderBurn() {
   $('#burnPhase').innerHTML =
     ph('done', 1, T('Vault deployed', '金库已部署'), '2026-09-22 · ' + txl(CONFIG.vaultTx) + ' · ' + T('no owner, no admin functions', '无 owner、无管理函数') + ' · <a href="' + BS + 'address/' + CONFIG.vault + '?tab=contract" rel="noopener" target="_blank">' + T('source verified ✓', '源码已验证 ✓') + '</a>') +
     ph('done', 2, T('Pons checked claim()', 'Pons 核对 claim()'), T('2026-09-23 · the vault can claim the creator share', '2026-09-23 · 金库可以领取 creator 份额')) +
-    ph(isRec ? 'done' : 'now', 3, T('Fee recipient → vault', '收款人 → 金库'), isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
-    ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
+    ph(isRec ? 'done' : live ? 'now' : '', 3, T('Fee recipient → vault', '收款人 → 金库'), !live ? wait : isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
+    ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : !live ? wait : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
 
   /* the furnace ring: share of everything ever minted that no longer exists */
   const burnedTot = live ? v.totalBurned : 0;
   const pctB = minted ? burnedTot / minted * 100 : 0;
   const C = 2 * Math.PI * 54, off = C * (1 - Math.min(1, pctB / 100));
-  const ringKey = pctB.toFixed(4) + '|' + Math.round(minted) + '|' + lang;
+  const ringKey = pctB.toFixed(4) + '|' + Math.round(minted) + '|' + lang + '|' + live;
   if (ringMemo !== ringKey) {
     $('#burnRing').innerHTML =
       '<svg viewBox="0 0 140 140"><circle class="track" cx="70" cy="70" r="54"/>' +
       '<circle class="arc" cx="70" cy="70" r="54" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + C.toFixed(2) + '"/>' +
-      '<text class="big" x="70" y="73" text-anchor="middle">' + (pctB > 0 && pctB < 0.01 ? '<0.01' : pctB.toFixed(2)) + '%</text>' +
-      '<text class="small" x="70" y="91" text-anchor="middle">' + T('SUPPLY BURNED', '供应已销毁') + '</text></svg>' +
-      '<p class="cap"><b>' + nf(Math.round(burnedTot)) + '</b> ' + T('of ', '／') + tok(minted) + T(' minted', ' 已铸') + '</p>';
+      '<text class="big" x="70" y="73" text-anchor="middle">' + (!live ? '…' : (pctB > 0 && pctB < 0.01 ? '<0.01' : pctB.toFixed(2)) + '%') + '</text>' +
+      '<text class="small" x="70" y="91" text-anchor="middle">' + T('SUPPLY BURNED', '供应已销毁') + '</text>' +
+      (burnedTot > 0 ? '<text class="flame" x="70" y="24" text-anchor="middle">🔥</text>' : '') + '</svg>' +
+      '<p class="cap">' + (live ? '<b>' + cuTxt('ringcap', burnedTot, 'int', nf(Math.round(burnedTot))) + '</b> ' + T('of ', '／') + tok(minted) + T(' minted', ' 已铸') : T('reading the vault…', '读取金库中…')) + '</p>';
+    countUps($('#burnRing'));
     const arc = $('#burnRing .arc');
     requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = off.toFixed(2); }));
     ringMemo = ringKey;
@@ -2069,6 +2144,14 @@ function renderBurn() {
   else if (now < v.earliestAt) { win = '<span class="countdown">' + hm(v.earliestAt - now) + '</span>'; winSub = T('until the random draws begin · no fixed time after that · latest ', '后开始随机抽签 · 之后没有固定时间 · 最迟 ') + utc(v.guaranteedAt).slice(5, 16) + ' UTC'; }
   else { win = T('DRAWING', '抽签中'); winSub = T('a draw every ~38 min, this one missed · next ', '每 ~38 分钟抽一次，这轮未中 · 下次 ') + utc(v.nextDrawAt).slice(11, 16) + T(' · at most ', ' · 最多再等 ') + hm(v.guaranteedAt - now); }
 
+  if (!live) {
+    /* nothing has been read yet: show that, never a zero that looks like a fact */
+    $('#burnHero').innerHTML = [T('next burn window', '下次销毁窗口'), T('ETH ready to burn', '待烧 ETH'), T('spend this round', '本轮花费比例'), T('ETH burned through', '累计投入 ETH'), T('BRODIE burned', '累计销毁 BRODIE'), T('avg fill', '平均成交价')]
+      .map((l, i) => cell(l, wait, T('reading the vault…', '读取金库中…'), i === 0 ? 'hero' : '')).join('');
+    $('#burnRates').hidden = true;
+    $('#burnChartBox').innerHTML = '<h4>' + T('Burns per day · last 30 days', '每日销毁 · 最近 30 天') + '</h4><p class="cap">' + T('reading burns from the chain…', '正在从链上读取销毁记录…') + '</p>';
+    $('#burnTable').innerHTML = '';
+  } else {
   const last = count ? v.burns[count - 1] : null;
   const frac = last ? last.frac / 100 : 50;
   $('#burnHero').innerHTML =
@@ -2079,7 +2162,7 @@ function renderBurn() {
     cell(T('spend this round', '本轮花费比例'), frac.toFixed(0) + '%', last ? T('EMA / spot = ', 'EMA / 现货 = ') + (last.ema / last.spot).toFixed(3) + (last.capped ? T(' · depth-capped', ' · 被深度封顶') : '') : T('first burn seeds the EMA', '首次销毁建立均线'),
          '', T('Spends 50% × (average price ÷ current price) of its balance, between 15% and 100%. It spends more when the price is below its average.', '每次花掉余额的 50% × (均价 ÷ 现价)，在 15% 到 100% 之间。价格低于均价时花得更多。')) +
     (count ? cell(T('ETH burned through', '累计投入 ETH'), (live ? v.totalEth : 0).toFixed(4), usdExact((live ? v.totalEth : 0) * eth) + ' · ' + nf(count) + T(' burns', ' 次')) +
-    cell(T('BRODIE burned', '累计销毁 BRODIE'), nf(Math.round(burnedTot)), last ? T('last ', '最近 ') + nf(Math.round(last.tokens)) + ' · ' + ago(new Date(last.t * 1000).toISOString()) + T(' ago', '前') : T('none yet', '尚无')) +
+    cell(T('BRODIE burned', '累计销毁 BRODIE'), cuTxt('bh-burned', burnedTot, 'int', nf(Math.round(burnedTot))), last ? T('last ', '最近 ') + nf(Math.round(last.tokens)) + ' · ' + ago(new Date(last.t * 1000).toISOString()) + T(' ago', '前') : T('none yet', '尚无')) +
     cell(T('avg fill', '平均成交价'), last ? price(v.totalEth / v.totalBurned * eth) : '—', last ? T('ETH spent ÷ tokens burned, in USD', '投入 ETH ÷ 销毁数量，按美元') : T('appears after the first burn', '首次销毁后显示')) : '') +
     (count ? '' : '<div class="burn-empty" style="grid-column:1/-1; margin:0"><span class="flame">🔥</span><div><b>' + T('No burns yet.', '还没有销毁。') + '</b> ' +
       (isRec ? T('The vault has been collecting fees since 24 September. The first burn happens once it has 0.005 ETH.', '金库从 9 月 24 日开始收手续费，攒够 0.005 ETH 就会进行第一次销毁。')
@@ -2088,9 +2171,10 @@ function renderBurn() {
 
   /* rates */
   const win_ = (s, k) => (live ? v.burns : []).filter(b => now - b.t <= s).reduce((a, b) => a + b[k], 0);
-  const rate = (lbl, s) => cell(lbl, nf(Math.round(s ? win_(s, 'tokens') : burnedTot)), (s ? win_(s, 'eth') : (live ? v.totalEth : 0)).toFixed(4) + ' ETH · ' + nf(s ? (live ? v.burns : []).filter(b => now - b.t <= s).length : count) + T(' burns', ' 次'));
+  const rate = (lbl, s) => cell(lbl, cuTxt('rate' + s, s ? win_(s, 'tokens') : burnedTot, 'int', nf(Math.round(s ? win_(s, 'tokens') : burnedTot))), (s ? win_(s, 'eth') : (live ? v.totalEth : 0)).toFixed(4) + ' ETH · ' + nf(s ? (live ? v.burns : []).filter(b => now - b.t <= s).length : count) + T(' burns', ' 次'));
   $('#burnRates').hidden = !count;
   $('#burnRates').innerHTML = rate(T('burned · 24h', '销毁 · 24 小时'), 86400) + rate(T('burned · 7d', '销毁 · 7 天'), 7 * 86400) + rate(T('burned · 30d', '销毁 · 30 天'), 30 * 86400) + rate(T('burned · all time', '销毁 · 累计'), 0);
+  countUps($('#burnHero')); countUps($('#burnRates'));
 
   /* daily chart, last 30 days */
   const days = [], today = Math.floor(now / 86400);
@@ -2132,6 +2216,7 @@ function renderBurn() {
   $('#burnTable').innerHTML = rows
     ? '<div class="tw"><table><thead><tr><th>#</th><th>' + T('when (UTC)', '时间 (UTC)') + '</th><th class="r">ETH</th><th class="r">BRODIE</th><th class="r">' + T('fill', '成交价') + '</th><th class="r">' + T('vs spot', '对现货') + '</th><th class="r">' + T('spent', '比例') + '</th><th>' + T('caller', '触发者') + '</th><th>tx</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
     : '';
+  }
 
   /* rules · immutable, no owner can change them */
   const rule = (k, vv) => '<div class="rule"><span class="k">' + k + '</span><span class="v">' + vv + '</span></div>';
@@ -2310,12 +2395,23 @@ const GALLERY = [
   ['meme-065', 'Suited up for the long haul.', '为长跑穿好装备。']
 ];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const MEMES = { stickers: shuffle(STICKERS).slice(0, 3), gallery: shuffle(GALLERY).slice(0, 4) };
+const _deck = shuffle(STICKERS);
+const MEMES = { stickers: _deck.slice(0, 3), foot: _deck[3] || _deck[0], gallery: shuffle(GALLERY).slice(0, 4), woof: Math.floor(Math.random() * 4) };
+const WOOF = [
+  ['Still here. Still burning.', '还在。还在烧。'],
+  ['Good boy. On-chain.', '好狗狗，链上的。'],
+  ['No keys, no pause, just burns.', '没有钥匙，不能暂停，只管烧。'],
+  ['Woof. That’s the whole roadmap.', '汪。这就是整个路线图。']
+];
 function renderMemes() {
   document.querySelectorAll('.mast-media .sticker').forEach((img, i) => {
     const src = 'assets/memes/s/' + MEMES.stickers[i] + '.webp';
     if (img.getAttribute('src') !== src) img.src = src;
   });
+  const fp = document.getElementById('footPaw');
+  if (fp) { const src = 'assets/memes/s/' + MEMES.foot + '.webp'; if (fp.getAttribute('src') !== src) fp.src = src; }
+  const wt = document.getElementById('woofTxt');
+  if (wt) wt.textContent = T(WOOF[MEMES.woof][0], WOOF[MEMES.woof][1]);
   const g = document.getElementById('gallery');
   if (g) g.innerHTML = MEMES.gallery.map(m => '<figure><img src="assets/memes/g/' + m[0] + '.webp" alt="" loading="lazy"><figcaption>' + T(m[1], m[2]) + '</figcaption></figure>').join('');
 }
@@ -2358,19 +2454,19 @@ function initCopy() {
   });
 }
 const TABS = [
-  ['burn',      'Burn',         '销毁'],
-  ['fees',      'Fees',         '手续费'],
-  ['migration', 'Claim',        '领取'],
-  ['tape',      'Market',       '行情'],
-  ['holders',   'Holders',      '持仓'],
-  ['contracts', 'Contracts',    '合约'],
-  ['story',     'Story',        '故事'],
-  ['about',     'About',        '关于']
+  ['burn',      'Burn',         '销毁',   '🔥'],
+  ['fees',      'Fees',         '手续费', '💸'],
+  ['migration', 'Claim',        '领取',   '🎫'],
+  ['tape',      'Market',       '行情',   '📈'],
+  ['holders',   'Holders',      '持仓',   '🐾'],
+  ['contracts', 'Contracts',    '合约',   '📜'],
+  ['story',     'Story',        '故事',   '📖'],
+  ['about',     'About',        '关于',   '🐶']
 ];
 let tab = TABS.some(t => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : 'burn';
 function renderTabs() {
   document.getElementById('tabbar').innerHTML =
-    TABS.map(t => '<button type="button" data-tabkey="' + t[0] + '"' + (t[0] === tab ? ' class="on"' : '') + '>' + T(t[1], t[2]) + '</button>').join('');
+    TABS.map(t => '<button type="button" data-tabkey="' + t[0] + '"' + (t[0] === tab ? ' class="on"' : '') + '><span class="ico">' + t[3] + '</span>' + T(t[1], t[2]) + '</button>').join('');
   document.querySelectorAll('.sec[data-tab]').forEach(sec => {
     sec.classList.toggle('show', sec.dataset.tab === tab);
   });
