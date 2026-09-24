@@ -25,11 +25,9 @@ jobs:
           python3 onchain_audit.py
           python3 dump_holders.py
           python3 dump_all.py
-          python3 flows.py
           python3 timeline.py
-          python3 sell_attrib.py
 
-      - name: Re-inject into index.html
+      - name: Write data/*.json for the page
         run: python3 scripts/inject.py
 
       # A silent no-op here is how this job failed unnoticed for two days:
@@ -38,22 +36,12 @@ jobs:
         run: |
           set -eu
           python3 - <<'EOF'
-          import json, re, sys, pathlib
-          html = pathlib.Path("index.html").read_text()
-          hold = re.search(r'window\.HOLD=\{"block":(\d+)', html)
+          import json, pathlib, sys
+          page = json.loads(pathlib.Path("data/hold.json").read_text())
           ledger = json.loads(pathlib.Path("tools/holders_all.json").read_text())
-          assert hold, "window.HOLD literal not found in index.html"
-          if int(hold.group(1)) != ledger["block"]:
-              sys.exit("injection did not take: page says block %s, ledger says %s"
-                       % (hold.group(1), ledger["block"]))
-          # window.SA silently went unrefreshed from launch until 15 Sep. Verify it too.
-          sa_page = re.search(r'window\.SA=\{[^}]*?"block":(\d+)', html)
-          sa_file = json.loads(pathlib.Path("tools/sell_attrib.json").read_text())
-          assert sa_page, "window.SA literal not found in index.html"
-          if int(sa_page.group(1)) != sa_file["block"]:
-              sys.exit("sell-attrib injection did not take: page %s, ledger %s"
-                       % (sa_page.group(1), sa_file["block"]))
-          print("injected through block %s (sell-attrib %s)" % (ledger["block"], sa_file["block"]))
+          if page["block"] != ledger["block"]:
+              sys.exit("data/hold.json did not move: %s vs ledger %s" % (page["block"], ledger["block"]))
+          print("data written through block %s" % ledger["block"])
           EOF
 
       # Block numbers matching is not the same as the page still working. On
@@ -62,16 +50,15 @@ jobs:
         run: python3 scripts/smoke.py
 
       # A push can lose a race with a human commit landing during the 12-minute
-      # replay. Rebasing a 300KB single-line literal is not worth attempting, so
-      # on rejection we take the newest page, re-apply the fresh ledgers to it,
-      # and try again.
+      # replay. On rejection we take the newest main, re-apply the fresh ledgers
+      # to it, and try again.
       - name: Commit and push
         id: commit
         run: |
           set -eu
           git config user.name  "brodie-terminal-bot"
           git config user.email "bot@users.noreply.github.com"
-          if git diff --quiet -- index.html tools; then
+          if git diff --quiet -- data tools; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "ledgers unchanged"
             exit 0
@@ -79,7 +66,7 @@ jobs:
           MSG="chore: refresh ledgers $(date -u +%FT%TZ)"
           mkdir -p /tmp/ledgers
           for attempt in 1 2 3; do
-            git add index.html tools
+            git add data tools
             git diff --staged --quiet || git commit -q -m "$MSG"
             if git push origin HEAD:main; then
               echo "changed=true" >> "$GITHUB_OUTPUT"

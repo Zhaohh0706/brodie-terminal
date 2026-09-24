@@ -1,80 +1,70 @@
 #!/usr/bin/env python3
-"""Assert every baked data literal still matches the shape the page reads.
+"""Check that the page can still read its own data, with no browser.
 
-On 15 September sell_attrib.json was wired into inject.py and written verbatim.
-It carries {categories:{...}, topClaimDumpers:[...]}; renderSellers reads
-sa.cats as [[name, value], ...] and sa.topDumpers. sa.cats.find threw,
-renderSellers threw, renderAll threw, and boot() never finished — so every
-panel, including live price and chain block, silently served a six-day-old
-snapshot behind a status chip stuck on BOOT.
-
-The refresh job's existing check compared block numbers inside the file, which
-all matched. Nothing checked that the page could still read its own data. This
-does, and it runs in milliseconds with no browser.
+The refresh job once passed every block-number check while boot() was dead:
+a ledger changed shape, a renderer threw, and the page sat on a stale snapshot.
+This asserts the shape of every file the page fetches, that index.html still
+points at them, and that its script parses. Runs in milliseconds.
 
   python3 scripts/smoke.py
 """
-import json, pathlib, re, sys
+import json, pathlib, re, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 html = (ROOT / "index.html").read_text()
 fails, checked = [], []
 
-def literal(name):
-    m = re.search(r"window\.%s=(\{.*?\});" % name, html, re.S)
-    if not m:
-        fails.append("window.%s literal is missing from index.html" % name)
+
+def data(name):
+    p = ROOT / "data" / name
+    if not p.exists():
+        fails.append("data/%s is missing" % name)
         return None
     try:
-        return json.loads(m.group(1))
+        return json.loads(p.read_text())
     except Exception as e:
-        fails.append("window.%s is not valid JSON: %s" % (name, e))
+        fails.append("data/%s is not valid JSON: %s" % (name, e))
         return None
+
 
 def require(obj, name, keys):
     if obj is None:
         return
     missing = [k for k in keys if k not in obj]
     if missing:
-        fails.append("window.%s is missing %s — the page reads %s and will throw"
-                     % (name, ", ".join(missing), " / ".join(keys)))
+        fails.append("data/%s is missing %s, which the page reads" % (name, ", ".join(missing)))
     else:
         checked.append(name)
 
-# Keys below are the ones the render functions actually dereference. If you add
-# an access in the page, add it here too, or the next shape drift ships silently.
-sa = literal("SA")
-require(sa, "SA", ["block", "generated", "totalSold", "sellers", "cats", "topDumpers"])
-if sa and isinstance(sa.get("cats"), list):
-    names = [c[0] for c in sa["cats"] if isinstance(c, list) and c]
-    for need in ("fee_hook", "claim_dump"):
-        if need not in names:
-            fails.append("window.SA.cats has no '%s' row — renderSellers indexes it by "
-                         "name and would read undefined" % need)
-    if not all(isinstance(c, list) and len(c) == 2 for c in sa["cats"]):
-        fails.append("window.SA.cats must be [[name, value], ...]")
-if sa and isinstance(sa.get("topDumpers"), list) and sa["topDumpers"]:
-    if not all(isinstance(r, list) and len(r) == 3 for r in sa["topDumpers"]):
-        fails.append("window.SA.topDumpers must be [[address, sold, minted], ...]")
 
-require(literal("TL"), "TL", ["block", "generated", "parties", "daily", "buys",
-                              "firstSweep", "lastSweep", "sweeps", "lastPayout", "payouts"])
-require(literal("HOLD"), "HOLD", ["block", "generated", "holders", "flows"])
-require(literal("TEAMEXIT"), "TEAMEXIT",
-        ["feeWallet", "subWallet", "router", "firstBuy", "lastBuy", "bought", "buyCount",
-         "exit", "spentEth", "recvEth", "netEth", "sold", "avgBuyGwei", "avgSellGwei"])
+# Keys below are the ones the page dereferences. Add an access in the page, add it here.
+hold = data("hold.json")
+require(hold, "hold.json", ["block", "generated", "holders", "flows"])
+if hold and len(hold.get("holders", {})) < 100:
+    fails.append("data/hold.json has only %d holders — the replay probably failed" % len(hold["holders"]))
 
-ent = literal("ENT")
+tl = data("tl.json")
+require(tl, "tl.json", ["block", "generated", "parties", "daily", "sweeps", "payouts"])
+if tl and tl.get("daily") and tl.get("parties"):
+    if any(len(d[1]) != len(tl["parties"]) for d in tl["daily"]):
+        fails.append("data/tl.json daily rows do not match its party list")
+
+ent = data("ent.json")
 if ent is not None:
     bad = [a for a, v in list(ent.items())[:50] if not (isinstance(v, list) and len(v) == 3)]
-    if bad:
-        fails.append("window.ENT rows must be [v1In, v2Entitled, issued]; bad: %s" % bad[:3])
+    if bad or len(ent) < 100:
+        fails.append("data/ent.json rows must be [v1In, v2Entitled, claimed]; bad: %s" % bad[:3])
     else:
-        checked.append("ENT")
+        checked.append("ent.json")
+
+for name in ("hold", "tl", "ent"):
+    if "loadData('%s')" % name not in html:
+        fails.append("index.html no longer fetches data/%s.json" % name)
+if re.search(r"window\.(HOLD|ENT|TL|SA|TEAMEXIT)=\{", html):
+    fails.append("index.html still carries an inline ledger literal; ledgers live in data/")
 
 # the page must still parse as JavaScript
 try:
-    import subprocess
     r = subprocess.run(["node", "-e",
         "const fs=require('fs');const h=fs.readFileSync(process.argv[1],'utf8');"
         "const m=h.match(/<script>([\\s\\S]*?)<\\/script>\\s*<\\/body>/);new Function(m[1]);",
@@ -91,4 +81,4 @@ if fails:
     for f in fails:
         print("  - " + f)
     sys.exit(1)
-print("smoke test passed — %s all match what the page reads" % ", ".join(checked))
+print("smoke test passed — %s" % ", ".join(checked))
