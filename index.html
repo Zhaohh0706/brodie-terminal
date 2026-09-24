@@ -516,7 +516,7 @@ footer .links a{border-bottom:0}
     <section class="mast" id="hero">
       <div class="mast-in">
         <div class="mast-copy">
-          <p class="kicker"><span class="dot"></span><span data-zh="Robinhood 的办公室狗 · Robinhood Chain · 手续费 70% 用于销毁">Robinhood's office dog · Robinhood Chain · 70% of fees burned</span></p>
+          <p class="kicker"><span class="dot"></span><span data-zh="Robinhood 的办公室狗 · Robinhood Chain · creator 手续费 100% 用于销毁">Robinhood's office dog · Robinhood Chain · 100% of creator fees burned</span></p>
           <h1 data-zh="他<em>还在</em>这儿。">Still <em>here.</em></h1>
           <p class="thesis" data-zh="2016 年 Robinhood 在推特上晒过他，之后十年没人再提。2026 年他成了一个币，这一路折腾了不少。<strong>他还在。</strong>现在交易手续费里属于 creator 的那 70%，会自动拿去买回 BRODIE 然后烧掉。没有人握着钥匙，也不用谁每天去点按钮。">Robinhood showed him off in 2016, then forgot about him for ten years. He became a coin in 2026 and has been through a lot since. <strong>He’s still here.</strong> Now the creator’s 70% of trading fees goes to a contract that buys BRODIE back and burns it. Nobody holds the keys, and nobody has to press a button.</p>
           <div class="hero-stats" id="heroStats"></div>
@@ -546,7 +546,7 @@ footer .links a{border-bottom:0}
         <h2 data-zh="销毁引擎">Burn engine</h2>
         <span class="chip" id="burnChip">—</span>
       </div>
-      <p class="sec-note" data-zh="金库是一个没有 owner 的合约，不能暂停、不能升级，也没法把钱提走。它领取 creator 那 70% 的手续费，在同一个池子里买入 BRODIE 并调用 burn()，总供应量会真实减少。这里的数据都直接从合约读取。">The vault is a contract with no owner. It can’t be paused, upgraded or emptied. It collects the creator’s 70% of pool fees, buys BRODIE in the same pool and calls burn(), so total supply goes down. Everything here is read straight from the contract.</p>
+      <p class="sec-note" data-zh="金库是一个没有 owner 的合约，不能暂停、不能升级，也没法把钱提走。它领取 creator 那 70% 的手续费，在同一个池子里买入 BRODIE 并调用 burn()，总供应量会真实减少。另外 30% 是 Pons 协议层的分成，比例由 Pons 定，不由我们控制。这里的数据都直接从合约读取，合约<a href='https://robinhoodchain.blockscout.com/address/0xC0f342a8936755697C535F1e8E0D712a8da672f8?tab=contract' rel='noopener' target='_blank'>源码已在 Blockscout 验证 ↗</a>。">The vault is a contract with no owner. It can’t be paused, upgraded or emptied. It collects the creator’s 70% of pool fees, buys BRODIE in the same pool and calls burn(), so total supply goes down. The other 30% of every fee is Pons’ protocol share, set by Pons, not by us. Everything here is read straight from the contract, whose <a href="https://robinhoodchain.blockscout.com/address/0xC0f342a8936755697C535F1e8E0D712a8da672f8?tab=contract" rel="noopener" target="_blank">source is verified on Blockscout ↗</a>.</p>
 
       <div class="phase" id="burnPhase"></div>
       <div class="furnace">
@@ -948,7 +948,7 @@ const SNAP = {
   createdAt: 1788020813000,
   supplyV2: 815339556.10, supplyV1: 1000000000,
   deadV2: 0, deadV1: 300.8019,
-  mintedV2: 815339556.10, burnedV2: 0,
+  mintedV2: 815339556.10, burnedV2: 48682.93,   /* burn #1, 2026-09-24 */
   transfersV2: 32156, firstBlockV2: 49296036, firstTsV2: '2026-08-29T16:26:53Z',
   holdersV2: 639,
   candles: [], trades: [],
@@ -1273,12 +1273,15 @@ async function pullChain() {
   D.fees.balances = bals;
   D.fees.escrowBalances = escBals;
   D.fees.subBalance = subBal;
-  /* V2 is minted on demand: totalMinted() only ever rises, burn() only ever lowers totalSupply().
-     Their difference is the exact burned amount, read live — no event replay needed. */
-  const minted = dec(tm), credits = dec(tc), max = dec(mx);
+  /* The migrator's totalMinted() mirrors totalSupply(): it fell by exactly burn #1
+     (815,339,556 → 815,290,873), so "totalMinted − totalSupply" reads 0 forever.
+     Burned is the sum of the token's Transfer-to-0x0 events (BURN_LOGS, pulled with the
+     vault); everything ever minted is what still exists plus what was burned. */
+  const burned = D.burnEvents ? D.burnEvents.sum : Math.max(0, dec(tm) - D.supplyV2, D.burnedV2);
+  const minted = D.supplyV2 + burned, credits = dec(tc), max = dec(mx);
   const toMigrators = Math.max(0, minted - CONFIG.seedToPool);
   D.mintedV2 = minted;
-  D.burnedV2 = Math.max(0, minted - D.supplyV2);
+  D.burnedV2 = burned;
   D.mint = {
     minted, credits, max, deposits: dec(td),
     deadline: hexNum(dl), open: hexNum(mo) === 1, depositEnd: hexNum(de),
@@ -1721,7 +1724,7 @@ function renderTape() {
   const age = (Date.now() - D.createdAt) / 86400000;
   $('#tapeGrid2').innerHTML =
     cell(T('total supply', '总量'), tok(D.supplyV2), nf(Math.round(D.supplyV2)) + ' BRODIE') +
-    cell(T('burned to date', '累计销毁'), nf(D.burnedV2 + D.deadV2, 0), (D.burnedV2 + D.deadV2) < 1 ? T('none yet', '暂无') : T('totalMinted − totalSupply, live', 'totalMinted − totalSupply，实时')) +
+    cell(T('burned to date', '累计销毁'), nf(D.burnedV2 + D.deadV2, 0), (D.burnedV2 + D.deadV2) < 1 ? T('none yet', '暂无') : T('from the token’s burn events, live', '来自代币的销毁事件，实时')) +
     cell(T('holders', '持仓地址'), nf(ledgerReady() ? ledgerHolders() : D.holdersV2), ledgerReady() ? T('live · block ', '实时 · 区块 ') + nf(LEDGER.block) : T('replay snapshot', '重放快照') + ' · ' + ago(SNAP.at)) +
     cell(T('pool age', '开盘天数'), age.toFixed(1) + 'd', new Date(D.createdAt).toISOString().slice(0, 10)) +
     cell(T('implied ETH', '隐含 ETH'), usdExact(D.priceNative > 0 ? D.price / D.priceNative : 0), T('from pool quote', '由池内报价推算')) +
@@ -1757,7 +1760,7 @@ function renderSupply() {
          T('V2 is minted when it is claimed, plus the pool seed at each epoch. Read from the contract every 30 seconds.',
            'V2 在领取时铸造，外加每轮的池子种子。每 30 秒从合约读取。')) +
     cell(T('total supply now', '当前总量'), tok(D.supplyV2), liveTag + ' · ' + T('minted − burned', '已铸 − 已销毁')) +
-    cell(T('burned', '已销毁'), nf(burnedTotal, 0), T('totalMinted − totalSupply, plus 0x…dEaD', 'totalMinted − totalSupply，加黑洞地址')) +
+    cell(T('burned', '已销毁'), nf(burnedTotal, 0), T('burn events, plus 0x…dEaD', '销毁事件，加黑洞地址')) +
     cell(T('still claimable', '尚可领取'), tok(unclaimed), T('credits not yet minted · until ', '未领取的额度 · 截止 ') + deadline.slice(0, 10));
   $('#chartSupply').innerHTML = chartSupply();
 
@@ -1927,15 +1930,19 @@ function renderImpostors() {
    hook's pool record equals its address, and a burn happened exactly when a
    Burned event says so. */
 const VAULT_LOGS = { logs: [], to: 0, anchors: null };
+const BURN_LOGS = { logs: [], to: 0 };      /* every Transfer of the token to 0x0, incremental like MINT_LOGS */
 async function pullVault() {
   const V = CONFIG.vault;
-  const head = D.block || hexNum(await rpc('eth_blockNumber', []));
-  const [ws, tb, te, bc, ema, lr, bal, esc, rec] = await Promise.all([
+  const [ws, tb, te, bc, ema, lr, bal, esc, rec, bn] = await Promise.all([
     call(V, SEL.windowState), call(V, SEL.totalBurned), call(V, SEL.totalEthSpent), call(V, SEL.burnCount),
     call(V, SEL.emaWad), call(V, SEL.lastRunAt), queued('eth_getBalance', [V, 'latest']),
     call(CONFIG.escrow, SEL.balanceOf + pad(V).slice(2)),
-    call(CONFIG.hook, SEL.hookPoolRecord + CONFIG.poolId.slice(2))
+    call(CONFIG.hook, SEL.hookPoolRecord + CONFIG.poolId.slice(2)),
+    queued('eth_blockNumber', [])
   ]);
+  /* the head comes from this batch, never from the baked snapshot: burn #1 was mined 200k blocks
+     past the snapshot block, so the first scan stopped short of it and the page said "none yet" */
+  const head = Math.max(D.block || 0, hexNum(bn));
   const word = (hex, i) => hex && hex.length >= 2 + (i + 1) * 64 ? '0x' + hex.slice(2 + i * 64, 2 + (i + 1) * 64) : '0x0';
   const recipient = rec && rec.length >= 2 + 5 * 64 ? addrOf(word(rec, 4)) : null;
   const from = VAULT_LOGS.to ? VAULT_LOGS.to + 1 : CONFIG.vaultBlock;
@@ -1944,6 +1951,15 @@ async function pullVault() {
     for (const l of fresh) VAULT_LOGS.logs.push(l);
     VAULT_LOGS.to = head;
   }
+  /* burns of the token itself, whoever did them: the only live source of "burned" (see pullChain) */
+  const bfrom = BURN_LOGS.to ? BURN_LOGS.to + 1 : CONFIG.deployBlock;
+  if (bfrom <= head) {
+    const fresh = await getLogsChunked(CONFIG.v2, [CONFIG.topics.transfer, null, pad(ZERO_ADDR)], bfrom, head, CONFIG.logChunk * 2);
+    for (const l of fresh) BURN_LOGS.logs.push(l);
+    BURN_LOGS.to = head;
+  }
+  D.burnEvents = { sum: BURN_LOGS.logs.reduce((a, l) => a + dec(l.data), 0), count: BURN_LOGS.logs.length, scannedTo: head };
+  D.burnedV2 = D.burnEvents.sum;
   const burns = VAULT_LOGS.logs.map(l => ({
     seq: hexNum(l.topics[1]), caller: addrOf(l.topics[2]),
     eth: dec(word(l.data, 0)), tokens: dec(word(l.data, 1)), spot: dec(word(l.data, 2)), fill: dec(word(l.data, 3)),
@@ -2020,7 +2036,7 @@ function renderBurn() {
   const ph = (st, n, t, d) => '<div class="ph ' + st + '"><span class="n">' + (st === 'done' ? '✓' : n) + '</span><div><div class="t">' + t + '</div><div class="d">' + d + '</div></div></div>';
   const first = count ? v.burns[0] : null;
   $('#burnPhase').innerHTML =
-    ph('done', 1, T('Vault deployed', '金库已部署'), '2026-09-22 · ' + txl(CONFIG.vaultTx) + ' · ' + T('no owner, no admin functions', '无 owner、无管理函数')) +
+    ph('done', 1, T('Vault deployed', '金库已部署'), '2026-09-22 · ' + txl(CONFIG.vaultTx) + ' · ' + T('no owner, no admin functions', '无 owner、无管理函数') + ' · <a href="' + BS + 'address/' + CONFIG.vault + '?tab=contract" rel="noopener" target="_blank">' + T('source verified ✓', '源码已验证 ✓') + '</a>') +
     ph('done', 2, T('Pons checked claim()', 'Pons 核对 claim()'), T('2026-09-23 · the vault can claim the creator share', '2026-09-23 · 金库可以领取 creator 份额')) +
     ph(isRec ? 'done' : 'now', 3, T('Fee recipient → vault', '收款人 → 金库'), isRec ? '2026-09-24 · ' + txl(CONFIG.handoverTx) + ' · ' + T('by the previous recipient', '由前任收款人发起') : T('one click on Pons’ creator-fee page, no timelock · now ', 'Pons 手续费页一键转移，无时间锁 · 当前 ') + (live && v.recipient ? adl(v.recipient) : '—')) +
     ph(count ? 'done' : isRec ? 'now' : '', 4, T('First burn', '首次销毁'), first ? utc(first.t) + ' · ' + txl(first.tx) : isRec ? T('as soon as 0.005 ETH has built up · ', '攒够 0.005 ETH 即可 · ') + ethf(live ? ammo : 0) + T(' so far', ' 已到账') : T('fires within 33 h of the first fees arriving', '首笔手续费到账后 33 小时内触发'));
@@ -2049,9 +2065,9 @@ function renderBurn() {
   else if (v.lastRunAt === 0) {
     win = ammo >= 0.005 ? T('OPEN NOW', '现在可烧') : T('WAITING', '等待中');
     winSub = ammo >= 0.005 ? T('first burn: anyone can call burnNow()', '首次销毁：任何人可调用 burnNow()') : T('needs ≥ 0.005 ETH · has ', '需要 ≥ 0.005 ETH · 现有 ') + ammo.toFixed(4);
-  } else if (v.openNow) { win = T('OPEN NOW', '现在可烧'); winSub = T('guaranteed by ', '最迟 ') + utc(v.guaranteedAt).slice(5, 16) + (v.tipBps ? ' · ' + T('tip ', '小费 ') + (v.tipBps / 100) + '%' : ''); }
-  else if (now < v.earliestAt) { win = '<span class="countdown">' + hm(v.earliestAt - now) + '</span>'; winSub = T('earliest · guaranteed by ', '最早 · 最迟 ') + utc(v.guaranteedAt).slice(5, 16); }
-  else { win = '<span class="countdown">' + hm(v.guaranteedAt - now) + '</span>'; winSub = T('bucket closed · next draw ', '本桶未中 · 下次抽签 ') + utc(v.nextDrawAt).slice(11, 16); }
+  } else if (v.openNow) { win = T('OPEN NOW', '现在可烧'); winSub = T('this draw hit · anyone can call burnNow() · latest ', '这轮抽中了 · 任何人可调用 burnNow() · 最迟 ') + utc(v.guaranteedAt).slice(5, 16) + ' UTC' + (v.tipBps ? ' · ' + T('tip ', '小费 ') + (v.tipBps / 100) + '%' : ''); }
+  else if (now < v.earliestAt) { win = '<span class="countdown">' + hm(v.earliestAt - now) + '</span>'; winSub = T('until the random draws begin · no fixed time after that · latest ', '后开始随机抽签 · 之后没有固定时间 · 最迟 ') + utc(v.guaranteedAt).slice(5, 16) + ' UTC'; }
+  else { win = T('DRAWING', '抽签中'); winSub = T('a draw every ~38 min, this one missed · next ', '每 ~38 分钟抽一次，这轮未中 · 下次 ') + utc(v.nextDrawAt).slice(11, 16) + T(' · at most ', ' · 最多再等 ') + hm(v.guaranteedAt - now); }
 
   const last = count ? v.burns[count - 1] : null;
   const frac = last ? last.frac / 100 : 50;
