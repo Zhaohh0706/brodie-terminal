@@ -121,14 +121,16 @@ small { color: var(--ink-3); }
   const BOT = 'BrodieOnHood_Bot';
   const params = new URLSearchParams(location.search);
   const code = (params.get('c') || '').trim();
+  const uid = (params.get('u') || '').trim();
   const $ = id => document.getElementById(id);
   const say = (text, kind) => { const s = $('status'); s.textContent = text; s.className = 'status ' + (kind || ''); };
 
-  if (!/^[A-Za-z0-9_-]{6,32}$/.test(code)) { $('bad-code').classList.remove('hidden'); return; }
+  if (!/^[A-Za-z0-9_-]{6,32}$/.test(code) || !/^[0-9]{1,20}$/.test(uid)) { $('bad-code').classList.remove('hidden'); return; }
 
   /* must match brodie_bot/holders.py message_for() byte for byte */
   const message = 'The Packed Brodie holder check\n' +
-    'Code: ' + code + '\n\n' +
+    'Code: ' + code + '\n' +
+    'Telegram user ID: ' + uid + '\n\n' +
     'I am proving that I own this wallet so I can join The Packed Brodie on Telegram. ' +
     'This signature is free. It sends nothing and approves nothing.';
   $('message').textContent = message;
