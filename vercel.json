@@ -2,6 +2,19 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "brodie-terminal.vercel.app"
+        }
+      ],
+      "destination": "https://www.brodieonhood.com/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/",

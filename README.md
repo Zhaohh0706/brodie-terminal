@@ -3,7 +3,7 @@
 Live dashboard for $BRODIE on Robinhood Chain (chain id 4663): the burn vault,
 fees, the V1 → V2 claim, market data and holders. Static site, no backend.
 
-Live at https://brodie-terminal.vercel.app
+Live at https://brodieonhood.com (the old brodie-terminal.vercel.app redirects there)
 
     python3 -m http.server 8731     # local preview at http://localhost:8731
 
