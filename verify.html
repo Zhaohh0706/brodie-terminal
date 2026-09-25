@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Holder check · The Packed Brodie</title>
+<meta name="description" content="Prove you hold BRODIE to join The Packed Brodie. A free, plain-text signature: no transaction, no approval.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0A0E0C; --surface:#101613; --surface-2:#161E1A; --line:#1F2B25; --line-2:#34453C;
+  --ink:#EEF3EF; --ink-2:#A9B8AF; --ink-3:#71827A; --lime:#CCFF00; --lime-ink:#0A0E0C;
+  --fire:#FF7A45; --ok:#58E38A; --bad:#FF6B5E; --r:16px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:#F2F4F0; --surface:#FFFFFF; --surface-2:#EEF2EB; --line:#D8DFD4; --line-2:#B5C1B2;
+    --ink:#0F1613; --ink-2:#43514A; --ink-3:#6E7D74; --lime:#6E9400; --lime-ink:#FFFFFF;
+    --fire:#D9541E; --ok:#0B7A2A; --bad:#B3271C;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 16px/1.5 "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+       min-height: 100vh; display: flex; justify-content: center; padding: 32px 16px 48px; }
+main { width: 100%; max-width: 520px; }
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.brand img { width: 44px; height: 44px; border-radius: 50%; }
+.brand b { font: 700 18px/1.1 "Fraunces", Georgia, serif; }
+.brand span { display: block; color: var(--ink-3); font-size: 13px; }
+h1 { font: 800 34px/1.1 "Fraunces", Georgia, serif; margin: 0 0 10px; letter-spacing: -.01em; }
+p { color: var(--ink-2); margin: 0 0 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+        padding: 20px; margin: 18px 0; }
+.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.steps li { counter-increment: s; display: flex; gap: 12px; padding: 8px 0; color: var(--ink-2); }
+.steps li::before { content: counter(s); flex: 0 0 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; font: 600 13px "JetBrains Mono", monospace;
+  background: var(--surface-2); color: var(--ink); border: 1px solid var(--line-2); }
+.steps li.done::before { content: "✓"; background: var(--lime); color: var(--lime-ink); border-color: var(--lime); }
+button, .btn { appearance: none; border: 0; border-radius: 12px; cursor: pointer; width: 100%;
+  font: 600 16px "Instrument Sans", sans-serif; padding: 14px 18px; text-align: center;
+  text-decoration: none; display: block; }
+.primary { background: var(--lime); color: var(--lime-ink); }
+.primary[disabled] { opacity: .45; cursor: default; }
+.ghost { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line-2); }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.mono { font: 13px/1.5 "JetBrains Mono", ui-monospace, monospace; color: var(--ink-2);
+        background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+        padding: 12px; white-space: pre-wrap; word-break: break-all; }
+.status { font-size: 14px; margin-top: 12px; min-height: 1.5em; }
+.status.ok { color: var(--ok); } .status.bad { color: var(--bad); }
+.warn { border-color: var(--fire); }
+.warn b { color: var(--fire); }
+.hidden { display: none; }
+small { color: var(--ink-3); }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <img src="/assets/logo.webp" alt="">
+    <div><b>The Packed Brodie</b><span>Holder check · Robinhood Chain</span></div>
+  </div>
+
+  <h1>Prove you're part of the pack</h1>
+  <p>The Packed Brodie is for holders of <b>0.5%+ of the BRODIE supply</b>. Sign one plain message
+     to show the wallet is yours. It's free and it moves nothing.</p>
+
+  <div id="bad-code" class="card warn hidden">
+    <b>This link has no check code.</b>
+    <p style="margin:6px 0 0">Ask to join The Packed Brodie in Telegram and use the link Brodie sends you.</p>
+  </div>
+
+  <div id="no-wallet" class="card hidden">
+    <p style="margin-bottom:10px"><b>No wallet found in this browser.</b> Open this page inside your wallet app:</p>
+    <div class="row">
+      <a class="btn ghost" id="open-metamask">MetaMask</a>
+      <a class="btn ghost" id="open-coinbase">Coinbase Wallet</a>
+      <a class="btn ghost" id="open-okx">OKX Wallet</a>
+      <a class="btn ghost" id="open-trust">Trust Wallet</a>
+    </div>
+    <button class="ghost" id="copy-link" style="margin-top:10px">Copy this page's link</button>
+    <p style="margin:10px 0 0"><small>On desktop, open it in a browser with your wallet extension (Rabby, MetaMask…).</small></p>
+  </div>
+
+  <div id="flow" class="card hidden">
+    <ol class="steps">
+      <li id="s1">Connect the wallet that holds your BRODIE</li>
+      <li id="s2">Sign the message below (no transaction)</li>
+      <li id="s3">Send the signature to Brodie in Telegram</li>
+    </ol>
+    <div class="mono" id="message" style="margin:12px 0"></div>
+    <button class="primary" id="go">Connect wallet</button>
+    <a class="btn primary hidden" id="send" target="_blank" rel="noopener">Send to Brodie in Telegram</a>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <div id="fallback" class="hidden">
+      <p style="margin:12px 0 6px"><small>If Telegram didn't open, send this to @BrodieOnHood_Bot:</small></p>
+      <div class="mono" id="payload"></div>
+      <button class="ghost" id="copy-payload" style="margin-top:10px">Copy</button>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <b>Stay safe.</b>
+    <p style="margin:6px 0 0">This page only ever asks for a <b>text signature</b>. If your wallet shows a
+      transaction, an approval, a permit or a spending limit, <b>reject it</b>: that's not us.
+      Nobody from the team will ask for your seed phrase.</p>
+  </div>
+  <p><small>Official links live in the pinned post of Brodie's Park and on
+    <a href="/" style="color:inherit">brodie-terminal.vercel.app</a>.</small></p>
+</main>
+
+<script>
+(() => {
+  const BOT = 'BrodieOnHood_Bot';
+  const params = new URLSearchParams(location.search);
+  const code = (params.get('c') || '').trim();
+  const $ = id => document.getElementById(id);
+  const say = (text, kind) => { const s = $('status'); s.textContent = text; s.className = 'status ' + (kind || ''); };
+
+  if (!/^[A-Za-z0-9_-]{6,32}$/.test(code)) { $('bad-code').classList.remove('hidden'); return; }
+
+  /* must match brodie_bot/holders.py message_for() byte for byte */
+  const message = 'The Packed Brodie holder check\n' +
+    'Code: ' + code + '\n\n' +
+    'I am proving that I own this wallet so I can join The Packed Brodie on Telegram. ' +
+    'This signature is free. It sends nothing and approves nothing.';
+  $('message').textContent = message;
+
+  const here = location.href;
+  const bare = here.replace(/^https?:\/\//, '');
+  $('open-metamask').href = 'https://metamask.app.link/dapp/' + bare;
+  $('open-coinbase').href = 'https://go.cb-w.com/dapp?cb_url=' + encodeURIComponent(here);
+  $('open-okx').href = 'okx://wallet/dapp/url?dappUrl=' + encodeURIComponent(here);
+  $('open-trust').href = 'https://link.trustwallet.com/open_url?coin_id=60&url=' + encodeURIComponent(here);
+  const copy = (text, btn) => navigator.clipboard.writeText(text).then(
+    () => { const t = btn.textContent; btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = t, 1500); },
+    () => { btn.textContent = 'Copy failed: select and copy by hand'; });
+  $('copy-link').onclick = e => copy(here, e.target);
+
+  const eth = window.ethereum;
+  if (!eth) { $('no-wallet').classList.remove('hidden'); return; }
+  $('flow').classList.remove('hidden');
+
+  const hex = s => '0x' + Array.from(new TextEncoder().encode(s)).map(b => b.toString(16).padStart(2, '0')).join('');
+  let account = null;
+
+  $('go').onclick = async () => {
+    const btn = $('go');
+    btn.disabled = true;
+    try {
+      if (!account) {
+        say('Waiting for your wallet…');
+        const accounts = await eth.request({ method: 'eth_requestAccounts' });
+        account = accounts && accounts[0];
+        if (!account) throw new Error('No account shared');
+        $('s1').classList.add('done');
+        btn.textContent = 'Sign message';
+        say('Connected ' + account.slice(0, 6) + '…' + account.slice(-4) + '. Now sign the message.', 'ok');
+        btn.disabled = false;
+        return;
+      }
+      say('Check your wallet: it should show the plain message above.');
+      const sig = await eth.request({ method: 'personal_sign', params: [hex(message), account] });
+      $('s2').classList.add('done');
+      const payload = '/verify ' + code + ' ' + account + ' ' + sig;
+      $('payload').textContent = payload;
+      $('send').href = 'https://t.me/' + BOT + '?text=' + encodeURIComponent(payload);
+      btn.classList.add('hidden');
+      $('send').classList.remove('hidden');
+      $('fallback').classList.remove('hidden');
+      say('Signed ✓ Tap the button, then press Send in Telegram.', 'ok');
+    } catch (err) {
+      btn.disabled = false;
+      say((err && (err.message || err.code)) ? 'Wallet said: ' + (err.message || err.code) : 'Something went wrong. Try again.', 'bad');
+    }
+  };
+  $('send').onclick = () => $('s3').classList.add('done');
+  $('copy-payload').onclick = e => copy($('payload').textContent, e.target);
+})();
+</script>
+</body>
+</html>
