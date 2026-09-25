@@ -2,21 +2,48 @@
 #   Variables -> VAULT_ADDRESS = 0xC0f342a8936755697C535F1e8E0D712a8da672f8
 #   Secrets   -> KEEPER_KEY    = the no-privilege deployer wallet 0x0Bf6…a96B; it refills itself from the 0.5% tip
 # Until both exist the job exits immediately and does nothing.
+#
+# GitHub delays or drops short schedules (*/15 ran every 3-5 h on 2026-09-24/25),
+# so each run polls for ~55 min and then dispatches the next run itself. The
+# repo's own GITHUB_TOKEN may fire workflow_dispatch, so no extra credential is
+# needed. The schedule stays as a restarter if the chain ever breaks.
+# Stop: cancel the running job (a cancelled run does not hand off), or disable the workflow.
 name: burn keeper
 on:
   schedule:
-    - cron: '*/15 * * * *'     # buckets are ~38 min; 15 min never misses one
+    - cron: '*/15 * * * *'
   workflow_dispatch:
+# One keeper at a time. A schedule tick during a loop waits, and GitHub keeps
+# only the newest waiting run, so handoffs never pile up.
+concurrency:
+  group: burn-keeper
+  cancel-in-progress: false
+permissions:
+  contents: read
+  actions: write        # only for the handoff dispatch below
 jobs:
   keep:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install -q eth-account==0.13.7 eth-utils
-      - run: python3 keeper/keeper.py
+      - name: poll every 5 min for ~55 min
         env:
           VAULT_ADDRESS: ${{ vars.VAULT_ADDRESS }}
           KEEPER_KEY:    ${{ secrets.KEEPER_KEY }}
+        run: |
+          end=$((SECONDS + 3300))
+          while :; do
+            date -u +%H:%M:%S
+            python3 keeper/keeper.py || echo "keeper exited $? (continuing)"
+            [ "$SECONDS" -ge "$end" ] && break
+            sleep 300
+          done
+      - name: hand off to the next run
+        if: success() || failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run burn-keeper.yml --ref main --repo "$GITHUB_REPOSITORY"
