@@ -4,8 +4,8 @@
 //   /supply/max           plain number      /api/supply     JSON with all three
 //
 // Circulating = total supply. V2 is minted only when a holder claims (unclaimed credits
-// are not supply yet) and every burn() lowers totalSupply. No team, treasury, vault or
-// migrator wallet holds any: all were 0 when checked on 2026-09-26.
+// are not supply yet) and every burn() lowers totalSupply. There are no locked, vesting or
+// treasury allocations; the vault and the migrator held 0 when checked on 2026-09-26.
 const RPC = "https://rpc.mainnet.chain.robinhood.com";
 const TOKEN = "0x737054bd706cba68eaF4661411FeDE5F6C2952e5";
 const MAX_SUPPLY = 1000000000;
@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       token: TOKEN, chain: "Robinhood Chain", chain_id: 4663, decimals: 18,
       total_supply: total, circulating_supply: total, max_supply: MAX_SUPPLY,
-      method: "totalSupply() read live; circulating equals total (no locked, team or treasury balances; " +
+      method: "totalSupply() read live; circulating equals total (no locked, vesting or treasury allocations; " +
               "unclaimed migration credits are not minted; burns reduce totalSupply)",
     });
   } catch (e) {
