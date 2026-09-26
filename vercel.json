@@ -15,6 +15,12 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/supply/:q",
+      "destination": "/api/supply?q=:q"
+    }
+  ],
   "headers": [
     {
       "source": "/",
