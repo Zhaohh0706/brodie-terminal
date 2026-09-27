@@ -422,6 +422,10 @@ main{flex:1 1 auto; min-width:0; padding:0 18px 80px}
   padding:8px 15px; border-top:1px solid var(--line); font-size:11.5px; color:var(--ink-3);
   display:flex; gap:16px; flex-wrap:wrap; font-family:var(--f-mono);
 }
+.fund-row{display:flex; gap:10px; align-items:center; width:100%; flex-wrap:wrap}
+.fund-k{flex:0 0 64px; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.fund-note{margin:0; width:100%; font-size:12px; color:var(--ink-3); line-height:1.45}
+#fund .ca-body{flex-direction:column; align-items:stretch; gap:8px}
 
 /* ── tables ─────────────────────────────────────────────────────────────── */
 .tw{overflow-x:auto; border:1px solid var(--line); background:var(--surface); margin-bottom:14px; border-radius:var(--r); -webkit-overflow-scrolling:touch; position:relative}
@@ -770,16 +774,30 @@ footer .links a{border-bottom:0}
         <div class="ca-head">
           <span class="t">CTO fund</span>
           <span class="chip ok"><span class="dot"></span>COMMUNITY</span>
-          <span class="chip">ETH on Robinhood Chain only</span>
+          <span class="chip" data-zh="EVM · Solana · Bitcoin">EVM · Solana · Bitcoin</span>
         </div>
         <div class="ca-body">
-          <code class="addr">0x9954dE7c5AfEBb40e1E9e9AfdE80AB7E645A544F</code>
-          <button class="btn" type="button" data-copy="0x9954dE7c5AfEBb40e1E9e9AfdE80AB7E645A544F">Copy</button>
+          <div class="fund-row">
+            <span class="fund-k">EVM</span>
+            <code class="addr">0xF261d32F8b6D2F7BF45B77580d14a5CF5FaD2D49</code>
+            <button class="btn" type="button" data-copy="0xF261d32F8b6D2F7BF45B77580d14a5CF5FaD2D49" data-zh="复制">Copy</button>
+          </div>
+          <p class="fund-note" data-zh="同一地址：Robinhood Chain、Ethereum、Base、Polygon、HyperEVM。">Same address on Robinhood Chain, Ethereum, Base, Polygon and HyperEVM.</p>
+          <div class="fund-row">
+            <span class="fund-k">Solana</span>
+            <code class="addr">4AsbKCciX8anHjgZywzP3E82bGuHFPxr5rsk8fPWGZSz</code>
+            <button class="btn" type="button" data-copy="4AsbKCciX8anHjgZywzP3E82bGuHFPxr5rsk8fPWGZSz" data-zh="复制">Copy</button>
+          </div>
+          <div class="fund-row">
+            <span class="fund-k">Bitcoin</span>
+            <code class="addr">bc1q0wn40m7x0cuyaq5t7jfyg2yuqnhpwdltdzvt60</code>
+            <button class="btn" type="button" data-copy="bc1q0wn40m7x0cuyaq5t7jfyg2yuqnhpwdltdzvt60" data-zh="复制">Copy</button>
+          </div>
         </div>
         <div class="ca-foot">
-          <span>A voluntary gift to the community team: not an investment, no tokens back, no refunds.</span>
+          <span data-zh="给社区团队的自愿赠与：不是投资，不返还代币，不退款。">A voluntary gift to the community team: not an investment, no tokens back, no refunds.</span>
           <span id="fundBal">—</span>
-          <a href="https://t.me/BrodieOnHood_Bot?start=fund" rel="noopener" target="_blank">every gift and every spend: @BrodieOnHood_Bot ↗</a>
+          <a href="https://t.me/BrodieOnHood_Bot?start=fund" rel="noopener" target="_blank" data-zh="每一笔进出：@BrodieOnHood_Bot ↗">every gift and every spend: @BrodieOnHood_Bot ↗</a>
         </div>
       </div>
 
@@ -1071,8 +1089,8 @@ const CONFIG = {
   /* the burn vault: keyless fee recipient, deployed 2026-09-22. Reads live; nothing baked. */
   vault:      '0xC0f342a8936755697C535F1e8E0D712a8da672f8',
   vaultBlock: 69411335,
-  /* the community-takeover fund (a plain wallet; the bot's /fund tracks every gift and spend) */
-  fund:       '0x9954dE7c5AfEBb40e1E9e9AfdE80AB7E645A544F',
+  /* the community-takeover fund's EVM address. The live balance below is its ETH on Robinhood Chain. */
+  fund:       '0xF261d32F8b6D2F7BF45B77580d14a5CF5FaD2D49',
   /* the token's own burns are scanned from the vault's deploy block. The range from deployBlock
      to there (48,381,897 → 69,411,334) was scanned on 2026-09-24 and held no Transfer to 0x0. */
   burnedBeforeVault: 0,
@@ -1874,7 +1892,8 @@ const FLAGS = {
   '0xc0f342a8936755697c535f1e8e0d712a8da672f8': ['burn vault, creator fee recipient since 24 Sep', '销毁金库，9 月 24 日起的 creator 收款人'],
   '0x28e35d8c909df0d084945e4d80b17dbd36b0e02c': ['creator fee recipient until 24 Sep', '9 月 24 日前的 creator 手续费收款人'],
   '0x263ed295dafae1d9aadd6e56c4b6f9f38ee019dd': ['Pons protocol fee recipient (30%), a 2-of-3 Safe shared by all Pons tokens', 'Pons 协议手续费收款人（30%），全部 Pons 代币共用的 2/3 多签'],
-  '0x9954de7c5afebb40e1e9e9afde80ab7e645a544f': ['CTO fund: the community team’s wallet for gifts (ETH on Robinhood Chain)', 'CTO 基金：社区团队接收捐赠的钱包（Robinhood Chain 上的 ETH）'],
+  '0xf261d32f8b6d2f7bf45b77580d14a5cf5fad2d49': ['CTO fund: the community team’s EVM wallet for gifts. Same address on Robinhood Chain, Ethereum, Base, Polygon and HyperEVM. Solana and Bitcoin addresses are on this page.', 'CTO 基金：社区团队的 EVM 收款钱包。Robinhood Chain、Ethereum、Base、Polygon、HyperEVM 同一地址。Solana 和 Bitcoin 地址在本页。'],
+  '0x9954de7c5afebb40e1e9e9afde80ab7e645a544f': ['Retired CTO fund (27 Sep 2026). Do not send. On Robinhood Chain this address still forwards incoming ETH.', '已停用的 CTO 基金（2026-09-27）。不要转账。在 Robinhood Chain 上，转入的 ETH 仍会被转走。'],
   '0xd64503dd73eb2a6f11856455e52bff8564172ef7': ['fee recipient for another token on the same hook (not BRODIE)', '同一 hook 上另一个代币的收款人（不是 BRODIE）'],
   '0x2cf505f3cbb36e06d4bd4758d10716b5416baad0': ['fee recipient for another token on the same hook (not BRODIE)', '同一 hook 上另一个代币的收款人（不是 BRODIE）']
 };
@@ -2637,7 +2656,7 @@ function renderStatus() {
     : T('snapshot ', '快照 ') + SNAP.at.slice(0, 16).replace('T', ' ') + ' UTC · ' + T('block ', '区块 ') + nf(SNAP.block);
   $('#caV2Mc').textContent = T('mcap ', '市值 ') + usd(D.mcap) + ' · ' + T('liq ', '流动性 ') + usd(D.liq.usd);
   const fb = document.getElementById('fundBal');
-  if (fb) fb.textContent = D.fundBal == null ? '—' : T('holds ', '现有 ') + D.fundBal.toFixed(4) + ' ETH' + (D.priceNative > 0 ? ' · ' + usdExact(D.fundBal * D.price / D.priceNative) : '');
+  if (fb) fb.textContent = D.fundBal == null ? '—' : T('Robinhood Chain · holds ', 'Robinhood Chain · 现有 ') + D.fundBal.toFixed(4) + ' ETH' + (D.priceNative > 0 ? ' · ' + usdExact(D.fundBal * D.price / D.priceNative) : '');
   const v1 = (D.impostors || []).find(r => r[0].toLowerCase() === CONFIG.v1.toLowerCase());
   $('#caV1Mc').textContent = v1 ? T('mcap ', '市值 ') + usd(v1[2]) + ' · ' + T('liq ', '流动性 ') + usd(v1[3]) : '';
   const ob = document.getElementById('offlineBanner');
@@ -2896,7 +2915,10 @@ function initCopy() {
       const old = b.textContent; b.textContent = T('Copied', '已复制');
       setTimeout(() => { b.textContent = old; }, 1400);
     } catch (err) {
-      const r = document.createRange(); r.selectNodeContents(b.closest('.ca-body').querySelector('.addr'));
+      const holder = b.closest('.fund-row') || b.closest('.ca-body');
+      const node = holder && holder.querySelector('.addr');
+      if (!node) return;
+      const r = document.createRange(); r.selectNodeContents(node);
       const s = getSelection(); s.removeAllRanges(); s.addRange(r);
     }
   });
