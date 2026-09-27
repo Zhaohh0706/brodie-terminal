@@ -19,7 +19,7 @@ while b<=latest:
     r=rpc("eth_getLogs",[{"address":PAD,"fromBlock":hex(b),"toBlock":hex(e),"topics":[DEPT]}])
     if r is None:
         if step>50_000: step//=2; continue
-        b=e+1; continue
+        raise SystemExit(f"could not read Deposit logs {b}-{e}")   # a gap would under-report someone's claim
     out+=r; b=e+1
 dep=collections.Counter(); ent=collections.Counter()
 for l in out:

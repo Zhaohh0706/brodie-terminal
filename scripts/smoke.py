@@ -55,6 +55,24 @@ if tl and tl.get("daily") and tl.get("parties"):
     if any(len(d[1]) != len(tl["parties"]) for d in tl["daily"]):
         fails.append("data/tl.json daily rows do not match its party list")
 
+if hold and hold.get("holders"):
+    sample = list(hold["holders"].values())[:50]
+    if not all(isinstance(v, (int, float)) or (isinstance(v, str) and v.isdigit()) for v in sample):
+        fails.append("data/hold.json holders must be wei strings or numbers")
+if tl and "credited" in tl and not all(isinstance(v, (int, float)) for v in tl["credited"].values()):
+    fails.append("data/tl.json credited must map recipient -> ETH")
+
+# the mint scan starts from data/audit.json; the page falls back to a full scan without it
+au = (ROOT / "data" / "audit.json").exists() and data("audit.json")
+if au:
+    m = au.get("mints") or {}
+    if not all(k in au for k in ("block", "generated", "mints", "neverSold")) or not all(k in m for k in ("count", "seed", "byAddr", "first", "last")):
+        fails.append("data/audit.json is missing block/mints/neverSold fields the page reads")
+    elif len(m["byAddr"]) < 100:
+        fails.append("data/audit.json has only %d mint recipients — the replay probably failed" % len(m["byAddr"]))
+    else:
+        checked.append("audit.json")
+
 ent = data("ent.json")
 if ent is not None:
     bad = [a for a, v in list(ent.items())[:50] if not (isinstance(v, list) and len(v) == 3)]
@@ -63,7 +81,7 @@ if ent is not None:
     else:
         checked.append("ent.json")
 
-for name in ("hold", "tl", "ent"):
+for name in ("hold", "tl", "ent", "audit"):
     if "loadData('%s')" % name not in html:
         fails.append("index.html no longer fetches data/%s.json" % name)
 if re.search(r"window\.(HOLD|ENT|TL|SA|TEAMEXIT)=\{", html):

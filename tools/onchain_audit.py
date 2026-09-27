@@ -40,7 +40,9 @@ def fetch_logs(addr, start, latest, step=250_000):
         except Exception:
             if step > 15_000:
                 step //= 2; continue
-            print("  skipped", b, e, flush=True)
+            # a skipped range used to be logged and ignored, which baked a wrong ledger;
+            # the page now starts its live scan from this file, so fail and keep the last good one
+            raise SystemExit("could not read Transfer logs %d-%d" % (b, e))
         b = e + 1
         print(f"  {e}/{latest} n={len(out)}", flush=True)
     return out
@@ -56,6 +58,7 @@ def main():
     outflow_pool = collections.defaultdict(int)   # sold into the pool
     out_other = collections.defaultdict(int)      # sent anywhere else
     minted, burned, mint_to = 0, 0, collections.defaultdict(int)
+    mints = []                                     # (block, amount, to, tx) of every Transfer from 0x0
 
     for l in logs:
         f = "0x" + l["topics"][1][26:].lower()
@@ -63,6 +66,7 @@ def main():
         v = int(l["data"], 16)
         if f == ZERO:
             minted += v; mint_to[t] += v
+            mints.append((int(l["blockNumber"], 16), v, t, l["transactionHash"]))
         else:
             bal[f] -= v
             if t == POOL: outflow_pool[f] += v
@@ -88,6 +92,11 @@ def main():
         try: code[a] = len(rpc("eth_getCode", [a, "latest"])) > 4
         except Exception: code[a] = None
 
+    def when(b):
+        r = rpc("eth_getBlockByNumber", [hex(b), False])
+        return int(r["timestamp"], 16)
+    mint_edge = lambda m: {"blk": m[0], "amt": round(m[1] / 1e18, 2), "to": m[2], "tx": m[3], "t": when(m[0])}
+
     out = {
         "block": latest,
         "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -101,6 +110,10 @@ def main():
         "never_sold": [[a, b, i, code.get(a)] for a, b, i in cands[:12]],
         "never_sold_total": sum(c[1] for c in cands),
         "never_sold_count": len(cands),
+        # the page's mint panel starts from these and scans only blocks after "block"
+        "mint_count": len(mints),
+        "mint_first": mint_edge(mints[0]) if mints else None,
+        "mint_last": mint_edge(mints[-1]) if mints else None,
         "v1_in_poolmanager": int(rpc("eth_call", [{"to": V1,
             "data": "0x70a08231000000000000000000000000" + POOL[2:]}, "latest"]), 16) / 1e18,
     }

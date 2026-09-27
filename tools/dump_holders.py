@@ -20,7 +20,8 @@ while b<=latest:
     r=rpc("eth_getLogs",[{"address":V2,"fromBlock":hex(b),"toBlock":hex(e),"topics":[TR]}])
     if r is None:
         if step>15_000: step//=2; continue
-        b=e+1; continue
+        # never skip a range: a gap bakes wrong balances that the page then streams on top of
+        raise SystemExit(f"could not read Transfer logs {b}-{e}")
     logs+=r; b=e+1
     print(f'  {e}/{latest} n={len(logs)}',flush=True)
 bal=collections.defaultdict(int); buy=collections.Counter(); sell=collections.Counter()
@@ -32,6 +33,9 @@ for l in logs:
     if t==PM and f!=PM: sell[f]+=v
 h={a:round(v/1e18,4) for a,v in bal.items() if v>0}
 flows={a:[round(buy[a]/1e18,2),round(sell[a]/1e18,2)] for a in set(list(buy)+list(sell)) if buy[a] or sell[a]}
+# exact balances in wei: the page keeps its live ledger in BigInt, so a holder who sells
+# everything drops to exactly 0 instead of leaving a rounding crumb that counts as a holder
+wei={a:str(v) for a,v in bal.items() if v>0}
 json.dump({"block":latest,"generated":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),
-           "transfers":len(logs),"holders":h,"flows":flows},open("holders_all.json","w"))
+           "transfers":len(logs),"holders":h,"wei":wei,"flows":flows},open("holders_all.json","w"))
 print("holders",len(h),"flows",len(flows),"block",latest,"transfers",len(logs))
