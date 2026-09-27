@@ -34,11 +34,19 @@ jobs:
         env:
           VAULT_ADDRESS: ${{ vars.VAULT_ADDRESS }}
           KEEPER_KEY:    ${{ secrets.KEEPER_KEY }}
+          GH_TOKEN:      ${{ github.token }}
         run: |
           end=$((SECONDS + 3300))
           while :; do
             date -u +%H:%M:%S
-            python3 keeper/keeper.py || echo "keeper exited $? (continuing)"
+            out=$(python3 keeper/keeper.py 2>&1) || echo "keeper exited $? (continuing)"
+            echo "$out"
+            # A burn just went out: rebake the snapshot now instead of waiting hours for the
+            # ledger schedule, so the page's first paint matches the chain after every burn.
+            if echo "$out" | grep -q "sent burnNow()"; then
+              sleep 90
+              gh workflow run refresh-ledgers.yml --ref main --repo "$GITHUB_REPOSITORY" || echo "ledger refresh dispatch failed"
+            fi
             [ "$SECONDS" -ge "$end" ] && break
             sleep 300
           done

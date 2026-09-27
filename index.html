@@ -1375,7 +1375,12 @@ async function pullChain() {
      (815,339,556 → 815,290,873), so "totalMinted − totalSupply" reads 0 forever.
      Burned is the sum of the token's Transfer-to-0x0 events (BURN_LOGS, pulled with the
      vault); everything ever minted is what still exists plus what was burned. */
-  const burned = D.burnEvents ? D.burnEvents.sum : Math.max(0, dec(tm) - D.supplyV2, D.burnedV2);
+  /* Until the log scan lands, take the largest burn total already known (the vault read, the
+     baked snapshot, the last value). The old fallback was the hard-coded burn #1 figure, so every
+     later burn was counted as "unclaimed": 37.17M shown vs 36.70M real after burn #3. */
+  const knownBurned = Math.max(D.burnedV2 || 0, D.vault ? D.vault.totalBurned : 0,
+    window.TL && window.TL.burns ? window.TL.burns.totalBurned || 0 : 0);
+  const burned = D.burnEvents ? D.burnEvents.sum : Math.max(0, dec(tm) - D.supplyV2, knownBurned);
   const minted = D.supplyV2 + burned, credits = dec(tc), max = dec(mx);
   const toMigrators = Math.max(0, minted - CONFIG.seedToPool);
   D.mintedV2 = minted;
