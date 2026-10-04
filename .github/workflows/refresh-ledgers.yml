@@ -32,6 +32,13 @@ jobs:
       - name: Write data/*.json for the page
         run: python3 scripts/inject.py
 
+      # burn/<seq>/ share pages (og:image card) for links posted on X. Each is written
+      # once; a failure here must never hold back the ledgers, so it only warns.
+      - name: Write burn share pages
+        run: |
+          pip install -q pillow==12.3.0 && python3 tools/burnpages.py \
+            || echo "::warning::burn share pages were not written"
+
       # A silent no-op here is how this job failed unnoticed for two days:
       # the page kept serving a stale ledger while every run went red.
       - name: Verify the page actually moved
@@ -60,7 +67,7 @@ jobs:
           set -eu
           git config user.name  "brodie-terminal-bot"
           git config user.email "bot@users.noreply.github.com"
-          if git diff --quiet -- data tools; then
+          if git diff --quiet -- data tools && [ -z "$(git ls-files --others --exclude-standard burn)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "ledgers unchanged"
             exit 0
@@ -68,7 +75,7 @@ jobs:
           MSG="chore: refresh ledgers $(date -u +%FT%TZ)"
           mkdir -p /tmp/ledgers
           for attempt in 1 2 3; do
-            git add data tools
+            git add data tools burn
             git diff --staged --quiet || git commit -q -m "$MSG"
             if git push origin HEAD:main; then
               echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -80,6 +87,7 @@ jobs:
             git reset -q --hard origin/main
             cp /tmp/ledgers/*.json tools/
             python3 scripts/inject.py
+            python3 tools/burnpages.py || true
           done
           echo "could not push after 3 attempts" >&2
           exit 1
