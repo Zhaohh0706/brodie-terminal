@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Write a share page for every burn: burn/<seq>/index.html and burn/<seq>/card.jpg.
+"""Write a share page for every burn: burn/<seq>/index.html, card.jpg and burn.json.
 
 A post on X that links brodieonhood.com/burn/<seq> unfurls into the burn's own
-card (og:image) instead of a bare link. The bot DMs the owner a one-tap "post to
-X" button with that link once the page is live.
+card (og:image) instead of a bare link. The bot polls burn/<seq>/burn.json: once it
+is live, the page is too, and it DMs the owner a one-tap "post to X" button.
 
 A page is written once and never redrawn: a burn doesn't change after it lands,
 and a file that never changes keeps the ledger commits free of churn. The first
@@ -224,12 +224,16 @@ def main():
     for b in burns:
         total += b["tokens"]
         out = ROOT / "burn" / str(b["seq"])
-        if not force and (out / "index.html").exists() and (out / "card.jpg").exists():
+        if not force and all((out / f).exists() for f in ("index.html", "card.jpg", "burn.json")):
             continue
         out.mkdir(parents=True, exist_ok=True)
         usd = b["eth"] * eth_usd
         (out / "card.jpg").write_bytes(card(b, total, usd))
         (out / "index.html").write_text(page(b, total, usd))
+        (out / "burn.json").write_text(json.dumps({
+            "seq": b["seq"], "t": b["t"], "tokens": b["tokens"], "eth": b["eth"], "usd": round(usd, 2),
+            "total": round(total, 4), "tx": b["tx"], "url": f"{SITE}/burn/{b['seq']}",
+            "image": f"{SITE}/burn/{b['seq']}/card.jpg"}, separators=(",", ":")) + "\n")
         wrote.append(b["seq"])
     print(f"burn pages: {len(burns)} burns, wrote {wrote or 'none'}")
 
