@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brodie Meme Maker · $BRODIE on Robinhood Chain</title>
+<meta name="description" content="Make a Brodie meme in your browser: the real Brodie stickers, classic captions, PNG download. No AI, and nothing is uploaded.">
+<meta name="theme-color" content="#0A0E0C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/brand/icon-192.png" type="image/png" sizes="192x192">
+<link rel="canonical" href="https://www.brodieonhood.com/maker">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Brodie Terminal">
+<meta property="og:url" content="https://www.brodieonhood.com/maker">
+<meta property="og:title" content="Brodie Meme Maker">
+<meta property="og:description" content="Pick a picture, drop in the real Brodie, add your line, download. No AI needed.">
+<meta property="og:image" content="https://www.brodieonhood.com/assets/brand/og-1200x630.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@Brodieonhood">
+<meta name="twitter:title" content="Brodie Meme Maker">
+<meta name="twitter:description" content="Pick a picture, drop in the real Brodie, add your line, download. No AI needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- same non-blocking load as the dashboard; Anton is the caption face (Impact where Google is blocked) -->
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,opsz,wght@0,9..144,800;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,opsz,wght@0,9..144,800;1,9..144,400&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"></noscript>
+<style>
+/* tokens: copied from the dashboard (index.html) so the two pages stay one site */
+:root{
+  color-scheme: dark;
+  --bg:#0A0E0C; --surface:#101613; --surface-2:#161E1A; --surface-3:#1E2823;
+  --line:#1F2B25; --line-2:#34453C;
+  --ink:#EEF3EF; --ink-2:#A9B8AF; --ink-3:#71827A;
+  --lime:#CCFF00; --lime-soft:rgba(204,255,0,.13); --lime-ink:#0A0E0C;
+  --gold-soft:rgba(240,185,74,.16); --down:#FF6B5E;
+  --glow:rgba(204,255,0,.16); --drop:rgba(0,0,0,.45);
+  --r:16px; --r-sm:10px;
+  --f-disp:"Fraunces", Georgia, "Times New Roman", serif;
+  --f-ui:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg:#F2F4F0; --surface:#FFFFFF; --surface-2:#EEF2EB; --surface-3:#E3E9E0;
+  --line:#D8DFD4; --line-2:#B5C1B2;
+  --ink:#0F1613; --ink-2:#43514A; --ink-3:#6E7D74;
+  --lime:#6E9400; --lime-soft:rgba(110,148,0,.13); --lime-ink:#FFFFFF;
+  --gold-soft:rgba(154,98,0,.13); --down:#B3271C;
+  --glow:rgba(110,148,0,.14); --drop:rgba(12,26,17,.08);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%; overflow-x:clip}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--f-ui); font-size:14px; line-height:1.55;
+  background-image:
+    radial-gradient(1200px 520px at 80% -10%, var(--glow), transparent 60%),
+    radial-gradient(900px 400px at -10% 20%, var(--gold-soft), transparent 60%);
+  background-attachment:fixed; overflow-x:clip;
+}
+a{color:inherit; text-decoration:none; border-bottom:1px solid var(--line-2); transition:color .15s ease, border-color .15s ease}
+a:hover{border-bottom-color:var(--lime); color:var(--lime)}
+:focus-visible{outline:2px solid var(--lime); outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important}}
+
+/* top bar */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  background:color-mix(in srgb, var(--bg) 78%, transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid var(--line);
+}
+.topbar-in{display:flex; align-items:center; gap:14px; padding:9px 18px; max-width:1180px; margin:0 auto}
+.brand{display:flex; align-items:center; gap:10px; border:0; min-width:0}
+.brand:hover{color:inherit}
+.brand img{width:32px; height:32px; border-radius:50%; flex:0 0 auto; border:1px solid var(--line-2)}
+.brand b{font-family:var(--f-disp); font-size:19px; letter-spacing:-.01em; font-weight:800; display:block; line-height:1.15}
+.brand span{font-family:var(--f-mono); font-size:9.5px; color:var(--ink-3); letter-spacing:.16em; text-transform:uppercase; display:block}
+.tb-ctl{display:flex; gap:6px; align-items:center; margin-left:auto; flex:0 0 auto}
+button.btn, a.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  font-family:var(--f-mono); font-size:11px; color:var(--ink-2); background:var(--surface-2);
+  border:1px solid var(--line); padding:6px 12px; cursor:pointer; letter-spacing:.06em; border-radius:999px;
+  transition:color .15s ease, border-color .15s ease, background .15s ease, transform .1s ease;
+}
+button.btn:hover, a.btn:hover{color:var(--ink); border-color:var(--line-2)}
+button.btn:active{transform:translateY(1px)}
+button.btn:disabled{opacity:.4; cursor:default}
+button.btn.primary{background:var(--lime); color:var(--lime-ink); border-color:var(--lime); font-weight:700}
+button.btn.primary:hover{filter:brightness(1.06)}
+button.btn.big, a.btn.big{font-size:12.5px; padding:10px 18px}
+button.btn.danger:hover{color:var(--down); border-color:var(--down)}
+
+/* page */
+.wrap{max-width:1180px; margin:0 auto; padding:26px 18px 44px}
+.kicker{font-family:var(--f-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3); margin:0 0 10px}
+h1{font-family:var(--f-disp); font-weight:800; font-size:clamp(30px,6vw,46px); line-height:1.05; letter-spacing:-.015em; margin:0 0 10px}
+h1 em{font-style:italic; font-weight:400; color:var(--lime); text-decoration:underline wavy; text-decoration-color:color-mix(in srgb, var(--lime) 38%, transparent); text-decoration-thickness:.05em; text-underline-offset:.1em}
+.lead{color:var(--ink-2); font-size:15px; max-width:60ch; margin:0 0 22px}
+
+/* desktop: canvas, tools and download stacked on the left, the picker on the right and sticky.
+   phone: one column in reading order, with the canvas pinned under the top bar so a sticker
+   or a caption is seen landing while the picker scrolls underneath it. */
+.work{
+  display:grid; grid-template-columns:minmax(0,1fr) 384px; grid-template-rows:auto auto auto 1fr;
+  grid-template-areas:"cv panel" "tools panel" "acts panel" ". panel"; gap:12px 18px; align-items:start;
+}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); min-width:0}
+.cvcard{grid-area:cv; padding:14px}
+.tools{grid-area:tools; min-width:0}
+.acts{grid-area:acts; padding:12px 14px}
+.canvas-box{
+  display:flex; align-items:center; justify-content:center; min-height:200px;
+  background:var(--surface-2); border-radius:var(--r-sm); padding:10px; overflow:hidden;
+}
+canvas{display:block; max-width:100%; max-height:min(62vh,700px); width:auto; height:auto; border-radius:6px; touch-action:none; cursor:grab; box-shadow:0 18px 40px -22px var(--drop)}
+canvas.drag{cursor:grabbing}
+.hint{font-size:12.5px; color:var(--ink-3); margin:0 4px; min-height:19px}
+
+.selbar{margin-top:8px; padding:10px 12px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); display:grid; gap:8px}
+.sliders{display:grid; grid-template-columns:1fr 1fr; gap:6px 14px}
+.fld{display:block; min-width:0}
+.fld > span, .lbl{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin:0 0 4px}
+input[type=range]{width:100%; accent-color:var(--lime); margin:0; height:24px}
+.row{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+.actions{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.actions .sp{flex:1 1 auto}
+.fine{font-size:12px; color:var(--ink-3); margin:8px 2px 0}
+
+/* panel */
+.panel{grid-area:panel; padding:12px; position:sticky; top:calc(var(--tb-h, 54px) + 12px); max-height:calc(100vh - var(--tb-h, 54px) - 24px); overflow-y:auto; overscroll-behavior:contain}
+.tabs{display:flex; gap:2px; border:1px solid var(--line); border-radius:999px; padding:4px; margin:0 0 12px; background:var(--surface-2)}
+.tabs button{flex:1 1 0; font-family:var(--f-ui); font-size:13px; font-weight:600; background:none; border:0; color:var(--ink-3); border-radius:999px; padding:8px 10px; cursor:pointer; transition:color .18s ease, background .18s ease}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--lime); color:var(--lime-ink)}
+.pane h2{font-family:var(--f-mono); font-size:10px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); margin:14px 2px 8px}
+.pane h2:first-child{margin-top:4px}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(70px,1fr)); gap:7px}
+.grid button{padding:0; border:1px solid var(--line); background:var(--surface-2); border-radius:var(--r-sm); aspect-ratio:1; overflow:hidden; cursor:pointer; transition:border-color .15s ease, transform .15s ease}
+.grid button:hover{border-color:var(--lime); transform:translateY(-2px)}
+.grid img{width:100%; height:100%; object-fit:cover; display:block}
+.grid.cut img{object-fit:contain; padding:7px}
+.grid.cut button.lime{background:#CCFF00}
+.grid.cut button.lime img{padding:14px}
+.swatches{display:flex; flex-wrap:wrap; gap:8px}
+.swatches button{width:30px; height:30px; border-radius:50%; border:2px solid var(--line-2); cursor:pointer; padding:0}
+.swatches button[aria-pressed="true"]{border-color:var(--lime); box-shadow:0 0 0 3px var(--lime-soft)}
+textarea{
+  width:100%; min-height:74px; resize:vertical; font:inherit; font-size:15px; color:var(--ink);
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-sm); padding:9px 11px;
+}
+textarea:disabled{opacity:.55}
+textarea::placeholder{color:var(--ink-3)}
+.check{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2); cursor:pointer}
+.check input{accent-color:var(--lime); width:16px; height:16px}
+.upload{display:inline-flex}
+.upload input{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none}
+
+footer{
+  border-top:1px solid var(--line); padding:22px 18px 44px; max-width:1180px; margin:0 auto;
+  display:flex; gap:14px 20px; flex-wrap:wrap; justify-content:space-between; font-size:11.5px; color:var(--ink-3); font-family:var(--f-mono);
+}
+footer .links{display:flex; gap:16px; flex-wrap:wrap; align-items:center}
+footer .links a{border-bottom:0}
+.stamp{font-size:10px; letter-spacing:.12em; text-transform:uppercase}
+
+@media (max-width:900px){
+  /* --cv-h is the pinned canvas card's height (set in paint()): what scrolls into view, and the
+     picker's tab row, must land below the top bar + canvas, not underneath them */
+  html{scroll-padding-top:calc(var(--tb-h, 52px) + var(--cv-h, 0px) + 66px)}
+  .tabs{position:sticky; top:calc(var(--tb-h, 52px) + var(--cv-h, 0px) + 8px); z-index:20; box-shadow:0 -9px 0 0 var(--surface), 0 12px 18px -14px var(--drop)}
+  .work{display:flex; flex-direction:column; gap:10px; align-items:stretch}
+  .cvcard{position:sticky; top:var(--tb-h, 52px); z-index:30; padding:8px; box-shadow:0 16px 28px -20px var(--drop)}
+  .canvas-box{min-height:0; padding:6px}
+  canvas{max-height:40vh}
+  body.typing canvas{max-height:26vh}          /* the keyboard is up: leave room for the text box */
+  .panel{position:static; max-height:none; overflow:visible}
+}
+@media (max-width:520px){
+  .topbar-in{padding:8px 12px; gap:8px}
+  .wrap{padding:18px 12px 36px}
+  .lead{font-size:14px; margin-bottom:16px}
+  .acts{padding:10px}
+  .panel{padding:10px}
+  button.btn.big, a.btn.big{padding:10px 14px}
+  footer{padding:18px 14px 36px; font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="/" aria-label="Back to the Brodie dashboard">
+      <img src="assets/logo.webp" width="32" height="32" alt="">
+      <div><b>BRODIE</b><span>Meme maker</span></div>
+    </a>
+    <div class="tb-ctl">
+      <a class="btn" href="/">← Dashboard</a>
+      <button class="btn" id="themeBtn" type="button" aria-label="Toggle theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="kicker">Meme maker · no AI needed</p>
+  <h1>Make your own <em>Brodie.</em></h1>
+  <p class="lead">Pick a picture, drop in the real Brodie, add your line, download. It all happens in your browser, and nothing is uploaded.</p>
+
+  <div class="work">
+    <section class="card cvcard" aria-label="Your meme">
+      <div class="canvas-box"><canvas id="cv" width="1080" height="1080" aria-label="Meme preview. Tap a sticker or caption to select it."></canvas></div>
+    </section>
+
+    <section class="tools">
+      <p class="hint" id="hint" role="status">Tap a sticker or caption to move it. Drag the lime dot to resize and turn.</p>
+      <div class="selbar" id="selbar" hidden>
+        <div class="sliders">
+          <label class="fld"><span>Size</span><input type="range" id="size" min="4" max="160" step="0.5" value="40"></label>
+          <label class="fld"><span>Turn</span><input type="range" id="rot" min="-180" max="180" step="1" value="0"></label>
+        </div>
+        <div class="row">
+          <button class="btn" id="flip" type="button">Flip</button>
+          <button class="btn" id="fwd" type="button">Forward</button>
+          <button class="btn" id="back" type="button">Back</button>
+          <button class="btn" id="dup" type="button">Duplicate</button>
+          <button class="btn danger" id="del" type="button">Delete</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card panel">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-pane="pBase">Picture</button>
+        <button type="button" role="tab" aria-selected="false" data-pane="pStick">Stickers</button>
+        <button type="button" role="tab" aria-selected="false" data-pane="pText">Text</button>
+      </div>
+
+      <div class="pane" id="pBase">
+        <h2>Brodie gallery</h2>
+        <div class="grid" id="gGallery"></div>
+        <h2>Plain canvas</h2>
+        <div class="row" id="ratios" style="margin-bottom:10px">
+          <button class="btn" type="button" data-w="1080" data-h="1080">1:1</button>
+          <button class="btn" type="button" data-w="1600" data-h="900">16:9</button>
+          <button class="btn" type="button" data-w="1080" data-h="1350">4:5</button>
+        </div>
+        <div class="swatches" id="bgSw" aria-label="Canvas colour"></div>
+        <h2>Your own picture</h2>
+        <label class="btn upload">Choose a picture<input type="file" id="file" accept="image/*"></label>
+        <p class="fine">It stays on your device.</p>
+      </div>
+
+      <div class="pane" id="pStick" hidden>
+        <h2>Brodie stickers</h2>
+        <div class="grid cut" id="gCuts"></div>
+        <h2>Cards</h2>
+        <div class="grid" id="gCards"></div>
+      </div>
+
+      <div class="pane" id="pText" hidden>
+        <h2>Caption on the picture</h2>
+        <div class="row" style="margin-bottom:8px"><button class="btn primary" id="addText" type="button">Add caption</button></div>
+        <textarea id="txt" placeholder="Add a caption, or tap one on the picture to edit it" disabled aria-label="Caption text"></textarea>
+        <div class="row" style="margin-top:8px; gap:14px">
+          <div class="swatches" id="txSw" aria-label="Caption colour"></div>
+          <label class="check"><input type="checkbox" id="caps" checked> ALL CAPS</label>
+        </div>
+        <h2>Caption bar above the picture</h2>
+        <textarea id="bar" placeholder="White bar with black text, like a screenshot of a post" aria-label="Caption bar text"></textarea>
+        <label class="fld" style="margin-top:8px"><span>Bar text size</span><input type="range" id="barSize" min="0.6" max="1.8" step="0.05" value="1"></label>
+      </div>
+    </aside>
+
+    <section class="card acts">
+      <div class="actions">
+        <button class="btn primary big" id="dl" type="button">Download PNG</button>
+        <button class="btn big" id="share" type="button" hidden>Share image</button>
+        <a class="btn big" id="xpost" href="https://x.com/intent/tweet?text=Made%20with%20the%20Brodie%20meme%20maker.%20%24BRODIE%20%40Brodieonhood&amp;url=https%3A%2F%2Fwww.brodieonhood.com%2Fmaker" target="_blank" rel="noopener">Post on X</a>
+        <span class="sp"></span>
+        <button class="btn danger" id="reset" type="button">Start over</button>
+      </div>
+      <p class="fine">X can’t take the picture from a link: download it first, then attach it to your post.</p>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <div>
+    <div class="stamp">$BRODIE meme maker · made by the community</div>
+    <div>Community project. Not affiliated with Robinhood Markets, Inc.</div>
+  </div>
+  <div class="links">
+    <a href="/">Dashboard</a>
+    <a href="https://x.com/Brodieonhood" rel="noopener" target="_blank">@Brodieonhood</a>
+    <a href="https://t.me/addlist/hSOPP5WV5jIzOGU0" rel="noopener" target="_blank">Telegram</a>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Brodie meme maker. One canvas, no libraries, nothing leaves the browser.
+   Every image is same-origin (or the visitor's own file), so the canvas is
+   never tainted and the PNG export always works.
+
+   To add a sticker: put a transparent webp (longest side ~720px) in
+   assets/maker/stickers/, a ~176px copy in assets/maker/stickers/t/, and list
+   its name in STICKERS. Gallery pictures and cards are the dashboard's own
+   (assets/memes).
+   ═══════════════════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const GALLERY = ['meme-082', 'meme-081', 'meme-040', 'meme-061', 'meme-055', 'meme-025', 'meme-064', 'meme-047',
+  'meme-083', 'meme-056', 'meme-021', 'sparkle-eyes', 'meme-046', 'meme-065', 'meme-071'];
+const STICKERS = ['happy', 'starry-eyes', 'wide-eyes', 'yay', 'shrug', 'scheming', 'crying', 'headache', 'unimpressed',
+  'sleeping', 'zen', 'popcorn', 'buff', 'flex', 'hero', 'love', 'nerd', 'reading', 'long-list', 'chess', 'rich',
+  'chill-hat', 'hammock', 'old-timer', 'look-back', 'rainbow'];
+const FEATHERS = [['feather-2024', 'Feather', .16], ['feather-2016', 'The 2016 feather', .2]];
+const CARDS = ['neon-glow', 'meme-010', 'meme-015', 'meme-019', 'meme-021', 'meme-024', 'meme-025', 'meme-026',
+  'meme-028', 'meme-029', 'sparkle-eyes', 'meme-037', 'trading-desk', 'meme-046', 'meme-047', 'meme-048',
+  'saturn-rings', 'meme-055', 'meme-057', 'meme-064', 'meme-065', 'meme-071', 'coin-bed', 'meme-083'];
+const BG_COLOURS = [['#0A0E0C', 'Night'], ['#CCFF00', 'Lime'], ['#FFFFFF', 'White'], ['#F3EDE0', 'Cream'], ['#14532D', 'Forest'], ['#FF7A45', 'Fire']];
+const TEXT_COLOURS = [['#FFFFFF', 'White'], ['#0A0E0C', 'Black'], ['#CCFF00', 'Lime']];
+const CAPTION_FONT = 'Anton, Impact, "HelveticaNeue-CondensedBlack", "Roboto Condensed", "Arial Narrow", "Arial Black", sans-serif';
+const BAR_FONT = '600 {px}px "Instrument Sans", "Helvetica Neue", Arial, sans-serif';
+
+const cv = $('#cv'), cx = cv.getContext('2d');
+const NARROW = matchMedia('(max-width:900px)');
+/* The document: W×H is the picture, in export pixels. Layers sit in picture coordinates
+   (x, y = their centre); the caption bar, when there is one, is extra height on top. */
+const S = { W: 1080, H: 1080, bg: { color: '#0A0E0C', bmp: null }, bar: { text: '', size: 1 }, layers: [], sel: -1, px: 2 };
+const imgs = new Map();
+const loadImg = src => imgs.get(src) || imgs.set(src, new Promise((ok, no) => {
+  const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error('could not load ' + src)); im.src = src;
+})).get(src);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const sel = () => S.layers[S.sel] || null;
+
+/* ── text ─────────────────────────────────────────────────────────────────── */
+function wrap(ctx, text, maxW) {
+  const out = [];
+  for (const para of String(text).split('\n')) {
+    let line = '';
+    for (const word of para.split(/(\s+)/)) {
+      const next = line + word;
+      if (ctx.measureText(next.trim()).width <= maxW) { line = next; continue; }
+      if (line.trim()) { out.push(line.trim()); line = ''; }
+      let cur = '';                                   // one token wider than the picture: break inside it
+      for (const ch of word.trim()) {
+        if (cur && ctx.measureText(cur + ch).width > maxW) { out.push(cur); cur = ch; } else cur += ch;
+      }
+      line = cur;
+    }
+    out.push(line.trim());
+  }
+  return out;
+}
+function textBox(ctx, l) {
+  ctx.font = l.size + 'px ' + CAPTION_FONT;
+  const lines = wrap(ctx, l.caps ? l.text.toUpperCase() : l.text, S.W * .96);
+  const w = Math.max(l.size, ...lines.map(t => ctx.measureText(t).width)) + l.size * .36;
+  return { lines, w, h: lines.length * l.size * 1.14 + l.size * .22 };
+}
+function barBox(ctx) {
+  const text = S.bar.text.trim();
+  if (!text) return { h: 0, lines: [], px: 0, pad: 0 };
+  const px = Math.round(S.W * .05 * S.bar.size), pad = Math.round(px * .75);
+  ctx.font = BAR_FONT.replace('{px}', px);
+  const lines = wrap(ctx, text, S.W - pad * 2);
+  return { h: Math.round(lines.length * px * 1.24 + pad * 1.7), lines, px, pad };
+}
+
+/* ── drawing ──────────────────────────────────────────────────────────────── */
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function size(l, ctx) {                              // a layer's box, before rotation
+  if (l.t === 'img') return { w: l.w, h: l.w * l.ar };
+  const b = textBox(ctx, l); l._lines = b.lines; return b;
+}
+function render(ctx, bar, withUi) {
+  ctx.imageSmoothingQuality = 'high';
+  if (bar.h) {
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, S.W, bar.h);
+    ctx.fillStyle = '#0F1613'; ctx.font = BAR_FONT.replace('{px}', bar.px); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    bar.lines.forEach((t, i) => ctx.fillText(t, bar.pad, bar.pad * .85 + i * bar.px * 1.24));
+  }
+  ctx.save();
+  ctx.translate(0, bar.h);
+  ctx.beginPath(); ctx.rect(0, 0, S.W, S.H); ctx.clip();
+  if (S.bg.bmp) ctx.drawImage(S.bg.bmp, 0, 0, S.W, S.H);
+  else { ctx.fillStyle = S.bg.color; ctx.fillRect(0, 0, S.W, S.H); }
+  for (const l of S.layers) {
+    const b = size(l, ctx);
+    l._w = b.w; l._h = b.h;
+    ctx.save();
+    ctx.translate(l.x, l.y); ctx.rotate(l.rot);
+    if (l.t === 'img') {
+      if (l.flip) ctx.scale(-1, 1);
+      if (l.card) {                                  // square memes go on as a sticker card: white edge, round corners
+        const e = b.w * .03;
+        ctx.fillStyle = '#fff'; roundRect(ctx, -b.w / 2, -b.h / 2, b.w, b.h, b.w * .09); ctx.fill();
+        ctx.save(); roundRect(ctx, -b.w / 2 + e, -b.h / 2 + e, b.w - e * 2, b.h - e * 2, b.w * .07); ctx.clip();
+        ctx.drawImage(l.img, -b.w / 2 + e, -b.h / 2 + e, b.w - e * 2, b.h - e * 2); ctx.restore();
+      } else ctx.drawImage(l.img, -b.w / 2, -b.h / 2, b.w, b.h);
+    } else {
+      ctx.font = l.size + 'px ' + CAPTION_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round'; ctx.miterLimit = 2; ctx.lineWidth = l.size * .16;
+      ctx.strokeStyle = l.color === '#0A0E0C' ? '#FFFFFF' : '#000000'; ctx.fillStyle = l.color;
+      const lh = l.size * 1.14, y0 = -(b.lines.length - 1) * lh / 2;
+      b.lines.forEach((t, i) => { ctx.strokeText(t, 0, y0 + i * lh); ctx.fillText(t, 0, y0 + i * lh); });
+    }
+    ctx.restore();
+  }
+  const l = withUi && sel();
+  if (l) {                                           // selection frame + the one handle (resize and turn)
+    ctx.save();
+    ctx.translate(l.x, l.y); ctx.rotate(l.rot);
+    ctx.lineWidth = 2 * S.px; ctx.setLineDash([7 * S.px, 5 * S.px]);
+    ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.strokeRect(-l._w / 2, -l._h / 2, l._w, l._h);
+    ctx.lineDashOffset = 6 * S.px; ctx.strokeStyle = '#CCFF00'; ctx.strokeRect(-l._w / 2, -l._h / 2, l._w, l._h);
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(l._w / 2, l._h / 2, 11 * S.px, 0, Math.PI * 2);
+    ctx.fillStyle = '#CCFF00'; ctx.fill(); ctx.lineWidth = 3 * S.px; ctx.strokeStyle = '#0A0E0C'; ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+let raf = 0, barNow = { h: 0 };
+function paint() {
+  raf = 0;
+  barNow = barBox(cx);
+  const h = S.H + barNow.h;
+  if (cv.width !== S.W || cv.height !== h) { cv.width = S.W; cv.height = h; }
+  else cx.clearRect(0, 0, cv.width, cv.height);
+  const r = cv.getBoundingClientRect();
+  S.px = r.width ? cv.width / r.width : 2;
+  render(cx, barNow, true);
+  const pin = NARROW.matches ? $('.cvcard').offsetHeight : 0;      // see the phone layout in the CSS
+  if (pin !== S.pin) { S.pin = pin; document.documentElement.style.setProperty('--cv-h', pin + 'px'); }
+}
+const draw = () => { if (!raf) raf = requestAnimationFrame(paint); };
+
+/* ── the picture ──────────────────────────────────────────────────────────── */
+function resizeDoc(w, h) {                           // layers keep their place, in proportion
+  const kx = w / S.W, ky = h / S.H;
+  for (const l of S.layers) { l.x *= kx; l.y *= ky; if (l.t === 'img') l.w *= kx; else l.size *= kx; }
+  S.W = w; S.H = h;
+}
+function setPlain(w, h, color) {
+  resizeDoc(w, h); S.bg = { color: color || S.bg.color, bmp: null };
+  syncBg(); draw();
+}
+function setPicture(src, nw, nh) {                   // src: anything drawImage takes
+  const k = clamp(Math.max(nw, nh), 1080, 1600) / Math.max(nw, nh);
+  const w = Math.round(nw * k), h = Math.round(nh * k);
+  const bmp = document.createElement('canvas'); bmp.width = w; bmp.height = h;
+  const c = bmp.getContext('2d'); c.imageSmoothingQuality = 'high'; c.drawImage(src, 0, 0, w, h);
+  resizeDoc(w, h); S.bg = { color: S.bg.color, bmp };
+  syncBg(); draw();
+}
+const setGallery = name => loadImg('assets/memes/g/' + name + '.webp').then(im => setPicture(im, im.naturalWidth, im.naturalHeight));
+async function setUpload(file) {
+  if (!file) return;
+  try {
+    const bm = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    setPicture(bm, bm.width, bm.height); bm.close && bm.close();
+  } catch (e) {                                      // older Safari: go through an <img>
+    const url = URL.createObjectURL(file);
+    try { const im = await loadImg(url); setPicture(im, im.naturalWidth, im.naturalHeight); }
+    catch (e2) { say('That file isn’t a picture this browser can open.'); }
+    finally { imgs.delete(url); URL.revokeObjectURL(url); }
+  }
+}
+
+/* ── layers ───────────────────────────────────────────────────────────────── */
+function select(i) { S.sel = i; syncSel(); draw(); }
+async function addSticker(src, share, card) {
+  const img = await loadImg(src), n = S.layers.length % 5;
+  S.layers.push({ t: 'img', img, card: !!card, x: S.W * (.5 + n * .035), y: S.H * (.5 + n * .035),
+                  w: Math.min(S.W, S.H) * share, ar: img.naturalHeight / img.naturalWidth, rot: 0, flip: false });
+  select(S.layers.length - 1);
+}
+function addText(text, yShare) {
+  const n = S.layers.filter(l => l.t === 'txt').length;
+  S.layers.push({ t: 'txt', text: text || 'YOUR LINE HERE', x: S.W / 2, y: S.H * (yShare != null ? yShare : [.11, .89, .5][n % 3]),
+                  size: Math.round(Math.min(S.W, S.H) * .095), rot: 0, color: '#FFFFFF', caps: true });
+  select(S.layers.length - 1);
+}
+function removeSel() { if (sel()) { S.layers.splice(S.sel, 1); select(-1); } }
+function moveSel(d) {
+  const i = S.sel, j = i + d;
+  if (i < 0 || j < 0 || j >= S.layers.length) return;
+  [S.layers[i], S.layers[j]] = [S.layers[j], S.layers[i]]; select(j);
+}
+function dupSel() {
+  const l = sel(); if (!l) return;
+  S.layers.push(Object.assign({}, l, { x: clamp(l.x + S.W * .05, 0, S.W), y: clamp(l.y + S.H * .05, 0, S.H) }));
+  select(S.layers.length - 1);
+}
+
+/* ── pointer: drag to move, drag the dot to resize + turn ─────────────────── */
+function point(e) {
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height - barNow.h };
+}
+function local(l, p) {                               // p in the layer's own unrotated frame
+  const dx = p.x - l.x, dy = p.y - l.y, c = Math.cos(-l.rot), s = Math.sin(-l.rot);
+  return { x: dx * c - dy * s, y: dx * s + dy * c };
+}
+const onHandle = (l, p) => { const q = local(l, p); return Math.hypot(q.x - l._w / 2, q.y - l._h / 2) <= 22 * S.px; };
+const inside = (l, p) => { const q = local(l, p); return Math.abs(q.x) <= l._w / 2 && Math.abs(q.y) <= l._h / 2; };
+function hit(p) { for (let i = S.layers.length - 1; i >= 0; i--) if (inside(S.layers[i], p)) return i; return -1; }
+let drag = null;
+cv.addEventListener('pointerdown', e => {
+  const p = point(e), cur = sel();
+  if (cur && onHandle(cur, p)) {
+    drag = { mode: 'xform', a0: Math.atan2(p.y - cur.y, p.x - cur.x), d0: Math.max(1, Math.hypot(p.x - cur.x, p.y - cur.y)),
+             rot0: cur.rot, s0: cur.t === 'img' ? cur.w : cur.size };
+  } else {
+    const i = hit(p);
+    if (i !== S.sel) select(i);
+    drag = i >= 0 ? { mode: 'move', px: p.x, py: p.y, x0: S.layers[i].x, y0: S.layers[i].y } : null;
+  }
+  if (drag) { cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); e.preventDefault(); }
+});
+cv.addEventListener('pointermove', e => {
+  const l = sel(); if (!drag || !l) return;
+  const p = point(e);
+  if (drag.mode === 'move') {
+    l.x = clamp(drag.x0 + p.x - drag.px, 0, S.W); l.y = clamp(drag.y0 + p.y - drag.py, 0, S.H);
+    if (Math.abs(l.x - S.W / 2) < 9 * S.px) l.x = S.W / 2;          // a gentle snap to the middle
+  } else {
+    const k = Math.hypot(p.x - l.x, p.y - l.y) / drag.d0;
+    let rot = drag.rot0 + Math.atan2(p.y - l.y, p.x - l.x) - drag.a0;
+    const q = Math.round(rot / (Math.PI / 2)) * (Math.PI / 2);
+    if (Math.abs(rot - q) < .05) rot = q;                           // and to straight
+    l.rot = rot;
+    if (l.t === 'img') l.w = clamp(drag.s0 * k, S.W * .04, S.W * 2.5); else l.size = clamp(drag.s0 * k, S.W * .02, S.W * .5);
+  }
+  syncSel(true); draw();
+});
+const endDrag = () => { drag = null; cv.classList.remove('drag'); };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+/* ── controls ─────────────────────────────────────────────────────────────── */
+function say(t) { $('#hint').textContent = t; }
+function syncSel(slidersOnly) {
+  const l = sel();
+  $('#selbar').hidden = !l;
+  if (l) {
+    $('#size').value = l.t === 'img' ? l.w / S.W * 100 : l.size / S.W * 400;
+    let deg = Math.round(l.rot * 180 / Math.PI) % 360; if (deg > 180) deg -= 360; if (deg < -180) deg += 360;
+    $('#rot').value = deg;
+    $('#flip').disabled = l.t !== 'img';
+  }
+  if (slidersOnly) return;
+  const t = l && l.t === 'txt' ? l : null;
+  $('#txt').disabled = !t; $('#txt').value = t ? t.text : '';
+  $('#caps').checked = t ? t.caps : true;
+  $('#txSw').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(!!t && b.dataset.c === t.color)));
+  say(l ? 'Drag to move. Drag the lime dot to resize and turn.' : 'Tap a sticker or caption to move it. Drag the lime dot to resize and turn.');
+}
+function syncBg() {
+  $('#bgSw').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(!S.bg.bmp && b.dataset.c === S.bg.color)));
+}
+$('#size').addEventListener('input', e => {
+  const l = sel(); if (!l) return;
+  if (l.t === 'img') l.w = S.W * e.target.value / 100; else l.size = S.W * e.target.value / 400;
+  draw();
+});
+$('#rot').addEventListener('input', e => { const l = sel(); if (l) { l.rot = e.target.value * Math.PI / 180; draw(); } });
+$('#flip').addEventListener('click', () => { const l = sel(); if (l && l.t === 'img') { l.flip = !l.flip; draw(); } });
+$('#fwd').addEventListener('click', () => moveSel(1));
+$('#back').addEventListener('click', () => moveSel(-1));
+$('#dup').addEventListener('click', dupSel);
+$('#del').addEventListener('click', removeSel);
+document.addEventListener('keydown', e => {
+  if (/^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName) || !sel()) return;
+  const l = sel(), step = (e.shiftKey ? .05 : .01) * S.W;
+  if (e.key === 'Delete' || e.key === 'Backspace') removeSel();
+  else if (e.key === 'ArrowLeft') l.x = clamp(l.x - step, 0, S.W);
+  else if (e.key === 'ArrowRight') l.x = clamp(l.x + step, 0, S.W);
+  else if (e.key === 'ArrowUp') l.y = clamp(l.y - step, 0, S.H);
+  else if (e.key === 'ArrowDown') l.y = clamp(l.y + step, 0, S.H);
+  else if (e.key === 'Escape') select(-1);
+  else return;
+  e.preventDefault(); draw();
+});
+
+/* tabs. On a phone the canvas is pinned and the page may be scrolled deep into a long pane:
+   bring the top of the newly opened pane back to just under the canvas. */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  document.querySelectorAll('.pane').forEach(p => { p.hidden = p.id !== b.dataset.pane; });
+  if (!NARROW.matches) return;
+  const line = $('.cvcard').getBoundingClientRect().bottom + 8, top = $('.panel').getBoundingClientRect().top;
+  if (top < line) scrollBy(0, top - line);
+}));
+const showPane = id => document.querySelector('.tabs button[data-pane="' + id + '"]').click();
+
+/* picture pane */
+$('#gGallery').innerHTML = GALLERY.map(n => '<button type="button" data-n="' + n + '" aria-label="Use this picture"><img src="assets/memes/g/' + n + '.webp" alt="" loading="lazy" width="72" height="72"></button>').join('');
+$('#gGallery').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setGallery(b.dataset.n); });
+$('#ratios').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setPlain(+b.dataset.w, +b.dataset.h); });
+$('#bgSw').innerHTML = BG_COLOURS.map(c => '<button type="button" data-c="' + c[0] + '" style="background:' + c[0] + '" aria-label="' + c[1] + '" title="' + c[1] + '" aria-pressed="false"></button>').join('');
+$('#bgSw').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setPlain(S.W, S.H, b.dataset.c); });
+$('#file').addEventListener('change', e => { setUpload(e.target.files[0]); e.target.value = ''; });
+
+/* sticker pane */
+const label = n => n.replace(/-/g, ' ');
+$('#gCuts').innerHTML =
+  STICKERS.map(n => '<button type="button" data-src="assets/maker/stickers/' + n + '.webp" data-s=".46" aria-label="Add the ' + label(n) + ' sticker" title="' + label(n) + '"><img src="assets/maker/stickers/t/' + n + '.webp" alt="" loading="lazy" width="72" height="72"></button>').join('') +
+  FEATHERS.map(c => '<button type="button" class="lime" data-src="assets/maker/' + c[0] + '.webp" data-s="' + c[2] + '" aria-label="Add ' + c[1] + '" title="' + c[1] + '"><img src="assets/maker/' + c[0] + '.webp" alt="" loading="lazy" width="72" height="72"></button>').join('');
+$('#gCuts').addEventListener('click', e => { const b = e.target.closest('button'); if (b) addSticker(b.dataset.src, +b.dataset.s, false); });
+$('#gCards').innerHTML = CARDS.map(n => '<button type="button" data-n="' + n + '" aria-label="Add this card"><img src="assets/memes/s/' + n + '.webp" alt="" loading="lazy" width="72" height="72"></button>').join('');
+$('#gCards').addEventListener('click', e => { const b = e.target.closest('button'); if (b) addSticker('assets/memes/s/' + b.dataset.n + '.webp', .34, true); });
+
+/* text pane */
+$('#addText').addEventListener('click', () => { addText(); const t = $('#txt'); t.focus(); t.select(); });
+$('#txt').addEventListener('input', e => { const l = sel(); if (l && l.t === 'txt') { l.text = e.target.value; draw(); } });
+$('#caps').addEventListener('change', e => { const l = sel(); if (l && l.t === 'txt') { l.caps = e.target.checked; draw(); } });
+$('#txSw').innerHTML = TEXT_COLOURS.map(c => '<button type="button" data-c="' + c[0] + '" style="background:' + c[0] + '" aria-label="' + c[1] + '" title="' + c[1] + '" aria-pressed="false"></button>').join('');
+$('#txSw').addEventListener('click', e => {
+  const b = e.target.closest('button'), l = sel();
+  if (b && l && l.t === 'txt') { l.color = b.dataset.c; syncSel(); draw(); }
+});
+$('#bar').addEventListener('input', e => { S.bar.text = e.target.value; draw(); });
+$('#barSize').addEventListener('input', e => { S.bar.size = +e.target.value; draw(); });
+
+/* ── export ───────────────────────────────────────────────────────────────── */
+function exportCanvas() {
+  const c = document.createElement('canvas'), x = c.getContext('2d'), bar = barBox(x);
+  c.width = S.W; c.height = S.H + bar.h;
+  render(x, bar, false);
+  return c;
+}
+/* toBlob encodes when the browser is idle, and a busy or backgrounded tab can keep it waiting
+   (seen in testing: a click that also scrolled the page left it pending). So it races a plain
+   synchronous encode, and whichever finishes first is the file. */
+const exportBlob = () => new Promise((ok, no) => {
+  let done = false;
+  const finish = b => { if (done) return; done = true; b ? ok(b) : no(new Error('empty export')); };
+  try {
+    const c = exportCanvas();
+    c.toBlob(finish, 'image/png');
+    setTimeout(() => {
+      if (done) return;
+      try {
+        const bin = atob(c.toDataURL('image/png').split(',')[1]), bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        finish(new Blob([bytes], { type: 'image/png' }));
+      } catch (e) { done = true; no(e); }
+    }, 600);
+  } catch (e) { no(e); }
+});
+const fileName = () => 'brodie-meme-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '') + '.png';
+$('#dl').addEventListener('click', async () => {
+  try {
+    const url = URL.createObjectURL(await exportBlob()), a = document.createElement('a');
+    a.href = url; a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    say('Saved. Attach it to your post and tag @Brodieonhood.');
+  } catch (e) { say('The download didn’t work in this browser. Press and hold the picture to save it instead.'); }
+});
+(function () {                                       // phones: hand the PNG straight to the share sheet
+  let ok = false;
+  try { ok = !!navigator.canShare && navigator.canShare({ files: [new File([new Blob(['x'])], 'x.png', { type: 'image/png' })] }); } catch (e) {}
+  if (!ok) return;
+  $('#share').hidden = false;
+  $('#share').addEventListener('click', async () => {
+    try { await navigator.share({ files: [new File([await exportBlob()], fileName(), { type: 'image/png' })], text: '$BRODIE' }); }
+    catch (e) { /* closed the sheet */ }
+  });
+})();
+let resetArmed = 0;
+$('#reset').addEventListener('click', e => {         // two taps instead of a browser dialog
+  if (Date.now() - resetArmed > 3500) { resetArmed = Date.now(); e.target.textContent = 'Tap again to clear'; setTimeout(() => { e.target.textContent = 'Start over'; }, 3500); return; }
+  resetArmed = 0; e.target.textContent = 'Start over'; start();
+});
+
+/* ── theme: the dashboard's choice carries over ───────────────────────────── */
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem('brodie-theme'); } catch (e) {}
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  $('#themeBtn').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('brodie-theme', next); } catch (e) {}
+  });
+})();
+
+/* ── start: something to play with, not an empty box ──────────────────────── */
+async function start() {
+  S.W = 1080; S.H = 1080; S.bg = { color: '#0A0E0C', bmp: null }; S.bar = { text: '', size: 1 }; S.layers = []; S.sel = -1;
+  $('#bar').value = ''; $('#barSize').value = 1;
+  syncBg(); syncSel(); draw();
+  try { await addSticker('assets/maker/stickers/happy.webp', .5, false); S.layers[0].x = S.W / 2; S.layers[0].y = S.H * .5; } catch (e) {}
+  addText('Still here.', .1); addText('Still burning.', .9);
+  select(-1);
+}
+start();
+if (document.fonts) {                                // captions redraw once Anton has arrived
+  Promise.all([document.fonts.load('80px Anton'), document.fonts.load('600 40px "Instrument Sans"')]).then(draw, draw);
+  document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', draw);
+}
+const tbH = () => document.documentElement.style.setProperty('--tb-h', $('.topbar').offsetHeight + 'px');
+tbH();
+addEventListener('resize', () => { tbH(); draw(); });
+document.addEventListener('focusin', e => { if (e.target.tagName === 'TEXTAREA') { document.body.classList.add('typing'); draw(); } });
+document.addEventListener('focusout', e => { if (e.target.tagName === 'TEXTAREA') { document.body.classList.remove('typing'); draw(); } });
+window.MAKER = { S, addSticker, addText, setGallery, setPlain, setUpload, select, exportBlob, exportCanvas, showPane };
+</script>
+</body>
+</html>
