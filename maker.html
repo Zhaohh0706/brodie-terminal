@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Brodie Meme Maker · $BRODIE on Robinhood Chain</title>
-<meta name="description" content="Make a Brodie meme in your browser: the real Brodie stickers, classic captions, PNG download. No AI, and nothing is uploaded.">
+<meta name="description" content="Make a Brodie meme in your browser: 84 Brodie stickers in the new look, classic captions, PNG download. No AI, and nothing is uploaded.">
 <meta name="theme-color" content="#0A0E0C">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/brand/icon-192.png" type="image/png" sizes="192x192">
@@ -312,11 +312,11 @@ footer .links a{border-bottom:0}
    (assets/memes).
    ═══════════════════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
-const GALLERY = ['meme-082', 'meme-081', 'meme-040', 'meme-061', 'meme-055', 'meme-025', 'meme-064', 'meme-047',
+const GALLERY = ['scene-1-park', 'scene-2-desk', 'scene-3-moon', 'scene-4-vault', 'scene-5-rooftop', 'scene-6-campfire',
+  'scene-7-office', 'scene-8-pool', 'scene-9-launchpad', 'scene-10-summit', 'scene-11-rain', 'scene-12-beach',
+  'meme-082', 'meme-081', 'meme-040', 'meme-061', 'meme-055', 'meme-025', 'meme-064', 'meme-047',
   'meme-083', 'meme-056', 'meme-021', 'sparkle-eyes', 'meme-046', 'meme-065', 'meme-071'];
-const STICKERS = ['happy', 'starry-eyes', 'wide-eyes', 'yay', 'shrug', 'scheming', 'crying', 'headache', 'unimpressed',
-  'sleeping', 'zen', 'popcorn', 'buff', 'flex', 'hero', 'love', 'nerd', 'reading', 'long-list', 'chess', 'rich',
-  'chill-hat', 'hammock', 'old-timer', 'look-back', 'rainbow'];
+const STICKERS = ['thumbs-up', 'coffee', 'laugh-point', 'cope', 'facepalm', 'phone-shock', 'sunglasses', 'angry', 'thinking', 'salute', 'popcorn', 'love', 'side-eye', 'bone', 'diamond-paws', 'laser-eyes', 'coin-flip', 'magnifier', 'bullish', 'wen', 'keys', 'green-candle', 'thumbs-up-full', 'sit', 'walk', 'run', 'bury-bone', 'laptop', 'jump', 'flat', 'rocket', 'burn', 'hodl-coin', 'sign', 'gn', 'moon', 'stack', 'vault', 'airdrop', 'bull', 'dance', 'rug', 'shrug', 'gym', 'zen', 'surf', 'bone-carry', 'dig', 'hero', 'trophy', 'support', 'telescope', 'umbrella', 'charts', 'highfive-pons', 'pack', 'selfie', 'treats', 'king', 'megaphone', 'newspaper', 'wheelbarrow', 'whale-ride', 'hammock', 'cart', 'coin-tree', 'tux', 'dj', 'hoodie', 'hardware-wallet', 'whale', 'wizard', 'tinfoil', 'vr', 'ape', 'bear-suit', 'headphones', 'gold-bone', 'sunrise', 'robin-hood', 'pirate', 'builder', 'chef', 'halloween', 'vacation', 'knight', 'party', 'astronaut', 'scientist', 'cowboy', 'detective', 'front', 'three-quarter', 'side', 'back', 'look-back'];
 const FEATHERS = [['feather-2024', 'Feather', .16], ['feather-2016', 'The 2016 feather', .2]];
 const CARDS = ['neon-glow', 'meme-010', 'meme-015', 'meme-019', 'meme-021', 'meme-024', 'meme-025', 'meme-026',
   'meme-028', 'meme-029', 'sparkle-eyes', 'meme-037', 'trading-desk', 'meme-046', 'meme-047', 'meme-048',
@@ -701,7 +701,7 @@ async function start() {
   S.W = 1080; S.H = 1080; S.bg = { color: '#0A0E0C', bmp: null }; S.bar = { text: '', size: 1 }; S.layers = []; S.sel = -1;
   $('#bar').value = ''; $('#barSize').value = 1;
   syncBg(); syncSel(); draw();
-  try { await addSticker('assets/maker/stickers/happy.webp', .5, false); S.layers[0].x = S.W / 2; S.layers[0].y = S.H * .5; } catch (e) {}
+  try { await addSticker('assets/maker/stickers/thumbs-up.webp', .5, false); S.layers[0].x = S.W / 2; S.layers[0].y = S.H * .5; } catch (e) {}
   addText('Still here.', .1); addText('Still burning.', .9);
   select(-1);
 }
