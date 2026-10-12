@@ -1,10 +1,10 @@
 {
- "block": 86794295,
- "generated": "2026-10-12T15:55:00Z",
- "transfers": 40198,
- "minted": 815528582.0655326,
+ "block": 86993778,
+ "generated": "2026-10-12T21:35:47Z",
+ "transfers": 40262,
+ "minted": 829451376.2926846,
  "burned": 4021282.188585514,
- "supply_from_logs": 811507299.876947,
+ "supply_from_logs": 825430094.104099,
  "mint_recipients": [
   [
    "0x9310bc8bf95fa35608a9f08f76b55b4fdddc1ef0",
@@ -25,6 +25,10 @@
   [
    "0x1026b226bc99f6d69b74ffddcf9cae3ac16aedf9",
    16227796.396773303
+  ],
+  [
+   "0x5083727d6fa9a56ce5fbc4cdf672ec13ff0ed596",
+   13922794.227151811
   ],
   [
    "0x167b83b2ce7e912db88fe8f8e0a5a67ebf22c78e",
@@ -2295,8 +2299,8 @@
    3.3517635515315973
   ]
  ],
- "holders": 631,
- "pool_balance": 337931600.8623346,
+ "holders": 640,
+ "pool_balance": 326862880.2309504,
  "never_sold": [
   [
    "0xec70ff3b5486837583208c26562c46711815029e",
@@ -2365,15 +2369,15 @@
    false
   ],
   [
-   "0x9846d769225b226cfb62808ba188f4b63fad5723",
-   1596423.707693655,
-   70440.17640565884,
-   true
+   "0xbfb1a4270655f7709908f7a1ab7b8f179f3394e8",
+   2281196.181731937,
+   2281196.181731937,
+   false
   ]
  ],
- "never_sold_total": 148183376.71401483,
- "never_sold_count": 100,
- "mint_count": 5115,
+ "never_sold_total": 153492994.62732798,
+ "never_sold_count": 105,
+ "mint_count": 5116,
  "mint_first": {
   "blk": 49296036,
   "amt": 100008380.0,
@@ -2382,11 +2386,11 @@
   "t": 1788020813
  },
  "mint_last": {
-  "blk": 80272517,
-  "amt": 183778.31,
-  "to": "0x7404d6e0226bc63473b6b47d806b12efe68adcc2",
-  "tx": "0x25cfaee120847a7d4f7c5b6c9cc758635749798f342432481573c452f0bf0020",
-  "t": 1791150986
+  "blk": 86878946,
+  "amt": 13922794.23,
+  "to": "0x5083727d6fa9a56ce5fbc4cdf672ec13ff0ed596",
+  "tx": "0xbd13d3fa1eae1b09a0034a9f8b203dc0c14e3bac43b268bfc22dbb4f28d3324b",
+  "t": 1791829089
  },
  "v1_in_poolmanager": 15297754.942120094
 }
